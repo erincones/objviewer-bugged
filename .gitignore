@@ -1,0 +1,17 @@
+# Build files
+bin*/
+build*/
+
+
+# Visual studio
+.vs/*
+
+
+# All models
+model/*
+
+# Keep required models
+!model/arrow/
+!model/crash/
+!model/suzanne/
+!model/nanosuit/
