@@ -6,10 +6,11 @@
 #include <glm/glm.hpp>
 
 #include <set>
+#include <cstdint>
 
 class Light {
     public:
-        enum TYPE : unsigned int {
+        enum TYPE : std::uint32_t {
             DIRECTIONAL,
             POINT,
             SPOTLIGHT
@@ -18,7 +19,7 @@ class Light {
     private:
         // Type and ID
         TYPE type;
-        unsigned int id;
+		std::uint32_t id;
 
         // Enabled flag
         bool enabled;
@@ -44,10 +45,10 @@ class Light {
         glm::vec2 cutoff;
 
         // Counters by type
-        static unsigned int count;
+        static std::uint32_t count;
 
         // Sets by type
-        static std::set<unsigned int> id_set;
+        static std::set<std::uint32_t> stock;
 
 
     public:
@@ -77,11 +78,11 @@ class Light {
         void setOuterCutoff(const float &value);
 
 
-        void use(GLSLProgram *const program, const bool &as_array = true) const;
+        void use(GLSLProgram *const program, const bool &as_array = false) const;
 
         bool isEnabled() const;
 
-        unsigned int getID() const;
+		std::uint32_t getID() const;
         TYPE getType() const;
 
         glm::vec3 getDirection() const;
@@ -98,7 +99,7 @@ class Light {
         glm::vec3 getAttenuation() const;
         glm::vec2 getCutoff() const;
 
-        static unsigned int getNumberOfLights();
+        static std::size_t getNumberOfLights();
 
         ~Light();
 };

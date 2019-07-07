@@ -50,7 +50,7 @@ struct glsl_data {
 
     // Associated models
     std::set<unsigned int> model;
-} ;
+};
 
 // Model data
 struct model_data {
@@ -407,7 +407,6 @@ void load_scene(const std::string &bin_path) {
 
     // Load GLSL dummy program
     glsl_dummy = new glsl_data;
-    glsl_dummy->program = new GLSLProgram();
 
     // Load models
     std::map<unsigned int, glsl_data *>::iterator glsl = glsl_stock.begin();
@@ -520,7 +519,7 @@ void pop_glsl(const unsigned int &id) {
     if (result != glsl_stock.end()) {
         // Replacement program
         glsl_data *replacement_program = glsl_dummy;
-        unsigned int replacement_id = (unsigned)-1;
+        unsigned int replacement_id = -1;
 
         if (glsl_stock.size() > 1) {
             std::map<unsigned int, glsl_data *>::iterator glsl = glsl_stock.begin();
@@ -622,28 +621,7 @@ void update_model(model_data *const data) {
 
 // Get GLSL program shaders pipeline as std::string
 std::string get_glsl_desc(const GLSLProgram *const program) {
-    // Pipeline with first shader
-    std::string pipeline = program->getVertex()->getName();
-
-    // Other shaders
-    std::string shader[] = {
-        program->getTessCtrl()->getName(),
-        program->getTessEval()->getName(),
-        program->getGeometry()->getName(),
-        program->getFragment()->getName()
-    };
-
-    // Build pipeline string
-    for (const std::string &name : shader) {
-        if (!name.empty()) {
-            if (!pipeline.empty())
-                pipeline.append(PLUS);
-
-            pipeline.append(name);
-        }
-    }
-
-    return pipeline;
+    return program->getShader(GL_VERTEX_SHADER)->getName() + PLUS + program->getShader(GL_FRAGMENT_SHADER)->getName();
 }
 
 // Setup GUI
@@ -991,7 +969,7 @@ void main_loop() {
             GLSLProgram *const program = data.second->glsl_program->program;
 
             // Draw if is the model and program are not null and drawable
-            if (data.second->model->isEnabled() && program->isValid()) {
+            if (data.second->model->isEnabled() && program != nullptr && program->isValid()) {
                 // Use camera
                 camera->use(program);
 
@@ -1006,7 +984,7 @@ void main_loop() {
                         light.second->light->setDirection(camera->getLookDirection());
                     }
 
-                    light.second->light->use(program);
+                    light.second->light->use(program, true);
                 }
 
                 // Draw model
@@ -1067,7 +1045,6 @@ void clean_up() {
     if (camera != nullptr) delete camera;
 
     // Delete dummy GLSL program
-    delete glsl_dummy->program;
     delete glsl_dummy;
 
     // Delete light arrow
