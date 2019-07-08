@@ -72,20 +72,9 @@ void Scene::draw() {
 			program->use();
 			program->setUniform("light_size", Light::getNumberOfLights());
 
-			// Update and use lights
-			for (const std::pair<const std::uint32_t, Scene::light_data *> &light_it : light_stock) {
-				// Get light
-				Light *light = light_it.second->light;
-
-				// Update position and direction for grabbed lights
-				if (light->isEnabled() && (light->getType() == Light::SPOTLIGHT) && (light_it.second->grab)) {
-					light->setPosition(camera->getPosition());
-					light->setDirection(camera->getLookDirection());
-				}
-
-				// Use light
-				light->use(program, true);
-			}
+			// Update lights
+			for (const std::pair<const std::uint32_t, Scene::light_data *> &light_it : light_stock)
+				light_it.second->light->use(program, true);
 
 			// Draw model
 			model_it.second->model->draw(program);
@@ -104,14 +93,14 @@ void Scene::draw() {
 		// Check draw
 		if (light.second->draw) {
 			// Light direction
-			glm::vec3 light_direction = light.second->light->getDirection();
+			glm::vec3 light_direction = light.second->light->direction;
 			glm::vec3 light_axis = glm::cross(FRONT, light_direction);
 			float light_cos = glm::dot(FRONT, light_direction);
 			float light_angle = glm::acos(glm::abs(light_cos));
 
 			// Setup geometry
 			light_model->reset();
-			light_model->setPosition(light.second->light->getPosition() - light_scale * light_direction);
+			light_model->setPosition(light.second->light->position - light_scale * light_direction);
 			light_model->setRotation(glm::angleAxis(light_angle, light_axis));
 
 			// Front light
@@ -341,12 +330,22 @@ void Scene::selectCamera(const std::uint32_t &id) {
 // Move camera
 void Scene::moveCamera(const Camera::Movement &direction) {
 	camera->move(direction, time_delta);
+
+	// Ubdate position for grabbed lights
+	for (const std::pair<const std::uint32_t, Scene::light_data *> &light_it : light_stock)
+		if (light_it.second->grab)
+			light_it.second->light->position = camera->getPosition();
 }
 
 
 // Look around
 void Scene::lookAround(const double &xpos, const double &ypos) {
 	camera->rotate(mouse->translate(xpos, ypos));
+
+	// Ubdate direction for grabbed lights
+	for (const std::pair<const std::uint32_t, Scene::light_data *> &light_it : light_stock)
+		if (light_it.second->grab)
+			light_it.second->light->direction = camera->getLookDirection();
 }
 
 // Camera zoom

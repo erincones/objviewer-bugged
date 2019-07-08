@@ -34,11 +34,6 @@ bool show_metrics = false;
 bool show_about = false;
 
 const std::string GUI_ID_TAG = "###";
-const std::map<Light::Type, std::string> LIGHT_TYPE_LABEL = {
-	{Light::DIRECTIONAL, "Directional"},
-	{Light::POINT,       "Point"},
-	{Light::SPOTLIGHT,   "Spotlight"}
-};
 
 // OpenGL and scene initialization
 void init_opengl();
@@ -262,6 +257,7 @@ void setup_scene(const std::string &bin_path) {
     const std::string model_path = root_path + ".." + DIR_SEP + "model" + DIR_SEP;
     const std::string shader_path = root_path + ".." + DIR_SEP + "shader" + DIR_SEP;
 
+
 	// Create scene and setup camera
 	scene = new Scene(width, height, model_path, shader_path);
 	scene->getCamera()->setPosition(glm::vec3(0.0F, 0.0F, 2.0F));
@@ -273,63 +269,71 @@ void setup_scene(const std::string &bin_path) {
 	const std::uint32_t cook_torrance = scene->pushProgram(vertex, shader_path + "cook_torrance.frag.glsl");
 
     // Add models
+	const std::uint32_t nanosuit = scene->pushModel(model_path + "nanosuit" + DIR_SEP + "nanosuit.obj");
 	const std::uint32_t suzanne  = scene->pushModel(model_path + "suzanne"  + DIR_SEP + "suzanne.obj");
 	const std::uint32_t crash    = scene->pushModel(model_path + "crash"    + DIR_SEP + "crashbandicoot.obj");
-	const std::uint32_t nanosuit = scene->pushModel(model_path + "nanosuit" + DIR_SEP + "nanosuit.obj");
 
 	// Associate models to programs
+	scene->associate(nanosuit, cook_torrance);
 	scene->associate(suzanne, blinn_phong);
 	scene->associate(crash, oren_nayar);
-	scene->associate(nanosuit, cook_torrance);
+
 
     // Models default values
     std::map<std::uint32_t, Scene::model_data *> model_stock = scene->getModelStock();
-	std::map<std::uint32_t, Scene::model_data *>::iterator model = model_stock.begin()++;
+	std::map<std::uint32_t, Scene::model_data *>::iterator model = model_stock.begin();
+
+	// Suzanne geometry
+	model++;
     model->second->model->setScale(glm::vec3(0.5F));
     model->second->model->setPosition(glm::vec3(0.6F, 0.25F, 0.0F));
 
+	// Crashbandicoot geometry
     model++;
     model->second->model->setScale(glm::vec3(0.5F));
     model->second->model->setPosition(glm::vec3(0.6F, -0.25F, 0.0F));
 
-	// Create lights
-	scene->pushLight(Light::DIRECTIONAL);
-	scene->pushLight(Light::POINT);
-	scene->pushLight(Light::POINT);
-	scene->pushLight(Light::SPOTLIGHT);
-	scene->pushLight(Light::SPOTLIGHT);
+
+	// Add five lights
+	for (int i = 0; i < 5; i++) scene->pushLight();
 
     // Lights default values
 	std::map<std::uint32_t, Scene::light_data *> light_stock = scene->getLightStock();
 	std::map<std::uint32_t, Scene::light_data *>::iterator light = light_stock.begin();
-    light->second->light->setPosition(glm::vec3(0.25F));
-    light->second->light->setDirection(glm::vec3(0.4F, -0.675F, -0.62F));
-    light->second->light->setDiffuse(glm::vec3(0.75F, 0.875F, 1.0F));
-    light->second->light->setSpecular(glm::vec3(0.0F, 0.5F, 0.8F));
+
+	light->second->light->type      = Light::DIRECTIONAL;
+    light->second->light->position  = glm::vec3(0.25F);
+    light->second->light->direction = glm::vec3(0.40F, -0.675F, -0.62F);
+    light->second->light->diffuse   = glm::vec3(0.75F,  0.875F,  1.00F);
+    light->second->light->specular  = glm::vec3(0.00F,  0.500F,  0.80F);
 
     light++;
-    light->second->light->setPosition(glm::vec3(0.61F, 0.07F, 0.25F));
-    light->second->light->setDirection(glm::vec3(0.635F, -0.7F, -0.325F));
-    light->second->light->setDiffuse(glm::vec3(1.0F, 0.875F, 0.75F));
-    light->second->light->setAttenuation(glm::vec3(1.0F, 2.0F, 4.0F));
+	light->second->light->type        = Light::POINT;
+    light->second->light->position    = glm::vec3(0.610F,  0.070F,  0.250F);
+    light->second->light->direction   = glm::vec3(0.635F, -0.700F, -0.325F);
+    light->second->light->diffuse     = glm::vec3(1.000F,  0.875F,  0.750F);
+    light->second->light->attenuation = glm::vec3(1.000F,  2.000F,  4.000F);
 
     light++;
-    light->second->light->setPosition(glm::vec3(0.0F, -0.25F, 0.25F));
-    light->second->light->setDiffuse(glm::vec3(0.875F, 1.0F, 0.75F));
-    light->second->light->setAttenuation(glm::vec3(1.0F, 0.7F, 1.8F));
+	light->second->light->type        = Light::POINT;
+    light->second->light->position    = glm::vec3(0.000F, -0.25F, -0.25F);
+    light->second->light->direction   = glm::vec3(0.875F,  1.00F,  0.75F);
+    light->second->light->attenuation = glm::vec3(1.000F,  0.70F,  1.80F);
 
     light++;
-    light->second->light->setPosition(glm::vec3(0.0F, 0.25F, 0.25F));
-    light->second->light->setDirection(glm::vec3(0.125F, 0.5F, -1.0F));
-    light->second->light->setDiffuse(glm::vec3(0.875F, 0.75F, 1.0F));
-    light->second->light->setAttenuation(glm::vec3(0.5F, 0.14F, 0.007F));
-    light->second->light->setAmbientLevel(0.0F);
+	light->second->light->type         = Light::SPOTLIGHT;
+    light->second->light->position     = glm::vec3(0.000F, 0.25F,  0.250F);
+    light->second->light->direction    = glm::vec3(0.125F, 0.50F, -1.000F);
+    light->second->light->diffuse      = glm::vec3(0.875F, 0.75F,  1.000F);
+    light->second->light->attenuation  = glm::vec3(0.500F, 0.14F,  0.007F);
+    light->second->light->ambient_level = 0.0F;
     light->second->draw = true;
 
     light++;
-    light->second->light->setEnabled(false);
-    light->second->light->setAmbientLevel(0.0F);
-    light->second->light->setCutoff(glm::vec2(5.0F, 5.5F));
+	light->second->light->type          = Light::SPOTLIGHT;
+    light->second->light->enabled       = false;
+    light->second->light->ambient_level = 0.0F;
+    light->second->light->cutoff        = glm::vec2(5.0F, 5.5F);
     light->second->grab = true;
 }
 
@@ -540,38 +544,30 @@ void draw_gui(GLFWwindow *window) {
 
     // Lights
     if (ImGui::CollapsingHeader("Lights")) {
-        for (std::pair<const std::uint32_t, Scene::light_data *> &light : scene->getLightStock()) {
+        for (std::pair<const std::uint32_t, Scene::light_data *> &light_data : scene->getLightStock()) {
+			// Types of lights labels
+			static const char *const LIGHT_TYPE_LABEL[3] = {"Directional", "Point", "Spotlight"};
+
+			// GUI ID and light object
+			const std::uint32_t id = light_data.first;
+			Light *const light = light_data.second->light;
+
             // Light title
-            Light::Type light_type = light.second->light->getType();
-            std::string gui_id = GUI_ID_TAG + std::to_string(light.first);
-            std::string light_id = std::to_string(light.second->light->getID());
-            std::string light_label = LIGHT_TYPE_LABEL.at(light_type);
-            std::string light_title = "[" + light_id + "] " + light_label + gui_id;
+            std::string light_id = std::to_string(light->getID());
+            std::string light_label = LIGHT_TYPE_LABEL[light->type];
+            std::string light_title = "[" + std::to_string(light->getID()) + "] " + light_label + GUI_ID_TAG + std::to_string(id);
 
             // Create light node
             if (ImGui::TreeNode(light_title.c_str())) {
-                // Light variables
-                bool enabled             = light.second->light->isEnabled();
-                glm::vec3 direction      = light.second->light->getDirection();
-                glm::vec3 ambient        = light.second->light->getAmbient();
-                glm::vec3 diffuse        = light.second->light->getDiffuse();
-                glm::vec3 specular       = light.second->light->getSpecular();
-                float     ambient_level  = light.second->light->getAmbientLevel();
-                float     specular_level = light.second->light->getSpecularLevel();
-                float     shininess      = light.second->light->getShininess();
-                glm::vec3 position       = light.second->light->getPosition();
-                glm::vec3 attenuation    = light.second->light->getAttenuation();
-                glm::vec2 cutoff         = light.second->light->getCutoff();
-
-                // Widgets
+                // Type of light
                 if (ImGui::BeginCombo("Type", light_label.c_str())) {
-                    for (std::pair<const Light::Type, std::string> label: LIGHT_TYPE_LABEL) {
+					for (std::uint32_t i = 0; i < 3; i++) {
                         // Compare type with the current
-                        bool selected = (light_label == label.second);
+                        bool selected = (light->type == i);
 
                         // Add items and mark the selected
-                        if (ImGui::Selectable(label.second.c_str(), selected))
-                            light.second->light->setType(label.first);
+                        if (ImGui::Selectable(LIGHT_TYPE_LABEL[i], selected))
+							light->type = (Light::Type)i;
 
                         if (selected)
                             ImGui::SetItemDefaultFocus();
@@ -579,36 +575,45 @@ void draw_gui(GLFWwindow *window) {
                     ImGui::EndCombo();
                 }
 
-                if (ImGui::Checkbox("Enabled", &enabled)) light.second->light->setEnabled(enabled);
+				// Enabled status
+				ImGui::Checkbox("Enabled", &light->enabled);
 
+				// Draw arrow status
                 ImGui::SameLine();
-                ImGui::Checkbox("Draw arrow", &light.second->draw);
+                ImGui::Checkbox("Draw arrow", &light_data.second->draw);
 
-                if (light_type == Light::SPOTLIGHT) {
+				// Grab checkbox for spotlight lights
+                if (light->type == Light::SPOTLIGHT) {
                     ImGui::SameLine();
-                    ImGui::Checkbox("Grab", &light.second->grab);
+                    ImGui::Checkbox("Grab", &light_data.second->grab);
                 }
 
-                ImGui::Spacing();
-                if (ImGui::DragFloat3("Position", &position.x, 0.01F)) light.second->light->setPosition(position);
-                if (ImGui::DragFloat3("Direction", &direction.x, 0.01F, -1.0F, 1.0F)) light.second->light->setDirection(direction);
 
+				// General attributes
                 ImGui::Spacing();
-                if (ImGui::ColorEdit3("Ambient",   &ambient.r))  light.second->light->setAmbient(ambient);
-                if (ImGui::ColorEdit3("Diffuse",   &diffuse.r))  light.second->light->setDiffuse(diffuse);
-                if (ImGui::ColorEdit3("Specular",  &specular.r)) light.second->light->setSpecular(specular);
+				ImGui::DragFloat3("Position", &light->position.x, 0.01F);
+				ImGui::DragFloat3("Direction", &light->direction.x, 0.01F, -1.0F, 1.0F);
 
+				// Color by component
                 ImGui::Spacing();
-                if (ImGui::DragFloat("Ambient level",  &ambient_level,  0.005F, 0.0F, 1.0F)) light.second->light->setAmbientLevel(ambient_level);
-                if (ImGui::DragFloat("Specular level", &specular_level, 0.005F, 0.0F, 1.0F)) light.second->light->setSpecularLevel(specular_level);
-                if (ImGui::DragFloat("Shininess",      &shininess,      0.010F))             light.second->light->setShininess(shininess);
+                ImGui::ColorEdit3("Ambient",   &light->ambient.r);
+                ImGui::ColorEdit3("Diffuse",   &light->diffuse.r);
+                ImGui::ColorEdit3("Specular",  &light->specular.r);
 
+				// Components attributes
                 ImGui::Spacing();
-                if (light_type != Light::DIRECTIONAL)
-                    if (ImGui::DragFloat3("Attenuation", &attenuation.x, 0.005F, 0.0F)) light.second->light->setAttenuation(attenuation);
+                ImGui::DragFloat("Ambient level",  &light->ambient_level,  0.005F, 0.0F, 1.0F);
+                ImGui::DragFloat("Specular level", &light->specular_level, 0.005F, 0.0F, 1.0F);
+                ImGui::DragFloat("Shininess",      &light->shininess,      0.010F);
 
-                if (light_type == Light::SPOTLIGHT)
-                    if (ImGui::DragFloat2("Cutoff", &cutoff.x, 0.01F)) light.second->light->setCutoff(cutoff);
+				// Attenuation for non directional lights
+                ImGui::Spacing();
+                if (light->type != Light::DIRECTIONAL)
+                    ImGui::DragFloat3("Attenuation", &light->attenuation.x, 0.005F, 0.0F);
+
+				// Cutoff for spotlight lights
+                if (light->type == Light::SPOTLIGHT)
+                    ImGui::DragFloat2("Cutoff", &light->cutoff.x, 0.01F);
                 
                 // Finish light node
                 ImGui::TreePop();
