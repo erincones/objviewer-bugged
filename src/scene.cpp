@@ -2,6 +2,7 @@
 #include "dirseparator.hpp"
 
 #include "glad/glad.h"
+#include <GLFW/glfw3.h>
 
 #include <iostream>
 
@@ -12,7 +13,11 @@ constexpr glm::vec3 Scene::FRONT;
 // Scene constructor
 Scene::Scene(const int &width_res, const int &height_res, const std::string &model_path, const std::string &shader_path) {
 	// Initialize counter
-	count = 0;
+	count = 0U;
+
+	// Time
+	time_delta = 0.0;
+	time_last = glfwGetTime();
 
 	// Mouse, camera and background
 	width = width_res;
@@ -27,13 +32,18 @@ Scene::Scene(const int &width_res, const int &height_res, const std::string &mod
 	default_program_id = pushProgram(shader_path + "common.vert.glsl", shader_path + "normals.frag.glsl");
 
 	// Light
-	light_model = new Model(model_path + "light" + DIR_SEP + "light_arrow.obj");
+	light_model = new Model(model_path + "arrow" + DIR_SEP + "light_arrow.obj");
 	light_program = program_stock[light_program_id]->program;
 	light_scale = 0.0625F;
 }
 
 // Draw scene
-void Scene::draw() const {
+void Scene::draw() {
+	// Get delta time
+	double time_current = glfwGetTime();
+	time_delta = time_current - time_last;
+	time_last = time_current;
+
 	// Check camera status
 	if (camera == nullptr) return;
 
@@ -128,7 +138,7 @@ void Scene::draw() const {
 // Push a new camera
 std::uint32_t Scene::pushCamera() {
 	Camera *new_camera = new Camera(width, height);
-	camera_stock[count++] = new_camera;
+	camera_stock[count] = new_camera;
 
 	// Set as selected camera if is it null
 	if (camera == nullptr) camera = new_camera;
@@ -139,7 +149,7 @@ std::uint32_t Scene::pushCamera() {
 
 // Push a new light
 std::uint32_t Scene::pushLight(const Light::TYPE &type) {
-	light_stock[count++] = new Scene::light_data({new Light(type)});
+	light_stock[count] = new Scene::light_data({new Light(type)});
 
 	// Return id
 	return count++;
@@ -158,7 +168,7 @@ std::uint32_t Scene::pushModel(const std::string &path, const std::uint32_t &pro
 
 // Push a new GLSL program
 std::uint32_t Scene::pushProgram(const std::string &vert_path, const std::string &frag_path) {
-	program_stock[count++] = new Scene::program_data({new GLSLProgram(vert_path, frag_path)});
+	program_stock[count] = new Scene::program_data({new GLSLProgram(vert_path, frag_path)});
 
 	// Return id
 	return count++;
@@ -166,7 +176,7 @@ std::uint32_t Scene::pushProgram(const std::string &vert_path, const std::string
 
 // Push a new GLSL program
 std::uint32_t Scene::pushProgram(const std::string &vert_path, const std::string &geom_path, const std::string &frag_path) {
-	program_stock[count++] = new Scene::program_data({new GLSLProgram(vert_path, geom_path, frag_path)});
+	program_stock[count] = new Scene::program_data({new GLSLProgram(vert_path, geom_path, frag_path)});
 
 	// Return id
 	return count++;
@@ -174,7 +184,7 @@ std::uint32_t Scene::pushProgram(const std::string &vert_path, const std::string
 
 // Push a new GLSL program
 std::uint32_t Scene::pushProgram(const std::string &vert_path, const std::string &tesc_path, const std::string &tese_path, const std::string &geom_path, const std::string &frag_path) {
-	program_stock[count++] = new Scene::program_data({new GLSLProgram(vert_path, tesc_path, tese_path, geom_path, frag_path)});
+	program_stock[count] = new Scene::program_data({new GLSLProgram(vert_path, tesc_path, tese_path, geom_path, frag_path)});
 
 	// Return id
 	return count++;
@@ -328,6 +338,28 @@ void Scene::selectCamera(const std::uint32_t &id) {
 	camera = result->second;
 }
 
+// Move camera
+void Scene::moveCamera(const Camera::Movement &direction) {
+	camera->move(direction, time_delta);
+}
+
+
+// Look around
+void Scene::lookAround(const double &xpos, const double &ypos) {
+	camera->rotate(mouse->translate(xpos, ypos));
+}
+
+// Camera zoom
+void Scene::zoom(const double &yoffset) {
+	camera->zoom(yoffset);
+}
+
+// Reload shaders
+void Scene::reloadShaders() {
+	for (std::pair<const std::uint32_t, Scene::program_data *> &program : program_stock)
+		program.second->program->reload();
+}
+
 
 // Set resolution
 void Scene::setResolution(const int &width_res, const int &height_res) {
@@ -349,6 +381,11 @@ void Scene::setBackground(const glm::vec3 &color) {
 	glClearColor(background.r, background.g, background.b, 1.0F);
 }
 
+// Update mouse position
+void Scene::setMousePosition(const int &xpos, const int &ypos) {
+	mouse->setTranslationPoint(xpos, ypos);
+}
+
 
 // Set light arrow model
 void Scene::setLightModel(const std::string &path) {
@@ -362,9 +399,19 @@ void Scene::setLightModelScale(const float &scale) {
 }
 
 
+// Get mouse
+Mouse *Scene::getMouse() const {
+	return mouse;
+}
+
 // Get camera
 Camera *Scene::getCamera() const {
 	return camera;
+}
+
+// Get resolution
+glm::ivec2 Scene::getResolution() const {
+	return glm::ivec2(width, height);
 }
 
 // Get background color

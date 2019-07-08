@@ -53,6 +53,10 @@ class Scene {
 		// Stock counter
 		std::uint32_t count;
 
+		// Time
+		double time_delta;
+		double time_last;
+
 		// Scene elements
 		int width;
 		int height;
@@ -83,7 +87,7 @@ class Scene {
 	public:
 		Scene(const int &width_res, const int &height_res, const std::string &model_path, const std::string &shader_path);
 
-		void draw() const;
+		void draw();
 
 		std::uint32_t pushCamera();
 		std::uint32_t pushLight(const Light::TYPE &type = Light::DIRECTIONAL);
@@ -99,14 +103,22 @@ class Scene {
 
 		void associate(const std::uint32_t &model_id, const std::uint32_t &program_id);
 		void selectCamera(const std::uint32_t &id);
+		void moveCamera(const Camera::Movement &direction);
+
+		void lookAround(const double &xpos, const double &ypos);
+		void zoom(const double &yoffset);
+		void reloadShaders();
 
 		void setResolution(const int &width_res, const int &height_res);
 		void setBackground(const glm::vec3 &color);
+		void setMousePosition(const int &xpos, const int &ypos);
 
 		void setLightModel(const std::string &path);
 		void setLightModelScale(const float &scale);
 
+		Mouse *getMouse() const;
 		Camera *getCamera() const;
+		glm::ivec2 getResolution() const;
 		glm::vec3 getBackground() const;
 
 		std::map<std::uint32_t, Camera *> getCameraStock() const;
