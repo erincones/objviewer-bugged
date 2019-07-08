@@ -45,6 +45,7 @@ class GLSLProgram {
 
         void use() const;
         bool isValid() const;
+		bool isValidShader(const GLenum &type) const;
 
         void setUniform(const std::string &name, const GLint &scalar);
         void setUniform(const std::string &name, const GLuint &scalar);
@@ -61,7 +62,10 @@ class GLSLProgram {
 
         GLuint getID() const;
 
-        const Shader *getShader(const GLenum &type) const;
+		GLuint getShaderID(const GLenum &type) const;
+		std::string getShaderPath(const GLenum &type) const;
+		std::string getShaderName(const GLenum &type) const;
+		const Shader *getShader(const GLenum &type) const;
 
         ~GLSLProgram();
 };

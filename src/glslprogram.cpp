@@ -188,6 +188,19 @@ bool GLSLProgram::isValid() const {
     return program != GL_FALSE;
 }
 
+// Get shader ID
+bool GLSLProgram::isValidShader(const GLenum &type) const {
+	switch (type) {
+		case GL_VERTEX_SHADER:          return vert != nullptr ? vert->hasCompiled() : false;
+		case GL_TESS_CONTROL_SHADER:    return tesc != nullptr ? tesc->hasCompiled() : true;
+		case GL_TESS_EVALUATION_SHADER: return tese != nullptr ? tese->hasCompiled() : true;
+		case GL_GEOMETRY_SHADER:        return geom != nullptr ? geom->hasCompiled() : true;
+		case GL_FRAGMENT_SHADER:        return frag != nullptr ? frag->hasCompiled() : false;
+		default:                        throw std::runtime_error("error: unknown shader type (" + std::to_string(type) + ")");
+	}
+}
+
+
 void GLSLProgram::setUniform(const std::string &name, const GLint &scalar) {
     const GLint location = getUniformLocation(name.c_str());
     glUniform1i(location, scalar);
@@ -233,20 +246,58 @@ void GLSLProgram::setUniform(const std::string &name, const glm::mat4 &matrix) {
     glUniformMatrix4fv(location, 1, GL_FALSE, &matrix[0][0]);
 }
 
+
 // Get program id
 GLuint GLSLProgram::getID() const {
     return program;
+}
+
+
+// Get shader ID
+GLuint GLSLProgram::getShaderID(const GLenum &type) const {
+	switch (type) {
+		case GL_VERTEX_SHADER:          return vert != nullptr ? vert->getID() : 0;
+		case GL_TESS_CONTROL_SHADER:    return tesc != nullptr ? tesc->getID() : 0;
+		case GL_TESS_EVALUATION_SHADER: return tese != nullptr ? tese->getID() : 0;
+		case GL_GEOMETRY_SHADER:        return geom != nullptr ? geom->getID() : 0;
+		case GL_FRAGMENT_SHADER:        return frag != nullptr ? frag->getID() : 0;
+		default:                        throw std::runtime_error("error: unknown shader type (" + std::to_string(type) + ")");
+	}
+}
+
+// Get shader path
+std::string GLSLProgram::getShaderPath(const GLenum &type) const {
+	switch (type) {
+		case GL_VERTEX_SHADER:          return vert != nullptr ? vert->getPath() : "";
+		case GL_TESS_CONTROL_SHADER:    return tesc != nullptr ? tesc->getPath() : "";
+		case GL_TESS_EVALUATION_SHADER: return tese != nullptr ? tese->getPath() : "";
+		case GL_GEOMETRY_SHADER:        return geom != nullptr ? geom->getPath() : "";
+		case GL_FRAGMENT_SHADER:        return frag != nullptr ? frag->getPath() : "";
+		default:                        throw std::runtime_error("error: unknown shader type (" + std::to_string(type) + ")");
+	}
+}
+
+// Get shader name
+std::string GLSLProgram::getShaderName(const GLenum &type) const {
+	switch (type) {
+		case GL_VERTEX_SHADER:          return vert != nullptr ? vert->getName() : "";
+		case GL_TESS_CONTROL_SHADER:    return tesc != nullptr ? tesc->getName() : "";
+		case GL_TESS_EVALUATION_SHADER: return tese != nullptr ? tese->getName() : "";
+		case GL_GEOMETRY_SHADER:        return geom != nullptr ? geom->getName() : "";
+		case GL_FRAGMENT_SHADER:        return frag != nullptr ? frag->getName() : "";
+		default:                        throw std::runtime_error("error: unknown shader type (" + std::to_string(type) + ")");
+	}
 }
 
 // Get vertex shader
 const Shader *GLSLProgram::getShader(const GLenum &type) const {
 	switch (type) {
 		case GL_VERTEX_SHADER:          return vert;
-		case GL_TESS_CONTROL_SHADER:    return vert;
-		case GL_TESS_EVALUATION_SHADER: return vert;
-		case GL_GEOMETRY_SHADER:        return vert;
-		case GL_FRAGMENT_SHADER:        return vert;
-		default:                        throw std::runtime_error("error: unknown shader type");
+		case GL_TESS_CONTROL_SHADER:    return tesc;
+		case GL_TESS_EVALUATION_SHADER: return tese;
+		case GL_GEOMETRY_SHADER:        return geom;
+		case GL_FRAGMENT_SHADER:        return frag;
+		default:                        throw std::runtime_error("error: unknown shader type (" + std::to_string(type) + ")");
 	}
 }
 
