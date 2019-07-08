@@ -148,7 +148,7 @@ std::uint32_t Scene::pushCamera() {
 }
 
 // Push a new light
-std::uint32_t Scene::pushLight(const Light::TYPE &type) {
+std::uint32_t Scene::pushLight(const Light::Type &type) {
 	light_stock[count] = new Scene::light_data({new Light(type)});
 
 	// Return id

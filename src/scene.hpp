@@ -90,7 +90,7 @@ class Scene {
 		void draw();
 
 		std::uint32_t pushCamera();
-		std::uint32_t pushLight(const Light::TYPE &type = Light::DIRECTIONAL);
+		std::uint32_t pushLight(const Light::Type &type = Light::DIRECTIONAL);
 		std::uint32_t pushModel(const std::string &path = "", const std::uint32_t &program = 0);
 		std::uint32_t pushProgram(const std::string &vert_path, const std::string &frag_path);
 		std::uint32_t pushProgram(const std::string &vert_path, const std::string &geom_path, const std::string &frag_path);

@@ -5,7 +5,7 @@ std::uint32_t Light::count = 0U;
 std::set<std::uint32_t> Light::stock;
 
 // Constructor
-Light::Light(const Light::TYPE &value) {
+Light::Light(const Light::Type &value) {
     // Set type and enable
     type = value;
     enabled = true;
@@ -34,7 +34,7 @@ Light::Light(const Light::TYPE &value) {
 
 
 // Set type
-void Light::setType(const Light::TYPE &value) {
+void Light::setType(const Light::Type &value) {
     type = value;
 }
 
@@ -190,7 +190,7 @@ std::uint32_t Light::getID() const {
 }
 
 // Get type
-Light::TYPE Light::getType() const {
+Light::Type Light::getType() const {
     return type;
 }
 

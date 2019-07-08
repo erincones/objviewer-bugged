@@ -34,7 +34,7 @@ bool show_metrics = false;
 bool show_about = false;
 
 const std::string GUI_ID_TAG = "###";
-const std::map<Light::TYPE, std::string> LIGHT_TYPE_LABEL = {
+const std::map<Light::Type, std::string> LIGHT_TYPE_LABEL = {
 	{Light::DIRECTIONAL, "Directional"},
 	{Light::POINT,       "Point"},
 	{Light::SPOTLIGHT,   "Spotlight"}
@@ -542,7 +542,7 @@ void draw_gui(GLFWwindow *window) {
     if (ImGui::CollapsingHeader("Lights")) {
         for (std::pair<const std::uint32_t, Scene::light_data *> &light : scene->getLightStock()) {
             // Light title
-            Light::TYPE light_type = light.second->light->getType();
+            Light::Type light_type = light.second->light->getType();
             std::string gui_id = GUI_ID_TAG + std::to_string(light.first);
             std::string light_id = std::to_string(light.second->light->getID());
             std::string light_label = LIGHT_TYPE_LABEL.at(light_type);
@@ -565,7 +565,7 @@ void draw_gui(GLFWwindow *window) {
 
                 // Widgets
                 if (ImGui::BeginCombo("Type", light_label.c_str())) {
-                    for (std::pair<const Light::TYPE, std::string> label: LIGHT_TYPE_LABEL) {
+                    for (std::pair<const Light::Type, std::string> label: LIGHT_TYPE_LABEL) {
                         // Compare type with the current
                         bool selected = (light_label == label.second);
 

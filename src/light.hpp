@@ -10,7 +10,7 @@
 
 class Light {
     public:
-        enum TYPE : std::uint32_t {
+        enum Type : std::uint32_t {
             DIRECTIONAL,
             POINT,
             SPOTLIGHT
@@ -18,7 +18,7 @@ class Light {
 
     private:
         // Type and ID
-        TYPE type;
+        Light::Type type;
 		std::uint32_t id;
 
         // Enabled flag
@@ -52,9 +52,9 @@ class Light {
 
 
     public:
-        Light(const TYPE &value = TYPE::DIRECTIONAL);
+        Light(const Light::Type &value = Light::Type::DIRECTIONAL);
 
-        void setType(const TYPE &value);
+        void setType(const Light::Type &value);
         void setEnabled(const bool &status);
 
         void setPosition(const glm::vec3 &value);
@@ -83,7 +83,7 @@ class Light {
         bool isEnabled() const;
 
 		std::uint32_t getID() const;
-        TYPE getType() const;
+        Type getType() const;
 
         glm::vec3 getDirection() const;
 
