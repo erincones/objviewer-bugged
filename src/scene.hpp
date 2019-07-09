@@ -102,24 +102,28 @@ class Scene {
 		void popProgram(const std::uint32_t &id);
 
 		void associate(const std::uint32_t &model_id, const std::uint32_t &program_id);
-		void selectCamera(const std::uint32_t &id);
-		void moveCamera(const Camera::Movement &direction);
-
-		void lookAround(const double &xpos, const double &ypos);
-		void zoom(const double &yoffset);
 		void reloadShaders();
 
-		void setResolution(const int &width_res, const int &height_res);
-		void setBackground(const glm::vec3 &color);
+		void selectCamera(const std::uint32_t &id);
+		void lookAround(const double &xpos, const double &ypos);
+		void zoom(const double &yoffset);
+		void moveCamera(const Camera::Movement &direction);
+		void setCameraPosition(const glm::vec3 &position);
+
 		void setMousePosition(const int &xpos, const int &ypos);
 
+		void setBackground(const glm::vec3 &color);
+		void setResolution(const int &width_res, const int &height_res);
+
+		void updateGrabbedLights();
 		void setLightModel(const std::string &path);
 		void setLightModelScale(const float &scale);
 
 		Mouse *getMouse() const;
 		Camera *getCamera() const;
-		glm::ivec2 getResolution() const;
+
 		glm::vec3 getBackground() const;
+		glm::ivec2 getResolution() const;
 
 		std::map<std::uint32_t, Camera *> getCameraStock() const;
 		std::map<std::uint32_t, Scene::light_data *> getLightStock() const;

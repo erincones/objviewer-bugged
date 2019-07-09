@@ -93,14 +93,14 @@ void Scene::draw() {
 		// Check draw
 		if (light.second->draw) {
 			// Light direction
-			glm::vec3 light_direction = light.second->light->direction;
+			glm::vec3 light_direction = light.second->light->getDirection();
 			glm::vec3 light_axis = glm::cross(FRONT, light_direction);
 			float light_cos = glm::dot(FRONT, light_direction);
 			float light_angle = glm::acos(glm::abs(light_cos));
 
 			// Setup geometry
 			light_model->reset();
-			light_model->setPosition(light.second->light->position - light_scale * light_direction);
+			light_model->setPosition(light.second->light->getPosition() - light_scale * light_direction);
 			light_model->setRotation(glm::angleAxis(light_angle, light_axis));
 
 			// Front light
@@ -341,7 +341,7 @@ void Scene::lookAround(const double &xpos, const double &ypos) {
 	// Ubdate direction for grabbed lights
 	for (const std::pair<const std::uint32_t, Scene::light_data *> &light_it : light_stock) {
 		if (light_it.second->grab)
-			light_it.second->light->direction = camera->getLookDirection();
+			light_it.second->light->setDirection(camera->getLookDirection());
 	}
 }
 
@@ -357,7 +357,7 @@ void Scene::moveCamera(const Camera::Movement &direction) {
 	// Ubdate position for grabbed lights
 	for (const std::pair<const std::uint32_t, Scene::light_data *> &light_it : light_stock) {
 		if (light_it.second->grab)
-			light_it.second->light->position = camera->getPosition();
+			light_it.second->light->setPosition(camera->getPosition());
 	}
 }
 
@@ -392,6 +392,16 @@ void Scene::setResolution(const int &width_res, const int &height_res) {
 		cam.second->setResolution(width, height);
 }
 
+
+// Update grabbed lights position and direction
+void Scene::updateGrabbedLights() {
+	for (const std::pair<const std::uint32_t, Scene::light_data *> &light_it : light_stock) {
+		if (light_it.second->grab) {
+			light_it.second->light->setPosition(camera->getPosition());
+			light_it.second->light->setDirection(camera->getLookDirection());
+		}
+	}
+}
 
 // Set light arrow model
 void Scene::setLightModel(const std::string &path) {
