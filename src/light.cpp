@@ -33,6 +33,97 @@ Light::Light(const Light::Type &value) {
 }
 
 
+// Set type
+void Light::setType(const Light::Type &value) {
+    type = value;
+}
+
+// Set the enabled status
+void Light::setEnabled(const bool &status) {
+    enabled = status;
+}
+
+
+// Set position
+void Light::setPosition(const glm::vec3 &value) {
+    position = value;
+}
+
+// Set direction
+void Light::setDirection(const glm::vec3 &value) {
+    direction = glm::normalize(value);
+}
+
+
+// Set ambient
+void Light::setAmbient(const glm::vec3 &value) {
+    ambient = value;
+}
+
+// Set diffuse
+void Light::setDiffuse(const glm::vec3 &color) {
+    diffuse = color;
+}
+
+// Set specular
+void Light::setSpecular(const glm::vec3 &value) {
+    specular = value;
+}
+
+
+// Set ambient level
+void Light::setAmbientLevel(const float &value) {
+    ambient_level = value;
+}
+
+// Set specular level
+void Light::setSpecularLevel(const float &value) {
+    specular_level = value;
+}
+
+// Set shininess
+void Light::setShininess(const float &value) {
+    shininess = value;
+}
+
+
+// Set attenuation
+void Light::setAttenuation(const glm::vec3 &value) {
+    attenuation = value;
+}
+
+// Set constant attenuation
+void Light::setConstAttenuation(const float &value) {
+    attenuation.x = value;
+}
+
+// Set linear attenuation
+void Light::setLinearAttenuation(const float &value) {
+    attenuation.y = value;
+}
+
+// Set quadratic attenuation
+void Light::setQuadraticAttenuation(const float &value) {
+    attenuation.z = value;
+}
+
+
+// Set cutoff
+void Light::setCutoff(const glm::vec2 &value) {
+    cutoff = glm::radians(value);
+}
+
+// Set inner cutoff
+void Light::setInnerCutoff(const float &value) {
+    cutoff.s = glm::radians(value);
+}
+
+// Set outer cutoff
+void Light::setOuterCutoff(const float &value) {
+    cutoff.t = glm::radians(value);
+}
+
+
 // Use light
 void Light::use(GLSLProgram *const program, const bool &as_array) const {
     // Check program
@@ -86,9 +177,75 @@ void Light::use(GLSLProgram *const program, const bool &as_array) const {
     
 }
 
-// Get the internal light stock ID
+
+// Get the grabbed spotlight status
+bool Light::isEnabled() const {
+    return enabled;
+}
+
+
+// Get ID
 std::uint32_t Light::getID() const {
-	return id;
+    return id;
+}
+
+// Get type
+Light::Type Light::getType() const {
+    return type;
+}
+
+
+// Get direction
+glm::vec3 Light::getDirection() const {
+    return direction;
+}
+
+
+// Get ambient
+glm::vec3 Light::getAmbient() const {
+    return ambient;
+}
+
+// Get diffuse
+glm::vec3 Light::getDiffuse() const {
+    return diffuse;
+}
+
+// Get specular
+glm::vec3 Light::getSpecular() const {
+    return specular;
+}
+
+
+// Get ambient level
+float Light::getAmbientLevel() const {
+    return ambient_level;
+}
+
+// Get specular level
+float Light::getSpecularLevel() const {
+    return specular_level;
+}
+
+// Get shininess
+float Light::getShininess() const {
+    return shininess;
+}
+
+
+// Get position
+glm::vec3 Light::getPosition() const {
+    return position;
+}
+
+// Get attenuation
+glm::vec3 Light::getAttenuation() const {
+    return attenuation;
+}
+
+// Get cutoff
+glm::vec2 Light::getCutoff() const {
+    return glm::degrees(cutoff);
 }
 
 
