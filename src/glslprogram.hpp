@@ -63,6 +63,7 @@ class GLSLProgram {
         GLuint getID() const;
 
 		const Shader *getShader(const GLenum &type) const;
+		std::string getShadersPipeline() const;
 
         ~GLSLProgram();
 };
