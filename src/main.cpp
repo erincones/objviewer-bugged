@@ -194,7 +194,7 @@ void cursor_position_callback(GLFWwindow *, double xpos, double ypos) {
 // Scroll callback
 void scroll_callback(GLFWwindow *, double, double yoffset) {
     // Zoom when the gui is not showing
-    if (!show_gui) scene->zoom(yoffset);
+    if (!show_gui) scene->getCamera->zoom(yoffset);
 }
 
 // Key callback
@@ -220,7 +220,7 @@ void key_callback(GLFWwindow *window, int key, int, int action, int modifier) {
                 double xpos;
                 double ypos;
                 glfwGetCursorPos(window, &xpos, &ypos);
-                scene->setMousePosition((int)xpos, (int)ypos);
+                scene->getMouse()->setTranslationPoint((int)xpos, (int)ypos);
             }
 
             return;
@@ -234,12 +234,12 @@ void key_callback(GLFWwindow *window, int key, int, int action, int modifier) {
 // Process key input
 void process_input(GLFWwindow *window) {
     // Camera movement
-    if (glfwGetKey(window, GLFW_KEY_W))                                          scene->moveCamera(Camera::FORWARD);
-    if (glfwGetKey(window, GLFW_KEY_S))                                          scene->moveCamera(Camera::BACKWARD);
-    if (glfwGetKey(window, GLFW_KEY_A)     | glfwGetKey(window, GLFW_KEY_LEFT))  scene->moveCamera(Camera::LEFT);
-    if (glfwGetKey(window, GLFW_KEY_D)     | glfwGetKey(window, GLFW_KEY_RIGHT)) scene->moveCamera(Camera::RIGHT);
-    if (glfwGetKey(window, GLFW_KEY_SPACE) | glfwGetKey(window, GLFW_KEY_UP))    scene->moveCamera(Camera::UP);
-    if (glfwGetKey(window, GLFW_KEY_C)     | glfwGetKey(window, GLFW_KEY_DOWN))  scene->moveCamera(Camera::DOWN);
+    if (glfwGetKey(window, GLFW_KEY_W))                                          scene->travell(Camera::FORWARD);
+    if (glfwGetKey(window, GLFW_KEY_S))                                          scene->travell(Camera::BACKWARD);
+    if (glfwGetKey(window, GLFW_KEY_A)     | glfwGetKey(window, GLFW_KEY_LEFT))  scene->travell(Camera::LEFT);
+    if (glfwGetKey(window, GLFW_KEY_D)     | glfwGetKey(window, GLFW_KEY_RIGHT)) scene->travell(Camera::RIGHT);
+    if (glfwGetKey(window, GLFW_KEY_SPACE) | glfwGetKey(window, GLFW_KEY_UP))    scene->travell(Camera::UP);
+    if (glfwGetKey(window, GLFW_KEY_C)     | glfwGetKey(window, GLFW_KEY_DOWN))  scene->travell(Camera::DOWN);
 }
 
 
@@ -256,10 +256,10 @@ void setup_scene(const std::string &bin_path) {
     const std::string shader_path = root_path + ".." + DIR_SEP + "shader" + DIR_SEP;
 
 
-	// Create scene, setup camera and background color
+	// Create scene, background color and setup camera
 	scene = new Scene(width, height, model_path, shader_path);
-	scene->setCameraPosition(glm::vec3(0.0F, 0.0F, 2.0F));
 	scene->setBackground(glm::vec3(0.45F, 0.55F, 0.60F));
+	scene->getCamera()->setPosition(glm::vec3(0.0F, 0.0F, 2.0F));
 
     // Add shaders
 	const std::string vertex = shader_path + "common.vert.glsl";
@@ -761,7 +761,7 @@ void draw_gui(GLFWwindow *window) {
         double xpos;
         double ypos;
         glfwGetCursorPos(window, &xpos, &ypos);
-        scene->setMousePosition((int)xpos, (int)ypos);
+		scene->getMouse()->setTranslationPoint((int)xpos, (int)ypos);
     }
 }
 

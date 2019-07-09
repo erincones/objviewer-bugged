@@ -105,19 +105,15 @@ class Scene {
 		void reloadShaders();
 
 		void selectCamera(const std::uint32_t &id);
+		void travell(const Camera::Movement &direction);
 		void lookAround(const double &xpos, const double &ypos);
-		void zoom(const double &yoffset);
-		void moveCamera(const Camera::Movement &direction);
-		void setCameraPosition(const glm::vec3 &position);
-
-		void setMousePosition(const int &xpos, const int &ypos);
-
-		void setBackground(const glm::vec3 &color);
-		void setResolution(const int &width_res, const int &height_res);
 
 		void updateGrabbedLights();
 		void setLightModel(const std::string &path);
 		void setLightModelScale(const float &scale);
+
+		void setBackground(const glm::vec3 &color);
+		void setResolution(const int &width_res, const int &height_res);
 
 		Mouse *getMouse() const;
 		Camera *getCamera() const;

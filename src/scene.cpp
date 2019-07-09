@@ -345,51 +345,15 @@ void Scene::lookAround(const double &xpos, const double &ypos) {
 	}
 }
 
-// Camera zoom
-void Scene::zoom(const double &yoffset) {
-	camera->zoom(yoffset);
-}
-
 // Move camera
-void Scene::moveCamera(const Camera::Movement &direction) {
+void Scene::travell(const Camera::Movement &direction) {
 	camera->move(direction, time_delta);
 
-	// Ubdate position for grabbed lights
+	// Update position for grabbed lights
 	for (const std::pair<const std::uint32_t, Scene::light_data *> &light_it : light_stock) {
 		if (light_it.second->grab)
 			light_it.second->light->setPosition(camera->getPosition());
 	}
-}
-
-// Set the camera position
-void Scene::setCameraPosition(const glm::vec3 &position) {
-	camera->setPosition(position);
-}
-
-// Set the mouse position
-void Scene::setMousePosition(const int &xpos, const int &ypos) {
-	mouse->setTranslationPoint(xpos, ypos);
-}
-
-
-// Set background color
-void Scene::setBackground(const glm::vec3 &color) {
-	background = color;
-	glClearColor(background.r, background.g, background.b, 1.0F);
-}
-
-// Set resolution
-void Scene::setResolution(const int &width_res, const int &height_res) {
-	// Set resolution
-	width = width_res;
-	height = height_res;
-
-	// Update mouse resolution
-	mouse->setResolution(width, height);
-
-	// Update cameras resolution
-	for (std::pair<const std::uint32_t, Camera *> &cam : camera_stock)
-		cam.second->setResolution(width, height);
 }
 
 
@@ -412,6 +376,27 @@ void Scene::setLightModel(const std::string &path) {
 // Set light arrow model scale
 void Scene::setLightModelScale(const float &scale) {
 	light_scale = scale;
+}
+
+
+// Set background color
+void Scene::setBackground(const glm::vec3 &color) {
+	background = color;
+	glClearColor(background.r, background.g, background.b, 1.0F);
+}
+
+// Set resolution
+void Scene::setResolution(const int &width_res, const int &height_res) {
+	// Set resolution
+	width = width_res;
+	height = height_res;
+
+	// Update mouse resolution
+	mouse->setResolution(width, height);
+
+	// Update cameras resolution
+	for (std::pair<const std::uint32_t, Camera *> &cam : camera_stock)
+		cam.second->setResolution(width, height);
 }
 
 
