@@ -26,27 +26,52 @@ class Scene {
 			bool grab = false;
 		};
 
-		// Model data
-		struct model_data {
-			// Model
-			Model *model = nullptr;
-
-			// Associated GLSL program
-			std::uint32_t program = -1;
-
-			// GUI flags
-			bool lock_scaling = false;
-			bool bounding_box = false;
-			bool normals = false;
-		};
-
 		// GLSL program data
 		struct program_data {
 			// GLSL program
 			GLSLProgram *program = nullptr;
 
+			// Shader paths
+			std::string vert_path;
+			std::string tesc_path;
+			std::string tese_path;
+			std::string geom_path;
+			std::string frag_path;
+
 			// Associated models ids
-			std::set<std::uint32_t> model;
+			std::set<std::uint32_t> model_id;
+		};
+
+		// Texture data
+		struct texture_data {
+			// Texture paths
+			std::string ambient_path;
+			std::string diffuse_path;
+			std::string specular_path;
+			std::string shininess_path;
+			std::string alpha_patn;
+			std::string bump_patn;
+			std::string displacement_patn;
+			std::string stencil_patn;
+		};
+
+		// Model data
+		struct model_data {
+			// Model
+			Model *model = nullptr;
+
+			// Model and textures paths
+			std::string model_path;
+			std::vector<Scene::texture_data *> texture_path;
+
+			// Associated GLSL program
+			std::uint32_t program_id = -1;
+			Scene::program_data *program = nullptr;
+
+			// GUI flags
+			bool lock_scaling = false;
+			bool bounding_box = false;
+			bool normals = false;
 		};
 
 	private:
@@ -95,6 +120,9 @@ class Scene {
 		std::uint32_t pushProgram(const std::string &vert_path, const std::string &frag_path);
 		std::uint32_t pushProgram(const std::string &vert_path, const std::string &geom_path, const std::string &frag_path);
 		std::uint32_t pushProgram(const std::string &vert_path, const std::string &tesc_path, const std::string &tese_path, const std::string &geom_path, const std::string &frag_path);
+
+		void updateModel(const std::uint32_t &id);
+		void updateProgram(const std::uint32_t &id);
 
 		void popCamera(const std::uint32_t &id);
 		void popLight(const std::uint32_t &id);

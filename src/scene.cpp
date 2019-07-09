@@ -50,12 +50,8 @@ void Scene::draw() {
 
 	// Draw models
 	for (const std::pair<const std::uint32_t, Scene::model_data *> &model_it : model_stock) {
-		// Search GLSL program
-		std::map<std::uint32_t, program_data *>::const_iterator result = program_stock.find(model_it.second->program);
-
 		// Check program valid status
-		bool drawable = (result != program_stock.end());
-		drawable &= (result->second->program != nullptr) && (result->second->program->isValid());
+		bool drawable = (model_it.second->program != nullptr) && (model_it.second->program->program->isValid());
 
 		// Check model draw status
 		drawable &= (model_it.second->model != nullptr) && (model_it.second->model->isEnabled());
@@ -63,7 +59,7 @@ void Scene::draw() {
 		// Draw if is valid
 		if (drawable) {
 			// Get GLSL program
-			GLSLProgram *const program = result->second->program;
+			GLSLProgram *const program = model_it.second->program->program;
 
 			// Use camera
 			camera->use(program);
@@ -146,9 +142,33 @@ std::uint32_t Scene::pushLight(const Light::Type &type) {
 
 // Push a new model
 std::uint32_t Scene::pushModel(const std::string &path, const std::uint32_t &program) {
+	// Model data attributes
+	Model *model = path.empty() ? nullptr : new Model(path);
+
+	// Textures paths
+	std::vector<Scene::texture_data *> texture_path;
+	for (const Material *const material : model->getMaterialStock())
+		texture_path.push_back(new Scene::texture_data({
+			material->getAmbientMap()->getPath(),
+			material->getDiffuseMap->getPath(),
+			material->getSpecularMap()->getPath(),
+			material->getShininessMap()->getPath(),
+			material->getAlphaMap()->getPath(),
+			material->getBumpMap()->getPath(),
+			material->getDisplacementMap()->getPath(),
+			material->getStencilMap()->getPath(),
+		}));
+
+	// Associated program id
+	std::uint32_t program_id = (program > default_program_id) && (program_stock.find(program) != program_stock.end()) ? program : default_program_id;
+	
+	// Add the new model
 	model_stock[count] = new Scene::model_data({
-		path.empty() ? nullptr : new Model(path),
-		(program > default_program_id) && (program_stock.find(program) != program_stock.end()) ? program : default_program_id
+		model,
+		path,
+		texture_path,
+		program_id,
+		program_stock.at(program_id)
 	});
 
 	// Return id
@@ -157,7 +177,14 @@ std::uint32_t Scene::pushModel(const std::string &path, const std::uint32_t &pro
 
 // Push a new GLSL program
 std::uint32_t Scene::pushProgram(const std::string &vert_path, const std::string &frag_path) {
-	program_stock[count] = new Scene::program_data({new GLSLProgram(vert_path, frag_path)});
+	program_stock[count] = new Scene::program_data({
+		new GLSLProgram(vert_path, frag_path),
+		vert_path,
+		"",
+		"",
+		"",
+		frag_path
+	});
 
 	// Return id
 	return count++;
@@ -165,7 +192,14 @@ std::uint32_t Scene::pushProgram(const std::string &vert_path, const std::string
 
 // Push a new GLSL program
 std::uint32_t Scene::pushProgram(const std::string &vert_path, const std::string &geom_path, const std::string &frag_path) {
-	program_stock[count] = new Scene::program_data({new GLSLProgram(vert_path, geom_path, frag_path)});
+	program_stock[count] = new Scene::program_data({
+		new GLSLProgram(vert_path, geom_path, frag_path),
+		vert_path,
+		"",
+		"",
+		geom_path,
+		frag_path
+	});
 
 	// Return id
 	return count++;
@@ -173,12 +207,29 @@ std::uint32_t Scene::pushProgram(const std::string &vert_path, const std::string
 
 // Push a new GLSL program
 std::uint32_t Scene::pushProgram(const std::string &vert_path, const std::string &tesc_path, const std::string &tese_path, const std::string &geom_path, const std::string &frag_path) {
-	program_stock[count] = new Scene::program_data({new GLSLProgram(vert_path, tesc_path, tese_path, geom_path, frag_path)});
+	program_stock[count] = new Scene::program_data({
+		new GLSLProgram(vert_path, tesc_path, tese_path, geom_path, frag_path),
+		vert_path,
+		tesc_path,
+		tese_path,
+		geom_path,
+		frag_path
+	});
 
 	// Return id
 	return count++;
 }
 
+
+// Update model by ID
+void Scene::updateModel(const std::uint32_t &id) {
+
+}
+
+// Update GLSL program by ID
+void Scene::updateProgram(const std::uint32_t &id) {
+	
+}
 
 // Pop camera by ID
 void Scene::popCamera(const std::uint32_t &id) {
@@ -240,7 +291,11 @@ void Scene::popModel(const std::uint32_t &id) {
 	}
 
 	// Disassociate from GLSL program
-	program_stock[result->second->program]->model.erase(id);
+	program_stock[result->second->program_id]->model_id.erase(id);
+
+	// Delete the texture data
+	for (const Scene::texture_data *const texture : result->second->texture_path)
+		delete texture;
 
 	// Pop model
 	delete result->second->model;
@@ -266,10 +321,11 @@ void Scene::popProgram(const std::uint32_t &id) {
 	}
 
 	// Associate all related models to the default GLSL program
-	program_data *const default_data = program_stock[default_program_id];
-	for (const std::uint32_t &model : result->second->model) {
-		default_data->model.insert(model);
-		model_stock[model]->program = default_program_id;
+	program_data *const default_data = program_stock.at(default_program_id);
+	for (const std::uint32_t &model : result->second->model_id) {
+		default_data->model_id.insert(model);
+		model_stock.at(model)->program_id = default_program_id;
+		model_stock.at(model)->program = default_data;
 	}
 
 	// Pop GLSL program
@@ -308,8 +364,9 @@ void Scene::associate(const std::uint32_t &model_id, const std::uint32_t &progra
 
 
 	// Associate model to program
-	program_result->second->model.insert(model_id);
-	model_result->second->program = program_id;
+	program_result->second->model_id.insert(model_id);
+	model_result->second->program_id = program_id;
+	model_result->second->program = program_result->second;
 }
 
 // Reload shaders

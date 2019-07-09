@@ -729,40 +729,22 @@ void draw_gui(GLFWwindow *window) {
     if (ImGui::CollapsingHeader("GLSL Programs")) {
         for (std::pair<const std::uint32_t, Scene::program_data *> &program_it : scene->getProgramStock()) {
             // Get GLSL program object and its pipeline string
-			GLSLProgram *program = program_it.second->program;
+			Scene::program_data *program_data = program_it.second;
+			GLSLProgram *program = program_data->program;
             std::string gui_id = GUI_ID_TAG + std::to_string(program_it.first);
             std::string glsl_title = program->getShadersPipeline() + gui_id;
 	
             // Create GLSL program node
             if (ImGui::TreeNode(glsl_title.c_str())) {
-				// Shader pointer and rebuild flag
-				const Shader *shader = nullptr;
-                bool rebuild = false;
+				// Rebuild flag
+                bool update = false;
 
-				// Vertex shader path
-				shader = program->getShader(GL_VERTEX_SHADER);
-				static std::string vert_path = (shader != nullptr ? shader->getPath() : "");
-                rebuild |= ImGui::InputText("Vertex",          &vert_path,    ImGuiInputTextFlags_EnterReturnsTrue);
-
-				// Tessellation control shader
-				shader = program->getShader(GL_TESS_CONTROL_SHADER);
-				static std::string tesc_path = (shader != nullptr ? shader->getPath() : "");
-                rebuild |= ImGui::InputText("Tess Control", &tesc_path, ImGuiInputTextFlags_EnterReturnsTrue);
-
-				// Tessellation evaluation shader
-				shader = program->getShader(GL_TESS_EVALUATION_SHADER);
-				static std::string tese_path = (shader != nullptr ? shader->getPath() : "");
-                rebuild |= ImGui::InputText("Tess Evaluation", &tese_path, ImGuiInputTextFlags_EnterReturnsTrue);
-
-				// Geometry shader
-				shader = program->getShader(GL_GEOMETRY_SHADER);
-				static std::string geom_path = (shader != nullptr ? shader->getPath() : "");
-                rebuild |= ImGui::InputText("Geometry", &geom_path,  ImGuiInputTextFlags_EnterReturnsTrue);
-
-				// Fragnent shader
-				shader = program->getShader(GL_FRAGMENT_SHADER);
-				static std::string frag_path = (shader != nullptr ? shader->getPath() : "");
-                rebuild |= ImGui::InputText("Fragment", &frag_path,  ImGuiInputTextFlags_EnterReturnsTrue);
+				// Shaders paths
+                update |= ImGui::InputText("Vertex",          &program_data->vert_path, ImGuiInputTextFlags_EnterReturnsTrue);
+                update |= ImGui::InputText("Tess Control",    &program_data->tesc_path, ImGuiInputTextFlags_EnterReturnsTrue);
+                update |= ImGui::InputText("Tess Evaluation", &program_data->tese_path, ImGuiInputTextFlags_EnterReturnsTrue);
+                update |= ImGui::InputText("Geometry",        &program_data->geom_path, ImGuiInputTextFlags_EnterReturnsTrue);
+                update |= ImGui::InputText("Fragment",        &program_data->frag_path, ImGuiInputTextFlags_EnterReturnsTrue);
 
 				// Reload button
                 if (ImGui::Button("Reload"))
@@ -775,12 +757,12 @@ void draw_gui(GLFWwindow *window) {
 				}
 	
                 // Rebuild shader
-				if (rebuild)
-					program->setShaders(vert_path, tesc_path, tese_path, geom_path, frag_path);
+				if (update)
+					scene->updateModel(program_it.first);
 
 
 				// Associated models
-				const std::size_t models = program_it.second->model.size();
+				const std::size_t models = program_it.second->model_id.size();
 				const std::string msg = "Associated models: " + std::to_string(models);
 				
 				// Print text if any model is associated to this GLSL program
@@ -793,7 +775,7 @@ void draw_gui(GLFWwindow *window) {
 					const std::map<std::uint32_t, Scene::model_data *> model = scene->getModelStock();
 
 					// Print each associated model name
-					for (const std::uint32_t i : program_it.second->model) {
+					for (const std::uint32_t i : program_it.second->model_id) {
 						const std::string name = model.at(i)->model->getName();
 						ImGui::BulletText(name.c_str());
 					}
