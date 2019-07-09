@@ -62,9 +62,6 @@ class GLSLProgram {
 
         GLuint getID() const;
 
-		GLuint getShaderID(const GLenum &type) const;
-		std::string getShaderPath(const GLenum &type) const;
-		std::string getShaderName(const GLenum &type) const;
 		const Shader *getShader(const GLenum &type) const;
 
         ~GLSLProgram();
