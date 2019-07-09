@@ -332,9 +332,10 @@ void Scene::moveCamera(const Camera::Movement &direction) {
 	camera->move(direction, time_delta);
 
 	// Ubdate position for grabbed lights
-	for (const std::pair<const std::uint32_t, Scene::light_data *> &light_it : light_stock)
+	for (const std::pair<const std::uint32_t, Scene::light_data *> &light_it : light_stock) {
 		if (light_it.second->grab)
 			light_it.second->light->position = camera->getPosition();
+	}
 }
 
 
@@ -343,9 +344,10 @@ void Scene::lookAround(const double &xpos, const double &ypos) {
 	camera->rotate(mouse->translate(xpos, ypos));
 
 	// Ubdate direction for grabbed lights
-	for (const std::pair<const std::uint32_t, Scene::light_data *> &light_it : light_stock)
+	for (const std::pair<const std::uint32_t, Scene::light_data *> &light_it : light_stock) {
 		if (light_it.second->grab)
 			light_it.second->light->direction = camera->getLookDirection();
+	}
 }
 
 // Camera zoom
