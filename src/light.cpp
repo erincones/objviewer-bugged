@@ -27,7 +27,7 @@ Light::Light(const Light::Type &value) {
     specular_level = 1.00F;
     shininess      = 5.00F;
 
-    position    = glm::vec3(0.0F, 0.00F, 1.000F);
+    position    = glm::vec3(0.0F, 0.00F, 2.000F);
     attenuation = glm::vec3(1.0F, 0.14F, 0.007F);
     cutoff      = glm::vec2(glm::radians(20.0F), glm::radians(25.0F));
 }
