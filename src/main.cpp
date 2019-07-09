@@ -1,8 +1,16 @@
-#include "scene.hpp"
 #include "camera.hpp"
 #include "light.hpp"
+#include "model.hpp"
+#include "material.hpp"
+#include "texture.hpp"
+
+#include "glslprogram.hpp"
+#include "shader.hpp"
+
+#include "scene.hpp"
 
 #include "dirseparator.hpp"
+
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_stdlib.h"
@@ -194,7 +202,7 @@ void cursor_position_callback(GLFWwindow *, double xpos, double ypos) {
 // Scroll callback
 void scroll_callback(GLFWwindow *, double, double yoffset) {
     // Zoom when the gui is not showing
-    if (!show_gui) scene->getCamera->zoom(yoffset);
+    if (!show_gui) scene->getCamera()->zoom(yoffset);
 }
 
 // Key callback
@@ -718,30 +726,88 @@ void draw_gui(GLFWwindow *window) {
     }
 
     // GLSL programs
-    //if (ImGui::CollapsingHeader("GLSL Programs")) {
-    //    for (std::pair<const std::uint32_t, Scene::program_data *> &program : scene->getProgramStock()) {
-    //        // Get GLSL pipeline string
-    //        std::string gui_id = GUI_ID_TAG + std::to_string(program.first);
-    //        std::string glsl_title = get_glsl_desc(program.second->program) + gui_id;
-	//
-    //        // Create GLSL node
-    //        if (ImGui::TreeNode(glsl_title.c_str())) {
-    //            bool open_glsl = false;
-    //            open_glsl |= ImGui::InputText("Vertex",          &program.second->vertex,    ImGuiInputTextFlags_EnterReturnsTrue);
-    //            open_glsl |= ImGui::InputText("Tess Control",    &program.second->tess_ctrl, ImGuiInputTextFlags_EnterReturnsTrue);
-    //            open_glsl |= ImGui::InputText("Tess Evaluation", &program.second->tess_eval, ImGuiInputTextFlags_EnterReturnsTrue);
-    //            open_glsl |= ImGui::InputText("Geometry",        &program.second->geometry,  ImGuiInputTextFlags_EnterReturnsTrue);
-    //            open_glsl |= ImGui::InputText("Fragment",        &program.second->fragment,  ImGuiInputTextFlags_EnterReturnsTrue);
-    //            open_glsl |= ImGui::Button("Reload");
-	//
-    //            // Update shader
-    //            if (open_glsl) update_glsl(program.second);
-	//
-    //            // Finish GLSL node
-    //            ImGui::TreePop();
-    //        }
-    //    }
-    //}
+    if (ImGui::CollapsingHeader("GLSL Programs")) {
+        for (std::pair<const std::uint32_t, Scene::program_data *> &program_it : scene->getProgramStock()) {
+            // Get GLSL program object and its pipeline string
+			GLSLProgram *program = program_it.second->program;
+            std::string gui_id = GUI_ID_TAG + std::to_string(program_it.first);
+            std::string glsl_title = program->getShadersPipeline() + gui_id;
+	
+            // Create GLSL program node
+            if (ImGui::TreeNode(glsl_title.c_str())) {
+				// Shader pointer and rebuild flag
+				const Shader *shader = nullptr;
+                bool rebuild = false;
+
+				// Vertex shader path
+				shader = program->getShader(GL_VERTEX_SHADER);
+				static std::string vert_path = (shader != nullptr ? shader->getPath() : "");
+                rebuild |= ImGui::InputText("Vertex",          &vert_path,    ImGuiInputTextFlags_EnterReturnsTrue);
+
+				// Tessellation control shader
+				shader = program->getShader(GL_TESS_CONTROL_SHADER);
+				static std::string tesc_path = (shader != nullptr ? shader->getPath() : "");
+                rebuild |= ImGui::InputText("Tess Control", &tesc_path, ImGuiInputTextFlags_EnterReturnsTrue);
+
+				// Tessellation evaluation shader
+				shader = program->getShader(GL_TESS_EVALUATION_SHADER);
+				static std::string tese_path = (shader != nullptr ? shader->getPath() : "");
+                rebuild |= ImGui::InputText("Tess Evaluation", &tese_path, ImGuiInputTextFlags_EnterReturnsTrue);
+
+				// Geometry shader
+				shader = program->getShader(GL_GEOMETRY_SHADER);
+				static std::string geom_path = (shader != nullptr ? shader->getPath() : "");
+                rebuild |= ImGui::InputText("Geometry", &geom_path,  ImGuiInputTextFlags_EnterReturnsTrue);
+
+				// Fragnent shader
+				shader = program->getShader(GL_FRAGMENT_SHADER);
+				static std::string frag_path = (shader != nullptr ? shader->getPath() : "");
+                rebuild |= ImGui::InputText("Fragment", &frag_path,  ImGuiInputTextFlags_EnterReturnsTrue);
+
+				// Reload button
+                if (ImGui::Button("Reload"))
+					program->reload();
+
+				// Message for invalid GLSL programs
+				if (!program->isValid()) {
+					ImGui::SameLine();
+					ImGui::TextColored(ImVec4(1.0F, 0.0F, 0.0F, 1.0F), "Invalid GLSL program");
+				}
+	
+                // Rebuild shader
+				if (rebuild)
+					program->setShaders(vert_path, tesc_path, tese_path, geom_path, frag_path);
+
+
+				// Associated models
+				const std::size_t models = program_it.second->model.size();
+				const std::string msg = "Associated models: " + std::to_string(models);
+				
+				// Print text if any model is associated to this GLSL program
+				if (models == 0)
+					ImGui::Text(msg.c_str());
+
+				// Else print a node with a list of the models
+				else if (ImGui::TreeNode(msg.c_str())) {
+					// Get the model stock
+					const std::map<std::uint32_t, Scene::model_data *> model = scene->getModelStock();
+
+					// Print each associated model name
+					for (const std::uint32_t i : program_it.second->model) {
+						const std::string name = model.at(i)->model->getName();
+						ImGui::BulletText(name.c_str());
+					}
+
+					// Finish associated models node
+					ImGui::TreePop();
+				}
+				
+	
+                // Finish GLSL program node
+                ImGui::TreePop();
+            }
+        }
+    }
 
     // Show other windows
     if (show_metrics) ImGui::ShowMetricsWindow(&show_metrics);
