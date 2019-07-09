@@ -33,8 +33,6 @@ bool show_gui = true;
 bool show_metrics = false;
 bool show_about = false;
 
-const std::string GUI_ID_TAG = "###";
-
 // OpenGL and scene initialization
 void init_opengl();
 void make_opengl_context();
@@ -258,9 +256,10 @@ void setup_scene(const std::string &bin_path) {
     const std::string shader_path = root_path + ".." + DIR_SEP + "shader" + DIR_SEP;
 
 
-	// Create scene and setup camera
+	// Create scene, setup camera and background color
 	scene = new Scene(width, height, model_path, shader_path);
-	scene->getCamera()->setPosition(glm::vec3(0.0F, 0.0F, 2.0F));
+	scene->setCameraPosition(glm::vec3(0.0F, 0.0F, 2.0F));
+	scene->setBackground(glm::vec3(0.45F, 0.55F, 0.60F));
 
     // Add shaders
 	const std::string vertex = shader_path + "common.vert.glsl";
@@ -301,39 +300,39 @@ void setup_scene(const std::string &bin_path) {
 	std::map<std::uint32_t, Scene::light_data *> light_stock = scene->getLightStock();
 	std::map<std::uint32_t, Scene::light_data *>::iterator light = light_stock.begin();
 
-	light->second->light->type      = Light::DIRECTIONAL;
-    light->second->light->position  = glm::vec3(0.25F);
-    light->second->light->direction = glm::vec3(0.40F, -0.675F, -0.62F);
-    light->second->light->diffuse   = glm::vec3(0.75F,  0.875F,  1.00F);
-    light->second->light->specular  = glm::vec3(0.00F,  0.500F,  0.80F);
+	light->second->light->setType(Light::DIRECTIONAL);
+    light->second->light->setPosition( glm::vec3(0.25F));
+    light->second->light->setDirection(glm::vec3(0.40F, -0.675F, -0.62F));
+    light->second->light->setDiffuse(  glm::vec3(0.75F,  0.875F,  1.00F));
+    light->second->light->setSpecular( glm::vec3(0.00F,  0.500F,  0.80F));
 
     light++;
-	light->second->light->type        = Light::POINT;
-    light->second->light->position    = glm::vec3(0.610F,  0.070F,  0.250F);
-    light->second->light->direction   = glm::vec3(0.635F, -0.700F, -0.325F);
-    light->second->light->diffuse     = glm::vec3(1.000F,  0.875F,  0.750F);
-    light->second->light->attenuation = glm::vec3(1.000F,  2.000F,  4.000F);
+	light->second->light->setType(Light::POINT);
+    light->second->light->setPosition(   glm::vec3(0.610F,  0.070F,  0.250F));
+    light->second->light->setDirection(  glm::vec3(0.635F, -0.700F, -0.325F));
+    light->second->light->setDiffuse(    glm::vec3(1.000F,  0.875F,  0.750F));
+    light->second->light->setAttenuation(glm::vec3(1.000F,  2.000F,  4.000F));
 
     light++;
-	light->second->light->type        = Light::POINT;
-    light->second->light->position    = glm::vec3(0.000F, -0.25F, -0.25F);
-    light->second->light->direction   = glm::vec3(0.875F,  1.00F,  0.75F);
-    light->second->light->attenuation = glm::vec3(1.000F,  0.70F,  1.80F);
+	light->second->light->setType(Light::POINT);
+    light->second->light->setPosition(   glm::vec3(0.000F, -0.25F, -0.25F));
+    light->second->light->setDirection(  glm::vec3(0.875F,  1.00F,  0.75F));
+    light->second->light->setAttenuation(glm::vec3(1.000F,  0.70F,  1.80F));
 
     light++;
-	light->second->light->type         = Light::SPOTLIGHT;
-    light->second->light->position     = glm::vec3(0.000F, 0.25F,  0.250F);
-    light->second->light->direction    = glm::vec3(0.125F, 0.50F, -1.000F);
-    light->second->light->diffuse      = glm::vec3(0.875F, 0.75F,  1.000F);
-    light->second->light->attenuation  = glm::vec3(0.500F, 0.14F,  0.007F);
-    light->second->light->ambient_level = 0.0F;
+	light->second->light->setType(Light::SPOTLIGHT);
+    light->second->light->setPosition(   glm::vec3(0.000F, 0.25F,  0.250F));
+    light->second->light->setDirection(  glm::vec3(0.125F, 0.50F, -1.000F));
+    light->second->light->setDiffuse(    glm::vec3(0.875F, 0.75F,  1.000F));
+    light->second->light->setAttenuation(glm::vec3(0.500F, 0.14F,  0.007F));
+    light->second->light->setAmbientLevel(0.0F);
     light->second->draw = true;
 
     light++;
-	light->second->light->type          = Light::SPOTLIGHT;
-    light->second->light->enabled       = false;
-    light->second->light->ambient_level = 0.0F;
-    light->second->light->cutoff        = glm::vec2(5.0F, 5.5F);
+	light->second->light->setType(Light::SPOTLIGHT);
+    light->second->light->setAmbientLevel(0.0F);
+    light->second->light->setCutoff(glm::vec2(5.0F, 5.5F));
+	light->second->light->setEnabled(false);
     light->second->grab = true;
 }
 
@@ -362,11 +361,14 @@ void setup_gui() {
 
 // Draw GUI
 void draw_gui(GLFWwindow *window) {
+	// GUI ID tag
+	static const std::string GUI_ID_TAG = "###";
+
     // Gui Window flags
-    ImGuiWindowFlags gui_flags = ImGuiWindowFlags_NoCollapse |
-                                 ImGuiWindowFlags_NoResize |
-                                 ImGuiWindowFlags_NoMove |
-                                 ImGuiWindowFlags_NoBringToFrontOnFocus;
+    static const ImGuiWindowFlags gui_flags = ImGuiWindowFlags_NoCollapse |
+											  ImGuiWindowFlags_NoResize |
+											  ImGuiWindowFlags_NoMove |
+											  ImGuiWindowFlags_NoBringToFrontOnFocus;
 
     // New ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
@@ -408,41 +410,66 @@ void draw_gui(GLFWwindow *window) {
 
     // Camera
     if (ImGui::CollapsingHeader("Camera")) {
-        // Variables
+        // Get the selected camera
 		Camera *camera = scene->getCamera();
-        glm::vec3 position = camera->getPosition();
-        glm::vec3 look = camera->getLookAngles();
-		glm::vec3 background = scene->getBackground();
 
-        float fov = camera->getFOV();
-        glm::vec2 clipping = camera->getClipping();
-        glm::ivec2 resolution = camera->getResolution();
 
-        // Widgets
+        // View matrix attributes
         ImGui::Text("View matrix");
-        if (ImGui::DragFloat3("Position", &position.x, 0.01F))                 camera->setPosition(position);
-        if (ImGui::DragFloat3("Look",     &look.x,     0.1F, -180.0F, 180.0F)) camera->setLookAngles(look);
 
+		// Camera position
+		glm::vec3 position = camera->getPosition();
+		if (ImGui::DragFloat3("Position", &position.x, 0.01F)) {
+			camera->setPosition(position);
+			scene->updateGrabbedLights();
+		}
+
+		// Camera look angles
+		glm::vec3 look = camera->getLookAngles();
+		if (ImGui::DragFloat3("Look", &look.x, 0.1F, -180.0F, 180.0F)) {
+			camera->setLookAngles(look);
+			scene->updateGrabbedLights();
+		}
+
+
+		// Projection matrix attributes
         ImGui::Spacing();
         ImGui::Text("Projection matrix");
-        if (ImGui::DragFloat("FOV",       &fov,          0.1F)) camera->setFOV(fov);
-        if (ImGui::DragFloat2("Clipping", &clipping.x,   0.1F)) camera->setClipping(clipping.x, clipping.y);
-            ImGui::DragInt2("Resolution", &resolution.x, 0.0F);
 
+		// Filed of view
+		float fov = camera->getFOV();
+        if (ImGui::DragFloat("FOV", &fov, 0.1F))
+			camera->setFOV(fov);
+
+		// Clipping
+		glm::vec2 clipping = camera->getClipping();
+        if (ImGui::DragFloat2("Clipping", &clipping.x, 0.1F))
+			camera->setClipping(clipping.x, clipping.y);
+
+		// Resolution
+		glm::ivec2 resolution = camera->getResolution();
+        ImGui::DragInt2("Resolution", &resolution.x, 0.0F);
+
+
+		// Other scene attributes
         ImGui::Spacing();
         ImGui::Text("Others");
-		if (ImGui::ColorEdit3("Background", &background.x)) scene->setBackground(background);
+
+		// Background color
+		glm::vec3 background = scene->getBackground();
+		if (ImGui::ColorEdit3("Background", &background.x))
+			scene->setBackground(background);
     }
 
     // Models
     if (ImGui::CollapsingHeader("Models")) {
-        for (std::pair<const std::uint32_t, Scene::model_data *> &it : scene->getModelStock()) {
+        for (std::pair<const std::uint32_t, Scene::model_data *> &model_it : scene->getModelStock()) {
             // Get data and title
-            Scene::model_data *data = it.second;
+            Scene::model_data *data = model_it.second;
             std::string model_title = (data->model->isOpen() ? data->model->getName() : "Error: could not open");
-            model_title.append(GUI_ID_TAG).append(std::to_string(it.first));
+            model_title.append(GUI_ID_TAG).append(std::to_string(model_it.first));
 
-            // Create node
+            // Create model node
             if (ImGui::TreeNode(model_title.c_str())) {
                 // Model status
                 bool is_enabled = data->model->isEnabled();
@@ -484,23 +511,22 @@ void draw_gui(GLFWwindow *window) {
 
                 // Properties for enabled models
                 else {
-                    // Model attributes
-                    int vertices  = (int)data->model->getVertices();
-                    int triangles = (int)data->model->getTriangles();
-                    glm::vec3 position = data->model->getPosition();
-                    glm::vec3 rotation = data->model->getRotationAngles();
-                    glm::vec3 scale    = data->model->getScale();
-                    std::map<std::string, Material::property> material = data->model->getMaterial()->getProperties();
-
                     // Widgets
                     ImGui::Spacing();
                     if (ImGui::TreeNode("Summary")) {
+						int vertices = (int)data->model->getVertices();
+						int triangles = (int)data->model->getTriangles();
+
                         ImGui::DragInt("Vertices",  &vertices,  0.0F);
                         ImGui::DragInt("Triangles", &triangles, 0.0F);
                         ImGui::TreePop();
                     }
 
                     if (ImGui::TreeNode("Geometry")) {
+						glm::vec3 position = data->model->getPosition();
+						glm::vec3 rotation = data->model->getRotationAngles();
+						glm::vec3 scale = data->model->getScale();
+
                         if (ImGui::DragFloat3("Position", &position.x, 0.01F)) data->model->setPosition(position);
                         if (ImGui::DragFloat3("Rotation", &rotation.x, 0.50F)) data->model->setRotation(rotation);
                         if (ImGui::DragFloat3("Scale",    &scale.x, 0.01F))    data->model->setScale(scale);
@@ -508,23 +534,49 @@ void draw_gui(GLFWwindow *window) {
                         ImGui::TreePop();
                     }
 
+					// Materials node
                     if (ImGui::TreeNode("Materials")) {
-                        for (std::pair< const std::string, Material::property> &mat : material) {
-                            // Create material node
-                            if (ImGui::TreeNode(mat.first.c_str())) {
-                                // Modified flag
-                                bool update = false;
+						// For each material
+                        for (Material *const material : data->model->getMaterialStock()) {
+                            // Material name
+							const std::string material_name = material->getName();
 
-                                // Widgets
-                                update |= ImGui::ColorEdit3("Ambient",  &mat.second.ambient_color.r);
-                                update |= ImGui::ColorEdit3("Diffuse",  &mat.second.diffuse_color.r);
-                                update |= ImGui::ColorEdit3("Specular", &mat.second.specular_color.r);
-                                update |= ImGui::DragFloat("Shininess", &mat.second.shininess, 0.010F);
-                                update |= ImGui::DragFloat("Roughness", &mat.second.roughness, 0.005F, 0.0F,    1.0F);
-                                update |= ImGui::DragFloat("Metalness", &mat.second.metalness, 0.005F, 0.0F,    1.0F);
+							// Material node
+                            if (ImGui::TreeNode(material_name.c_str())) {
+								// Colors
 
-                                // Update material
-                                if (update) data->model->updateMaterial(mat.first, mat.second);
+								// Ambient color
+								glm::vec3 ambient_color = material->getAmbientColor();
+								if (ImGui::ColorEdit3("Ambient", &ambient_color.r))
+									material->setAmbientColor(ambient_color);
+
+								// Diffuse color
+								glm::vec3 diffuse_color = material->getDiffuseColor();
+                                if (ImGui::ColorEdit3("Diffuse",  &diffuse_color.r))
+									material->setDiffuseColor(diffuse_color);
+
+								// Specular color
+								glm::vec3 specular_color = material->getSpecularColor();
+                                if (ImGui::ColorEdit3("Specular", &specular_color.r))
+									material->setSpecularColor(specular_color);
+
+
+								// Attributes
+
+								// Shininess
+								float shininess = material->getShininess();
+								if (ImGui::DragFloat("Shininess", &shininess, 0.010F))
+									material->setShininess(shininess);
+
+								// Roughness
+								float roughness = material->getRoughness();
+								if (ImGui::DragFloat("Roughness", &roughness, 0.005F, 0.0F, 1.0F))
+									material->setRoughness(roughness);
+
+								// Metalness
+								float metalness = material->getMetalness();
+                                if (ImGui::DragFloat("Metalness", &metalness, 0.005F, 0.0F,    1.0F))
+									material->setMetalness(metalness);
 
                                 // Finish material node
                                 ImGui::TreePop();
@@ -536,7 +588,7 @@ void draw_gui(GLFWwindow *window) {
                     }
                 }
 
-                // Finish material node
+                // Finish model node
                 ImGui::TreePop();
             }
         }
@@ -553,8 +605,9 @@ void draw_gui(GLFWwindow *window) {
 			Light *const light = light_data.second->light;
 
             // Light title
+			Light::Type type = light->getType();
             std::string light_id = std::to_string(light->getID());
-            std::string light_label = LIGHT_TYPE_LABEL[light->type];
+            std::string light_label = LIGHT_TYPE_LABEL[type];
             std::string light_title = "[" + std::to_string(light->getID()) + "] " + light_label + GUI_ID_TAG + std::to_string(id);
 
             // Create light node
@@ -563,11 +616,11 @@ void draw_gui(GLFWwindow *window) {
                 if (ImGui::BeginCombo("Type", light_label.c_str())) {
 					for (std::uint32_t i = 0; i < 3; i++) {
                         // Compare type with the current
-                        bool selected = (light->type == i);
+                        bool selected = (type == i);
 
                         // Add items and mark the selected
                         if (ImGui::Selectable(LIGHT_TYPE_LABEL[i], selected))
-							light->type = (Light::Type)i;
+							light->setType((Light::Type)i);
 
                         if (selected)
                             ImGui::SetItemDefaultFocus();
@@ -576,44 +629,87 @@ void draw_gui(GLFWwindow *window) {
                 }
 
 				// Enabled status
-				ImGui::Checkbox("Enabled", &light->enabled);
+				bool enabled = light->isEnabled();
+				if (ImGui::Checkbox("Enabled", &enabled))
+					light->setEnabled(enabled);
 
 				// Draw arrow status
                 ImGui::SameLine();
                 ImGui::Checkbox("Draw arrow", &light_data.second->draw);
 
 				// Grab checkbox for spotlight lights
-                if (light->type == Light::SPOTLIGHT) {
+                if (type == Light::SPOTLIGHT) {
                     ImGui::SameLine();
-                    ImGui::Checkbox("Grab", &light_data.second->grab);
+					if (ImGui::Checkbox("Grab", &light_data.second->grab))
+						scene->updateGrabbedLights();
                 }
 
 
 				// General attributes
                 ImGui::Spacing();
-				ImGui::DragFloat3("Position", &light->position.x, 0.01F);
-				ImGui::DragFloat3("Direction", &light->direction.x, 0.01F, -1.0F, 1.0F);
+
+				// Position
+				glm::vec3 position = light->getPosition();
+				if (ImGui::DragFloat3("Position", &position.x, 0.01F))
+					light->setPosition(position);
+
+				// Direction
+				glm::vec3 direction = light->getDirection();
+				if (ImGui::DragFloat3("Direction", &direction.x, 0.01F, -1.0F, 1.0F))
+					light->setDirection(direction);
+
 
 				// Color by component
                 ImGui::Spacing();
-                ImGui::ColorEdit3("Ambient",   &light->ambient.r);
-                ImGui::ColorEdit3("Diffuse",   &light->diffuse.r);
-                ImGui::ColorEdit3("Specular",  &light->specular.r);
+
+				// Ambient color
+				glm::vec3 ambient = light->getAmbient();
+				if (ImGui::ColorEdit3("Ambient", &ambient.r))
+					light->setAmbient(ambient);
+
+				// Diffuse color
+				glm::vec3 diffuse = light->getAmbient();
+				if (ImGui::ColorEdit3("Diffuse", &diffuse.r))
+					light->setDiffuse(diffuse);
+
+				glm::vec3 specular = light->getSpecular();
+				if (ImGui::ColorEdit3("Specular", &specular.r))
+					light->setSpecular(specular);
+
 
 				// Components attributes
                 ImGui::Spacing();
-                ImGui::DragFloat("Ambient level",  &light->ambient_level,  0.005F, 0.0F, 1.0F);
-                ImGui::DragFloat("Specular level", &light->specular_level, 0.005F, 0.0F, 1.0F);
-                ImGui::DragFloat("Shininess",      &light->shininess,      0.010F);
+
+				// Ambient level
+				float ambient_level = light->getAmbientLevel();
+				if (ImGui::DragFloat("Ambient level", &ambient_level, 0.005F, 0.0F, 1.0F))
+					light->setAmbientLevel(ambient_level);
+
+				// Specular level
+				float specular_level = light->getSpecularLevel();
+                if (ImGui::DragFloat("Specular level", &specular_level, 0.005F, 0.0F, 1.0F))
+					light->setSpecularLevel(specular_level);
+
+				// Shininess
+				float shininess = light->getShininess();
+				if (ImGui::DragFloat("Shininess", &shininess, 0.010F))
+					light->setShininess(shininess);
+
 
 				// Attenuation for non directional lights
                 ImGui::Spacing();
-                if (light->type != Light::DIRECTIONAL)
-                    ImGui::DragFloat3("Attenuation", &light->attenuation.x, 0.005F, 0.0F);
+				if (type != Light::DIRECTIONAL) {
+					glm::vec3 attenuation = light->getAttenuation();
+					if (ImGui::DragFloat3("Attenuation", &attenuation.x, 0.005F, 0.0F))
+						light->setAttenuation(attenuation);
+				}
 
 				// Cutoff for spotlight lights
-                if (light->type == Light::SPOTLIGHT)
-                    ImGui::DragFloat2("Cutoff", &light->cutoff.x, 0.01F);
+				if (type == Light::SPOTLIGHT) {
+					glm::vec2 cutoff = light->getCutoff();
+					if (ImGui::DragFloat2("Cutoff", &cutoff.x, 0.01F))
+						light->setCutoff(cutoff);
+				}
                 
                 // Finish light node
                 ImGui::TreePop();
