@@ -312,6 +312,13 @@ void Scene::associate(const std::uint32_t &model_id, const std::uint32_t &progra
 	model_result->second->program = program_id;
 }
 
+// Reload shaders
+void Scene::reloadShaders() {
+	for (std::pair<const std::uint32_t, Scene::program_data *> &program : program_stock)
+		program.second->program->reload();
+}
+
+
 // Select camera
 void Scene::selectCamera(const std::uint32_t &id) {
 	// Search camera
@@ -326,18 +333,6 @@ void Scene::selectCamera(const std::uint32_t &id) {
 	// Select camera
 	camera = result->second;
 }
-
-// Move camera
-void Scene::moveCamera(const Camera::Movement &direction) {
-	camera->move(direction, time_delta);
-
-	// Ubdate position for grabbed lights
-	for (const std::pair<const std::uint32_t, Scene::light_data *> &light_it : light_stock) {
-		if (light_it.second->grab)
-			light_it.second->light->position = camera->getPosition();
-	}
-}
-
 
 // Look around
 void Scene::lookAround(const double &xpos, const double &ypos) {
@@ -355,12 +350,33 @@ void Scene::zoom(const double &yoffset) {
 	camera->zoom(yoffset);
 }
 
-// Reload shaders
-void Scene::reloadShaders() {
-	for (std::pair<const std::uint32_t, Scene::program_data *> &program : program_stock)
-		program.second->program->reload();
+// Move camera
+void Scene::moveCamera(const Camera::Movement &direction) {
+	camera->move(direction, time_delta);
+
+	// Ubdate position for grabbed lights
+	for (const std::pair<const std::uint32_t, Scene::light_data *> &light_it : light_stock) {
+		if (light_it.second->grab)
+			light_it.second->light->position = camera->getPosition();
+	}
 }
 
+// Set the camera position
+void Scene::setCameraPosition(const glm::vec3 &position) {
+	camera->setPosition(position);
+}
+
+// Set the mouse position
+void Scene::setMousePosition(const int &xpos, const int &ypos) {
+	mouse->setTranslationPoint(xpos, ypos);
+}
+
+
+// Set background color
+void Scene::setBackground(const glm::vec3 &color) {
+	background = color;
+	glClearColor(background.r, background.g, background.b, 1.0F);
+}
 
 // Set resolution
 void Scene::setResolution(const int &width_res, const int &height_res) {
@@ -374,17 +390,6 @@ void Scene::setResolution(const int &width_res, const int &height_res) {
 	// Update cameras resolution
 	for (std::pair<const std::uint32_t, Camera *> &cam : camera_stock)
 		cam.second->setResolution(width, height);
-}
-
-// Set background color
-void Scene::setBackground(const glm::vec3 &color) {
-	background = color;
-	glClearColor(background.r, background.g, background.b, 1.0F);
-}
-
-// Update mouse position
-void Scene::setMousePosition(const int &xpos, const int &ypos) {
-	mouse->setTranslationPoint(xpos, ypos);
 }
 
 
@@ -410,14 +415,15 @@ Camera *Scene::getCamera() const {
 	return camera;
 }
 
-// Get resolution
-glm::ivec2 Scene::getResolution() const {
-	return glm::ivec2(width, height);
-}
 
 // Get background color
 glm::vec3 Scene::getBackground() const {
 	return background;
+}
+
+// Get resolution
+glm::ivec2 Scene::getResolution() const {
+	return glm::ivec2(width, height);
 }
 
 
