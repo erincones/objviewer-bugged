@@ -47,6 +47,8 @@ class GLSLProgram {
         bool isValid() const;
 		bool isValidShader(const GLenum &type) const;
 
+		void setShaders(const std::string &vert_path, const std::string &tesc_path, const std::string &tese_path, const std::string &geom_path, const std::string &frag_path);
+
         void setUniform(const std::string &name, const GLint &scalar);
         void setUniform(const std::string &name, const GLuint &scalar);
 		void setUniform(const std::string &name, const std::size_t &scalar);

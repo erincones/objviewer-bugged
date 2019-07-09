@@ -81,8 +81,12 @@ void GLSLProgram::destroy() {
 	// Destroy shaders
 	destroyShaders();
 
+	// Destroy program
     glDeleteProgram(program);
     program = GL_FALSE;
+
+	// Clear uniform locations
+	location.clear();
 }
 
 // Destroy shaders
@@ -197,6 +201,33 @@ bool GLSLProgram::isValidShader(const GLenum &type) const {
 		case GL_GEOMETRY_SHADER:        return geom != nullptr ? geom->hasCompiled() : true;
 		case GL_FRAGMENT_SHADER:        return frag != nullptr ? frag->hasCompiled() : false;
 		default:                        throw std::runtime_error("error: unknown shader type (" + std::to_string(type) + ")");
+	}
+}
+
+// Set new shaders paths and compile
+void GLSLProgram::setShaders(const std::string &vert_path, const std::string &tesc_path, const std::string &tese_path, const std::string &geom_path, const std::string &frag_path) {
+	// Destroy program
+	destroy();
+
+	// Delete previous shaders
+	if (vert != nullptr) delete vert;
+	if (tesc != nullptr) delete tesc;
+	if (tese != nullptr) delete tese;
+	if (geom != nullptr) delete geom;
+	if (frag != nullptr) delete frag;
+
+	// Load the new shaders
+	vert = (!vert_path.empty() ? new Shader(vert_path, GL_VERTEX_SHADER)          : nullptr);
+	tesc = (!tesc_path.empty() ? new Shader(tesc_path, GL_TESS_CONTROL_SHADER)    : nullptr);
+	tese = (!tese_path.empty() ? new Shader(tese_path, GL_TESS_EVALUATION_SHADER) : nullptr);
+	geom = (!geom_path.empty() ? new Shader(geom_path, GL_GEOMETRY_SHADER)        : nullptr);
+	frag = (!frag_path.empty() ? new Shader(frag_path, GL_FRAGMENT_SHADER)        : nullptr);
+
+	// Link program
+	try {
+		link();
+	} catch (GLSLException &exception) {
+		std::cerr << exception.what() << std::endl;
 	}
 }
 
