@@ -296,6 +296,9 @@ std::string GLSLProgram::getShadersPipeline() const {
 		if (!pipeline.empty()) pipeline.append(" -> ");
 		pipeline.append(frag->getName());
 	}
+
+	// Return pipeline
+	return pipeline;
 }
 
 
