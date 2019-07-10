@@ -113,6 +113,8 @@ class Model {
 
         void setMatrix(const glm::mat4 &matrix);
 
+		void setPath(const std::string &model_path);
+
         bool isOpen() const;
 		bool isMaterialOpen() const;
 

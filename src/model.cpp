@@ -441,6 +441,13 @@ void Model::reload() {
 	material_stock.clear();
 	material_stock.push_back(new Material("default"));
 
+	// Delete buffers
+	glDeleteBuffers(1, &vbo);
+	glDeleteBuffers(1, &ebo);
+
+	// Delete vertex array object
+	glDeleteVertexArrays(1, &vao);
+
     // Reset limits
     min = glm::vec3(std::numeric_limits<float>::max());
     max = glm::vec3(std::numeric_limits<float>::min());
@@ -567,6 +574,16 @@ void Model::setMatrix(const glm::mat4 &matrix) {
     glm::decompose(matrix, scale, rotation, position, dummy_skew, dummy_perspective);
 }
 
+// Set a new path and load model
+void Model::setPath(const std::string &file_path) {
+	// Set the new path and name
+	path = file_path;
+	name = path.substr(path.find_last_of(DIR_SEP) + 1);
+
+	// load model
+	reload();
+}
+
 
 
 // Get open status
@@ -595,7 +612,7 @@ std::string Model::getPath() const {
     return path;
 }
 
-//
+// Get material path
 std::string Model::getMaterialPath() const {
 	return material_path;
 }
