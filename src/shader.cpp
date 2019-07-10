@@ -8,40 +8,23 @@
 #include <iostream>
 #include <cstdlib>
 
-// Static variables declaration
-std::map<std::uint64_t, GLuint> Shader::dictionary;
-std::map<GLuint, std::size_t> Shader::stock;
-
 void Shader::load() {
+	// Create and check new shader
+	shader = glCreateShader(stage);
+	if (shader == GL_FALSE)
+		throw GLSLException("could not create the shader", path, stage);
+
     // Open the file and check it
     std::ifstream file(path);
     if (!file.is_open())
         throw GLSLException("could not open the file", path, stage);
 
-    // Read the whole file
+    // Read the whole file and close it
     std::stringstream buffer;
     buffer << file.rdbuf();
-
-    // Store the source code and close the file
-    std::string content = buffer.str();
-    const char *source = content.c_str();
-    file.close();
-
-    // Search shader hash
-    hash = FNV::hash((const unsigned char *)source, content.size());
-    std::map<std::uint64_t, GLuint>::iterator result = dictionary.find(hash);
-
-    // Get ID and increment stock for stored shader
-    if (result != dictionary.end()) {
-        shader = result->second;
-        stock[result->second]++;
-        return;
-    }
-
-    // Create and check new shader
-    shader = glCreateShader(stage);
-    if (shader == GL_FALSE)
-        throw GLSLException("could not create the shader", path, stage);
+	const std::string content = buffer.str();
+    const char *const source = content.c_str();
+	file.close();
 
     // Compile shader source code
     glShaderSource(shader, 1, &source, 0);
@@ -51,43 +34,32 @@ void Shader::load() {
     int status;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
 
-    // Store new shader
-    if (status == GL_TRUE) {
-        dictionary[hash] = shader;
-        stock[shader] = 1;
-    }
-
     // Print error
-    else {
+	if (status != GL_TRUE) {
         // Error message
         std::string msg = "could not compile the shader";
 
         // Get the log length
-        int length;
+        GLint length;
         glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
 
         // Get the log info
-        if (length > 0) {
-            char *log = (char *)std::malloc(length * sizeof(char));
+		GLchar *log = (GLchar *)std::malloc(length * sizeof(GLchar));
+        if (log != NULL) {
             glGetShaderInfoLog(shader, length, 0, log);
             msg.append(". Log output:\n").append(log);
             std::free(log);
         }
 
-        // Delete shader
-        glDeleteShader(shader);
-        shader = GL_FALSE;
+		// Destroy shader
+		destroy();
 
         // Throw exception
         throw GLSLException(msg, path, stage);
     }
-}
 
-// Empty shader
-Shader::Shader() {
-    shader = GL_FALSE;
-    hash = 0;
-    stage = GL_FALSE;
+	// Compiled status
+	compiled = true;
 }
 
 // Shader constructor
@@ -102,6 +74,9 @@ Shader::Shader(const std::string &file_path, const GLenum &type) {
     // Set stage
     stage = type;
 
+	// Compiled status
+	compiled = false;
+
     // Load shader
     try {
         load();
@@ -110,9 +85,37 @@ Shader::Shader(const std::string &file_path, const GLenum &type) {
     }
 }
 
-// Get open status
-bool Shader::isOpen() const {
+void Shader::reload() {
+	// Destroy shader
+	destroy();
+
+	// Compiled status
+	compiled = false;
+
+	// Load shader
+	try {
+		load();
+	} catch (std::exception &exception) {
+		std::cerr << exception.what() << std::endl;
+	}
+}
+
+// Destroy the shader
+void Shader::destroy() {
+	if (shader == GL_FALSE) return;
+
+	glDeleteShader(shader);
+	shader = GL_FALSE;
+}
+
+// Get the valid status
+bool Shader::isValid() const {
     return shader != GL_FALSE;
+}
+
+// Get the complied status
+bool Shader::hasCompiled() const {
+	return compiled;
 }
 
 // Get path
@@ -137,14 +140,5 @@ GLenum Shader::getType() const {
 
 // Delete shader
 Shader::~Shader() {
-    // Ignore empty shaders
-    if (shader == GL_FALSE) return;
-
-    // Decrement stock and delete shader if is empty
-    if (--stock[shader] == 0) {
-        dictionary.erase(hash);
-        stock.erase(shader);
-
-        glDeleteShader(shader);
-    }
+	destroy();
 }

@@ -15,10 +15,12 @@ class Shader {
 
         // Shader ID
         GLuint shader;
-        std::uint64_t hash;
 
         // Type
         GLenum stage;
+
+		// Compiled status
+		bool compiled;
 
         // Disable copy and assignation
         Shader(const Shader &) = delete;
@@ -27,15 +29,14 @@ class Shader {
         // Load shader
         void load();
 
-        // Static variables
-        static std::map<std::uint64_t, GLuint> dictionary;
-        static std::map<GLuint, std::size_t> stock;
-
     public:
-        Shader();
         Shader(const std::string &file_path, const GLenum &type);
 
-        bool isOpen() const;
+		void reload();
+		void destroy();
+
+        bool isValid() const;
+		bool hasCompiled() const;
         std::string getPath() const;
         std::string getName() const;
 

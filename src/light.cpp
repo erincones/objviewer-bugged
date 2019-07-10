@@ -1,18 +1,18 @@
 #include "light.hpp"
 
 // Static definition
-unsigned int Light::count = 0U;
-std::set<unsigned int> Light::id_set;
+std::uint32_t Light::count = 0U;
+std::set<std::uint32_t> Light::stock;
 
 // Constructor
-Light::Light(const Light::TYPE &value) {
+Light::Light(const Light::Type &value) {
     // Set type and enable
     type = value;
     enabled = true;
 
     // Set ID and insert to set
     id = Light::count++;
-    Light::id_set.insert(id);
+    Light::stock.insert(id);
 
     // Set default values
     glm::vec3 vec_ones = glm::vec3(1.0F);
@@ -27,15 +27,15 @@ Light::Light(const Light::TYPE &value) {
     specular_level = 1.00F;
     shininess      = 5.00F;
 
-    position    = glm::vec3(0.0F, 0.00F, 1.000F);
+    position    = glm::vec3(0.0F, 0.00F, 2.000F);
     attenuation = glm::vec3(1.0F, 0.14F, 0.007F);
     cutoff      = glm::vec2(glm::radians(20.0F), glm::radians(25.0F));
 }
 
 
 // Set type
-void Light::setType(const Light::TYPE &value) {
-    if (type != value) type = value;
+void Light::setType(const Light::Type &value) {
+    type = value;
 }
 
 // Set the enabled status
@@ -137,7 +137,7 @@ void Light::use(GLSLProgram *const program, const bool &as_array) const {
 
     // Array index
     if (as_array)
-        uniform.append("[").append(std::to_string(std::distance(Light::id_set.begin(), Light::id_set.find(id)))).append("]");
+        uniform.append("[").append(std::to_string(std::distance(Light::stock.begin(), Light::stock.find(id)))).append("]");
 
     // Uniform dot
     uniform.append(".");
@@ -185,12 +185,12 @@ bool Light::isEnabled() const {
 
 
 // Get ID
-unsigned int Light::getID() const {
+std::uint32_t Light::getID() const {
     return id;
 }
 
 // Get type
-Light::TYPE Light::getType() const {
+Light::Type Light::getType() const {
     return type;
 }
 
@@ -250,12 +250,12 @@ glm::vec2 Light::getCutoff() const {
 
 
 // Get the directional lights
-unsigned int Light::getNumberOfLights() {
-    return Light::id_set.size();
+std::size_t Light::getNumberOfLights() {
+    return Light::stock.size();
 }
 
 
 // Light destructor
 Light::~Light() {
-    Light::id_set.erase(id);
+    Light::stock.erase(id);
 }

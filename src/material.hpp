@@ -10,72 +10,86 @@
 #include <map>
 
 class Material {
-    public:
-        struct property {
-            // Basics
-            glm::vec3 ambient_color     = glm::vec3(0.125F);
-            glm::vec3 diffuse_color     = glm::vec3(1.000F);
-            glm::vec3 specular_color    = glm::vec3(1.000F);
-            glm::vec3 transmision_color = glm::vec3(1.000F);
+	private:
+		// Material name
+		std::string name;
 
-            float alpha            =  1.00F;
-            float sharpness        = 60.00F;
-            float shininess        = 10.00F;
-            float roughness        =  0.20F;
-            float metalness        =  0.03F;
-            float refractive_index =  1.00F;
+		// Colors
+		glm::vec3 ambient_color;
+		glm::vec3 diffuse_color;
+		glm::vec3 specular_color;
+		glm::vec3 transmission_color;
 
-            // Texture maps
-            Texture *ambient_map      = new Texture();
-            Texture *diffuse_map      = new Texture();
-            Texture *specular_map     = new Texture();
-            Texture *shininess_map    = new Texture();
-            Texture *alpha_map        = new Texture();
-            Texture *bump_map         = new Texture();
-            Texture *displacement_map = new Texture();
-            Texture *stencil_map      = new Texture();
-        };
+		// Attributes
+		float alpha;
+		float sharpness;
+		float shininess;
+		float roughness;
+		float metalness;
+		float refractive_index;
 
-    private:
-        // Path and name
-        std::string path;
-        std::string name;
-
-        // Open status
-        bool open;
-
-        // Materials dictionary
-        std::map<std::string, Material::property> material;
-
-        // Statistics
-        std::size_t materials;
-
-        // Disable copy and assignation
-        Material(const Material &) = delete;
-        Material &operator = (const Material &) = delete;
-
-        // Read material
-        void read();
-
-        // Static methods
-        static void rtrim(std::string &str);
-        static std::string getRelativePath(std::istringstream &stream);
+		// Textures
+		Texture *ambient_map;
+		Texture *diffuse_map;
+		Texture *specular_map;
+		Texture *shininess_map;
+		Texture *alpha_map;
+		Texture *bump_map;
+		Texture *displacement_map;
+		Texture *stencil_map;
 
     public:
-        Material();
-        Material(const std::string &file_path);
 
-        void update(const std::string &name, const Material::property &prop);
+        Material(const std::string &material_name);
 
-        void bind(const std::string &name, GLSLProgram *const program) const;
+        void use(GLSLProgram *const program) const;
 
-        bool isOpen() const;
-        std::string getPath() const;
-        std::string getName() const;
 
-        std::size_t getMaterials() const;
+		std::string getName() const;
 
-        std::map<std::string, Material::property> getProperties() const;
+		glm::vec3 getAmbientColor() const;
+		glm::vec3 getDiffuseColor() const;
+		glm::vec3 getSpecularColor() const;
+		glm::vec3 getTransmissionColor() const;
+
+		float getAlpha() const;
+		float getSharpness() const;
+		float getShininess() const;
+		float getRoughness() const;
+		float getMetalness() const;
+		float getRefractiveIndex() const;
+
+		Texture *getAmbientMap() const;
+		Texture *getDiffuseMap() const;
+		Texture *getSpecularMap() const;
+		Texture *getShininessMap() const;
+		Texture *getAlphaMap() const;
+		Texture *getBumpMap() const;
+		Texture *getDisplacementMap() const;
+		Texture *getStencilMap() const;
+
+
+		void setAmbientColor(const glm::vec3 &color);
+		void setDiffuseColor(const glm::vec3 &color);
+		void setSpecularColor(const glm::vec3 &color);
+		void setTransmissionColor(const glm::vec3 &color);
+
+		void setAlpha(const float &value);
+		void setSharpness(const float &value);
+		void setShininess(const float &value);
+		void setRoughness(const float &value);
+		void setMetalness(const float &value);
+		void setRefractiveIndex(const float &value);
+
+		void setAmbientMap(const std::string &path);
+		void setDiffuseMap(const std::string &path);
+		void setSpecularMap(const std::string &path);
+		void setShininessMap(const std::string &path);
+		void setAlphaMap(const std::string &path);
+		void setBumpMap(const std::string &path);
+		void setDisplacementMap(const std::string &path);
+		void setStencilMap(const std::string &path);
+
 
         ~Material();
 };

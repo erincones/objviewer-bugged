@@ -1,11 +1,16 @@
 #include "camera.hpp"
-#include "mouse.hpp"
 #include "light.hpp"
 #include "model.hpp"
 #include "material.hpp"
+#include "texture.hpp"
+
 #include "glslprogram.hpp"
+#include "shader.hpp"
+
+#include "scene.hpp"
 
 #include "dirseparator.hpp"
+
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_stdlib.h"
@@ -24,99 +29,19 @@
 #include <map>
 #include <set>
 
-// Textures paths
-struct texture_data {
-    std::string ambient;
-    std::string diffuse;
-    std::string specular;
-    std::string shininess;
-    std::string alpha;
-    std::string bump;
-    std::string displacement;
-    std::string stencil;
-};
+#include <cstdint>
 
-// GLSL program and shader paths
-struct glsl_data {
-    // GLSL program
-    GLSLProgram *program = nullptr;
-
-    // Paths
-    std::string vertex;
-    std::string geometry;
-    std::string tess_ctrl;
-    std::string tess_eval;
-    std::string fragment;
-
-    // Associated models
-    std::set<unsigned int> model;
-} ;
-
-// Model data
-struct model_data {
-    // Model and GLSL program
-    Model *model = nullptr;
-    glsl_data *glsl_program = nullptr;
-    unsigned int glsl_id = 0;
-
-    // GUI flags
-    bool lock_scaling = true;
-    bool bounding_box = false;
-    bool normals = false;
-
-    // Paths
-    std::string path;
-    std::vector<texture_data> texture;
-};
-
-struct light_data {
-    // Light
-    Light *light = nullptr;
-
-    // GUI flags
-    bool draw = false;
-    bool grab = false;
-};
-
-// Stock counter
-unsigned int stock_count;
 
 // Scene variables
 GLFWwindow *window = nullptr;
-Camera *camera = nullptr;
-Mouse *mouse = nullptr;
-std::map<unsigned int, glsl_data *> glsl_stock;
-std::map<unsigned int, model_data *> model_stock;
-std::map<unsigned int, light_data *> light_stock;
-glm::vec3 background_color = glm::vec3(0.45F, 0.55F, 0.60F);
+Scene *scene = nullptr;
 
-// Light arrow
-Model *light_arrow = nullptr;
-GLSLProgram *light_glsl = nullptr;
-
-// Dummy GLSL data
-glsl_data *glsl_dummy = nullptr;
-
-// Constants variables
-const float LIGHT_SCALE = 0.0625F;
-const glm::vec3 FRONT = glm::vec3(0.0F, 0.0F, - 1.0F);
-const std::string PLUS = " + ";
-const std::string GUI_ID_TAG = "###";
-const std::map<Light::TYPE, std::string> LIGHT_TYPE_LABEL = {{Light::DIRECTIONAL, "Directional"}, {Light::POINT, "Point"}, {Light::SPOTLIGHT, "Spotlight"}};
-
-// GUI visibility flags
+// GUI variables
 bool show_gui = true;
 bool show_metrics = false;
 bool show_about = false;
 
-// Time variables
-double time_delta = 0.0;
-double time_last = 0.0;
-
-// Directory path
-std::string dir_path;
-
-// OpenGL initialization
+// OpenGL and scene initialization
 void init_opengl();
 void make_opengl_context();
 void print_opengl_info();
@@ -134,23 +59,10 @@ void key_callback(GLFWwindow *window, int key, int, int action, int modifier);
 // Process inputs
 void process_input(GLFWwindow *window);
 
-// Load and setup scene
-void load_scene(const std::string &bin_path);
+// Setup scene
+void setup_scene(const std::string &bin_path);
 
-void push_glsl(const std::string &vertex = "", const std::string &tess_ctrl = "", const std::string &tess_eval = "", const std::string &geometry = "", const std::string &fragment = "");
-void push_model(const std::string &path, const unsigned int &program_id = 0);
-void push_light(Light *const light);
-
-void pop_glsl(const unsigned int &id);
-void pop_model(const unsigned int &id);
-void pop_light(const unsigned int &id);
-
-void update_glsl(glsl_data *data);
-void update_model(model_data *data);
-
-std::string get_glsl_desc(const GLSLProgram *const program);
-
-// GUI management
+// Setup GUI
 void setup_gui();
 void draw_gui(GLFWwindow *window);
 
@@ -184,7 +96,7 @@ int main(const int argc, const char **const argv) {
         setup_opengl();
 
         // Load scene
-        load_scene(argv[0]);
+        setup_scene(argv[0]);
 
         // Setup GUI
         setup_gui();
@@ -201,6 +113,7 @@ int main(const int argc, const char **const argv) {
     clean_up();
     return status;
 }
+
 
 // Initialize OpenGL
 void init_opengl() {
@@ -252,7 +165,7 @@ void setup_opengl() {
     glViewport(0, 0, width, height);
 
     // Set the clear color
-    glClearColor(background_color.r, background_color.g, background_color.b, 1.00F);
+    glClearColor(0.0F, 0.0F, 0.0F, 1.00F);
 
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
@@ -265,6 +178,7 @@ void setup_opengl() {
     glfwSetKeyCallback(window, key_callback);
 }
 
+
 // Error callback
 void error_callback(int error, const char *description) {
     std::cerr << "error " << error << ": " << description << std::endl;
@@ -275,27 +189,20 @@ void framebuffer_size_callback(GLFWwindow *, int width, int height) {
     // Resize viewport
     glViewport(0, 0, width, height);
 
-    // Resize camera and mouse
-    camera->setResolution(width, height);
-    mouse->setResolution(width, height);
+    // Resize scene
+	scene->setResolution(width, height);
 }
 
 // Cursor position callback
 void cursor_position_callback(GLFWwindow *, double xpos, double ypos) {
-    // Check the GUI visibility
-    if (show_gui) return;
-
-    // Look around
-    camera->rotate(mouse->translate(xpos, ypos));
+    // Look around when the gui is not showing
+    if (!show_gui) scene->lookAround(xpos, ypos);
 }
 
 // Scroll callback
 void scroll_callback(GLFWwindow *, double, double yoffset) {
-    // Check the GUI visibility
-    if (show_gui) return;
-
-    // Zoom
-    camera->zoom(yoffset);
+    // Zoom when the gui is not showing
+    if (!show_gui) scene->getCamera()->zoom(yoffset);
 }
 
 // Key callback
@@ -321,330 +228,122 @@ void key_callback(GLFWwindow *window, int key, int, int action, int modifier) {
                 double xpos;
                 double ypos;
                 glfwGetCursorPos(window, &xpos, &ypos);
-                mouse->setTranslationPoint((int)xpos, (int)ypos);
+                scene->getMouse()->setTranslationPoint((int)xpos, (int)ypos);
             }
 
             return;
 
-        // Reload shaders
+        // Reload shaders if the CTRL key is pressed
         case GLFW_KEY_R:
-            // If the CTRL is not pressed
-            if (modifier != GLFW_MOD_CONTROL) return;
-
-            // Reload all shaders
-            for (std::pair<unsigned int, glsl_data *> glsl : glsl_stock)
-                glsl.second->program->reload();
+			if (modifier == GLFW_MOD_CONTROL) scene->reloadShaders();
     }
 }
 
 // Process key input
 void process_input(GLFWwindow *window) {
     // Camera movement
-    if (glfwGetKey(window, GLFW_KEY_W))                                          camera->move(Camera::FORWARD, time_delta);
-    if (glfwGetKey(window, GLFW_KEY_S))                                          camera->move(Camera::BACKWARD, time_delta);
-    if (glfwGetKey(window, GLFW_KEY_A)     | glfwGetKey(window, GLFW_KEY_LEFT))  camera->move(Camera::LEFT, time_delta);
-    if (glfwGetKey(window, GLFW_KEY_D)     | glfwGetKey(window, GLFW_KEY_RIGHT)) camera->move(Camera::RIGHT, time_delta);
-    if (glfwGetKey(window, GLFW_KEY_SPACE) | glfwGetKey(window, GLFW_KEY_UP))    camera->move(Camera::UP, time_delta);
-    if (glfwGetKey(window, GLFW_KEY_C)     | glfwGetKey(window, GLFW_KEY_DOWN))  camera->move(Camera::DOWN, time_delta);
+    if (glfwGetKey(window, GLFW_KEY_W))                                          scene->travell(Camera::FORWARD);
+    if (glfwGetKey(window, GLFW_KEY_S))                                          scene->travell(Camera::BACKWARD);
+    if (glfwGetKey(window, GLFW_KEY_A)     | glfwGetKey(window, GLFW_KEY_LEFT))  scene->travell(Camera::LEFT);
+    if (glfwGetKey(window, GLFW_KEY_D)     | glfwGetKey(window, GLFW_KEY_RIGHT)) scene->travell(Camera::RIGHT);
+    if (glfwGetKey(window, GLFW_KEY_SPACE) | glfwGetKey(window, GLFW_KEY_UP))    scene->travell(Camera::UP);
+    if (glfwGetKey(window, GLFW_KEY_C)     | glfwGetKey(window, GLFW_KEY_DOWN))  scene->travell(Camera::DOWN);
 }
 
-// Load scene
-void load_scene(const std::string &bin_path) {
+
+// Setup scene
+void setup_scene(const std::string &bin_path) {
     // Get resolution
     int width;
     int height;
     glfwGetWindowSize(window, &width, &height);
 
-    // Empty std::string
-    std::string empty;
-
     // Set up file paths
-    dir_path = bin_path.substr(0, bin_path.find_last_of(DIR_SEP) + 1);
-    std::string model_dir = dir_path + ".." + DIR_SEP + "model" + DIR_SEP;
-    std::string shader_dir = dir_path + ".." + DIR_SEP + "shader" + DIR_SEP;
+	const std::string root_path = bin_path.substr(0, bin_path.find_last_of(DIR_SEP) + 1);
+    const std::string model_path = root_path + ".." + DIR_SEP + "model" + DIR_SEP;
+    const std::string shader_path = root_path + ".." + DIR_SEP + "shader" + DIR_SEP;
 
-    // Light arrow file paths
-    std::string light_arrow_path = model_dir + "arrow" + DIR_SEP + "light_arrow.obj";
-    std::string light_fragment_path = shader_dir + "light.frag.glsl";
 
-    // Shaders paths
-    std::string vertex = shader_dir + "common.vert.glsl";
-    std::string fragment_path[] = {
-        shader_dir + "blinn_phong.frag.glsl",
-        shader_dir + "oren_nayar.frag.glsl",
-        shader_dir + "cook_torrance.frag.glsl",
-        shader_dir + "normals.frag.glsl"
-    };
+	// Create scene, background color and setup camera
+	scene = new Scene(width, height, model_path, shader_path);
+	scene->setBackground(glm::vec3(0.45F, 0.55F, 0.60F));
+	scene->getCamera()->setPosition(glm::vec3(0.0F, 0.0F, 2.0F));
 
-    // Models paths
-    std::string model_path[] = {
-        model_dir + "suzanne" + DIR_SEP + "suzanne.obj",
-        model_dir + "crash" + DIR_SEP + "crashbandicoot.obj",
-        model_dir + "nanosuit" + DIR_SEP + "nanosuit.obj"
-    };
+    // Add shaders
+	const std::string vertex = shader_path + "common.vert.glsl";
+	const std::uint32_t blinn_phong   = scene->pushProgram(vertex, shader_path + "blinn_phong.frag.glsl");
+	const std::uint32_t oren_nayar    = scene->pushProgram(vertex, shader_path + "oren_nayar.frag.glsl");
+	const std::uint32_t cook_torrance = scene->pushProgram(vertex, shader_path + "cook_torrance.frag.glsl");
 
-    // Create camera
-    camera = new Camera(width, height);
-    camera->setPosition(glm::vec3(0.0F, 0.0F, 2.0F));
+    // Add models
+	const std::uint32_t nanosuit = scene->pushModel(model_path + "nanosuit" + DIR_SEP + "nanosuit.obj");
+	const std::uint32_t suzanne  = scene->pushModel(model_path + "suzanne"  + DIR_SEP + "suzanne.obj");
+	const std::uint32_t crash    = scene->pushModel(model_path + "crash"    + DIR_SEP + "crashbandicoot.obj");
 
-    // Create mouse
-    mouse = new Mouse(width, height);
+	// Associate models to programs
+	scene->associate(nanosuit, cook_torrance);
+	scene->associate(suzanne, blinn_phong);
+	scene->associate(crash, oren_nayar);
 
-    // Create lights
-    push_light(new Light(Light::DIRECTIONAL));
-    push_light(new Light(Light::POINT));
-    push_light(new Light(Light::POINT));
-    push_light(new Light(Light::SPOTLIGHT));
-    push_light(new Light(Light::SPOTLIGHT));
-
-    // Load light arrow
-    light_arrow = new Model(light_arrow_path);
-    light_glsl = new GLSLProgram(vertex, empty, empty, empty, light_fragment_path);
-
-    // Load GLSL programs
-    for (const std::string &fragment : fragment_path)
-        push_glsl(vertex, empty, empty, empty, fragment);
-
-    // Load GLSL dummy program
-    glsl_dummy = new glsl_data;
-    glsl_dummy->program = new GLSLProgram();
-
-    // Load models
-    std::map<unsigned int, glsl_data *>::iterator glsl = glsl_stock.begin();
-    for (const std::string &model : model_path) {
-        // Reset glsl iterator
-        if (glsl == glsl_stock.end())
-            glsl = glsl_stock.begin();
-
-        push_model(model, glsl++->first);
-    }
 
     // Models default values
-    std::map<unsigned int, model_data *>::iterator model = model_stock.begin()++;
+    std::map<std::uint32_t, Scene::model_data *> model_stock = scene->getModelStock();
+	std::map<std::uint32_t, Scene::model_data *>::iterator model = model_stock.begin();
+
+	// Suzanne geometry
+	model++;
     model->second->model->setScale(glm::vec3(0.5F));
     model->second->model->setPosition(glm::vec3(0.6F, 0.25F, 0.0F));
 
+	// Crashbandicoot geometry
     model++;
     model->second->model->setScale(glm::vec3(0.5F));
     model->second->model->setPosition(glm::vec3(0.6F, -0.25F, 0.0F));
 
+
+	// Add five lights
+	for (int i = 0; i < 5; i++) scene->pushLight();
+
     // Lights default values
-    std::map<unsigned int, light_data *>::iterator light = light_stock.begin();
-    light->second->light->setPosition(glm::vec3(0.25F));
-    light->second->light->setDirection(glm::vec3(0.4F, -0.675F, -0.62F));
-    light->second->light->setDiffuse(glm::vec3(0.75F, 0.875F, 1.0F));
-    light->second->light->setSpecular(glm::vec3(0.0F, 0.5F, 0.8F));
+	std::map<std::uint32_t, Scene::light_data *> light_stock = scene->getLightStock();
+	std::map<std::uint32_t, Scene::light_data *>::iterator light = light_stock.begin();
+
+	light->second->light->setType(Light::DIRECTIONAL);
+    light->second->light->setPosition( glm::vec3(0.25F));
+    light->second->light->setDirection(glm::vec3(0.40F, -0.675F, -0.62F));
+    light->second->light->setDiffuse(  glm::vec3(0.75F,  0.875F,  1.00F));
+    light->second->light->setSpecular( glm::vec3(0.00F,  0.500F,  0.80F));
 
     light++;
-    light->second->light->setPosition(glm::vec3(0.61F, 0.07F, 0.25F));
-    light->second->light->setDirection(glm::vec3(0.635F, -0.7F, -0.325F));
-    light->second->light->setDiffuse(glm::vec3(1.0F, 0.875F, 0.75F));
-    light->second->light->setAttenuation(glm::vec3(1.0F, 2.0F, 4.0F));
+	light->second->light->setType(Light::POINT);
+    light->second->light->setPosition(   glm::vec3(0.610F,  0.070F,  0.250F));
+    light->second->light->setDirection(  glm::vec3(0.635F, -0.700F, -0.325F));
+    light->second->light->setDiffuse(    glm::vec3(1.000F,  0.875F,  0.750F));
+    light->second->light->setAttenuation(glm::vec3(1.000F,  2.000F,  4.000F));
 
     light++;
-    light->second->light->setPosition(glm::vec3(0.0F, -0.25F, 0.25F));
-    light->second->light->setDiffuse(glm::vec3(0.875F, 1.0F, 0.75F));
-    light->second->light->setAttenuation(glm::vec3(1.0F, 0.7F, 1.8F));
+	light->second->light->setType(Light::POINT);
+    light->second->light->setPosition(   glm::vec3(0.000F, -0.25F, -0.25F));
+    light->second->light->setDirection(  glm::vec3(0.875F,  1.00F,  0.75F));
+    light->second->light->setAttenuation(glm::vec3(1.000F,  0.70F,  1.80F));
 
     light++;
-    light->second->light->setPosition(glm::vec3(0.0F, 0.25F, 0.25F));
-    light->second->light->setDirection(glm::vec3(0.125F, 0.5F, -1.0F));
-    light->second->light->setDiffuse(glm::vec3(0.875F, 0.75F, 1.0F));
-    light->second->light->setAttenuation(glm::vec3(0.5F, 0.14F, 0.007F));
+	light->second->light->setType(Light::SPOTLIGHT);
+    light->second->light->setPosition(   glm::vec3(0.000F, 0.25F,  0.250F));
+    light->second->light->setDirection(  glm::vec3(0.125F, 0.50F, -1.000F));
+    light->second->light->setDiffuse(    glm::vec3(0.875F, 0.75F,  1.000F));
+    light->second->light->setAttenuation(glm::vec3(0.500F, 0.14F,  0.007F));
     light->second->light->setAmbientLevel(0.0F);
     light->second->draw = true;
 
     light++;
-    light->second->light->setEnabled(false);
+	light->second->light->setType(Light::SPOTLIGHT);
     light->second->light->setAmbientLevel(0.0F);
     light->second->light->setCutoff(glm::vec2(5.0F, 5.5F));
+	light->second->light->setEnabled(false);
     light->second->grab = true;
 }
 
-// Push GLSL program
-void push_glsl(const std::string &vertex, const std::string &tess_ctrl, const std::string &tess_eval, const std::string &geometry, const std::string &fragment) {
-    // Create new GLSL data with the program
-    unsigned int id = stock_count++;
-    glsl_data *data = new glsl_data;
-    data->vertex = vertex;
-    data->tess_ctrl = tess_ctrl;
-    data->tess_eval = tess_eval;
-    data->geometry = geometry;
-    data->fragment = fragment;
-
-    // Push and update program
-    glsl_stock[id] = data;
-    update_glsl(data);
-}
-
-// Push model
-void push_model(const std::string &path, const unsigned int &program_id) {
-    // Create new model data with model
-    unsigned int id = stock_count++;
-    model_data *data = new model_data;
-    data->path = path;
-
-    // Associate GLSL program
-    std::map<unsigned int, glsl_data *>::iterator result = glsl_stock.find(program_id);
-    if (result != glsl_stock.end()) {
-        result->second->model.insert(id);
-        data->glsl_program = result->second;
-        data->glsl_id = result->first;
-    }
-
-    // Program not found
-    else std::cerr << "error: could not found the program `" << program_id << "'" << std::endl;
-
-    // Push and update model
-    model_stock[id] = data;
-    update_model(data);
-}
-
-// Push light
-void push_light(Light *const light) {
-    // Create new light data with light
-    unsigned int id = stock_count++;
-    light_data *data = new light_data;
-    data->light = light;
-
-    // Push light
-    light_stock[id] = data;
-}
-
-// Pop GLSL program
-void pop_glsl(const unsigned int &id) {
-    // Search program
-    std::map<unsigned int, glsl_data *>::iterator result = glsl_stock.find(id);
-
-    // Delete program data
-    if (result != glsl_stock.end()) {
-        // Replacement program
-        glsl_data *replacement_program = glsl_dummy;
-        unsigned int replacement_id = (unsigned)-1;
-
-        if (glsl_stock.size() > 1) {
-            std::map<unsigned int, glsl_data *>::iterator glsl = glsl_stock.begin();
-            replacement_program = glsl->second;
-            replacement_id = glsl->first;
-        }
-
-        // Disassociate to models
-        for (const unsigned int model : result->second->model) {
-            model_data *associated = model_stock[model];
-            associated->glsl_program = replacement_program;
-            associated->glsl_id = replacement_id;
-        }
-
-        // Delete GLSL program
-        delete result->second->program;
-        delete result->second;
-        glsl_stock.erase(id);
-    }
-
-    // Program not found
-    else std::cerr << "error: could not found the program `" << id << "'" << std::endl;
-}
-
-// Pop model
-void pop_model(const unsigned int &id) {
-    // Search model
-    std::map<unsigned int, model_data *>::iterator result = model_stock.find(id);
-
-    // Delete model data
-    if (result != model_stock.end()) {
-        // Dissasociate GLSL program
-        glsl_stock[result->second->glsl_id]->model.erase(result->first);
-
-        // Delete model
-        delete result->second->model;
-        model_stock.erase(result->first);
-    }
-
-    // Model not found
-    else std::cerr << "error: could not found the model `" << id << "'" << std::endl;
-}
-
-// Pop light
-void pop_light(const unsigned int &id) {
-    // Search light
-    std::map<unsigned int, light_data *>::iterator result = light_stock.find(id);
-
-    // Delete light data
-    if (result != light_stock.end()) {
-        delete result->second->light;
-        delete result->second;
-    }
-
-    // Light not found
-    else std::cerr << "error: could not found the light `" << id << "'" << std::endl;
-}
-
-// Update GLSL program
-void update_glsl(glsl_data *const data) {
-    // Delete previous program
-    if (data->program != nullptr) delete data->program;
-
-    // Create new program
-    data->program = new GLSLProgram(data->vertex, data->tess_ctrl, data->tess_eval, data->geometry, data->fragment);
-}
-
-// Update model
-void update_model(model_data *const data) {
-    // Delete previous model
-    if (data->model != nullptr) delete data->model;
-
-    // Load the new model
-    data->model = new Model(data->path);
-
-    // Reset GUI flags
-    data->lock_scaling = true;
-    data->bounding_box = false;
-    data->normals = false;
-
-    // Clear previous textures paths
-    data->texture.clear();
-
-    // Get the new texture paths
-    std::map<std::string, Material::property> materials = data->model->getMaterial()->getProperties();
-    for (std::pair<const std::string, Material::property> &it : materials) {
-        data->texture.push_back(texture_data{
-            it.second.ambient_map->getPath(),
-            it.second.diffuse_map->getPath(),
-            it.second.specular_map->getPath(),
-            it.second.shininess_map->getPath(),
-            it.second.alpha_map->getPath(),
-            it.second.bump_map->getPath(),
-            it.second.displacement_map->getPath(),
-            it.second.stencil_map->getPath()
-        });
-    }
-}
-
-// Get GLSL program shaders pipeline as std::string
-std::string get_glsl_desc(const GLSLProgram *const program) {
-    // Pipeline with first shader
-    std::string pipeline = program->getVertex()->getName();
-
-    // Other shaders
-    std::string shader[] = {
-        program->getTessCtrl()->getName(),
-        program->getTessEval()->getName(),
-        program->getGeometry()->getName(),
-        program->getFragment()->getName()
-    };
-
-    // Build pipeline string
-    for (const std::string &name : shader) {
-        if (!name.empty()) {
-            if (!pipeline.empty())
-                pipeline.append(PLUS);
-
-            pipeline.append(name);
-        }
-    }
-
-    return pipeline;
-}
 
 // Setup GUI
 void setup_gui() {
@@ -670,11 +369,14 @@ void setup_gui() {
 
 // Draw GUI
 void draw_gui(GLFWwindow *window) {
+	// GUI ID tag
+	static const std::string GUI_ID_TAG = "###";
+
     // Gui Window flags
-    ImGuiWindowFlags gui_flags = ImGuiWindowFlags_NoCollapse |
-                                 ImGuiWindowFlags_NoResize |
-                                 ImGuiWindowFlags_NoMove |
-                                 ImGuiWindowFlags_NoBringToFrontOnFocus;
+    static const ImGuiWindowFlags gui_flags = ImGuiWindowFlags_NoCollapse |
+											  ImGuiWindowFlags_NoResize |
+											  ImGuiWindowFlags_NoMove |
+											  ImGuiWindowFlags_NoBringToFrontOnFocus;
 
     // New ImGui frame
     ImGui_ImplOpenGL3_NewFrame();
@@ -684,7 +386,7 @@ void draw_gui(GLFWwindow *window) {
     // Setup GUI window
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0F);
     ImGui::SetNextWindowPos(ImVec2(0.0F, 0.0F), ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(450.0F, (float)camera->getResolution().y), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(450.0F, (float)scene->getResolution().y), ImGuiCond_Always);
 
     // Create GUI
     ImGui::Begin("Settings", &show_gui, gui_flags);
@@ -716,97 +418,129 @@ void draw_gui(GLFWwindow *window) {
 
     // Camera
     if (ImGui::CollapsingHeader("Camera")) {
-        // Variables
-        glm::vec3 position = camera->getPosition();
-        glm::vec3 look = camera->getLookAngles();
+        // Get the selected camera
+		Camera *camera = scene->getCamera();
 
-        float fov = camera->getFOV();
-        glm::vec2 clipping = camera->getClipping();
-        glm::ivec2 resolution = camera->getResolution();
 
-        // Widgets
+        // View matrix attributes
         ImGui::Text("View matrix");
-        if (ImGui::DragFloat3("Position", &position.x, 0.01F))                 camera->setPosition(position);
-        if (ImGui::DragFloat3("Look",     &look.x,     0.1F, -180.0F, 180.0F)) camera->setLookAngles(look);
 
+		// Camera position
+		glm::vec3 position = camera->getPosition();
+		if (ImGui::DragFloat3("Position", &position.x, 0.01F)) {
+			camera->setPosition(position);
+			scene->updateGrabbedLights();
+		}
+
+		// Camera look angles
+		glm::vec3 look = camera->getLookAngles();
+		if (ImGui::DragFloat3("Look", &look.x, 0.1F, -180.0F, 180.0F)) {
+			camera->setLookAngles(look);
+			scene->updateGrabbedLights();
+		}
+
+
+		// Projection matrix attributes
         ImGui::Spacing();
         ImGui::Text("Projection matrix");
-        if (ImGui::DragFloat("FOV",       &fov,          0.1F)) camera->setFOV(fov);
-        if (ImGui::DragFloat2("Clipping", &clipping.x,   0.1F)) camera->setClipping(clipping.x, clipping.y);
-            ImGui::DragInt2("Resolution", &resolution.x, 0.0F);
 
+		// Filed of view
+		float fov = camera->getFOV();
+        if (ImGui::DragFloat("FOV", &fov, 0.1F))
+			camera->setFOV(fov);
+
+		// Clipping
+		glm::vec2 clipping = camera->getClipping();
+        if (ImGui::DragFloat2("Clipping", &clipping.x, 0.1F))
+			camera->setClipping(clipping.x, clipping.y);
+
+		// Resolution
+		glm::ivec2 resolution = camera->getResolution();
+        ImGui::DragInt2("Resolution", &resolution.x, 0.0F);
+
+
+		// Other scene attributes
         ImGui::Spacing();
         ImGui::Text("Others");
-        if (ImGui::ColorEdit3("Background", &background_color.x)) glClearColor(background_color.r, background_color.g, background_color.b, 1.00F);
+
+		// Background color
+		glm::vec3 background = scene->getBackground();
+		if (ImGui::ColorEdit3("Background", &background.x))
+			scene->setBackground(background);
     }
 
     // Models
     if (ImGui::CollapsingHeader("Models")) {
-        for (std::pair<const unsigned int, model_data *> &it : model_stock) {
+        for (std::pair<const std::uint32_t, Scene::model_data *> &model_it : scene->getModelStock()) {
             // Get data and title
-            model_data *data = it.second;
+            Scene::model_data *data = model_it.second;
             std::string model_title = (data->model->isOpen() ? data->model->getName() : "Error: could not open");
-            model_title.append(GUI_ID_TAG).append(std::to_string(it.first));
+            model_title.append(GUI_ID_TAG).append(std::to_string(model_it.first));
 
-            // Create node
+            // Create model node
             if (ImGui::TreeNode(model_title.c_str())) {
                 // Model status
-                bool is_enabled = data->model->isEnabled();
-                bool is_open = data->model->isOpen();
 
                 // Model path
-                bool open_model = ImGui::InputText("Path", &data->path, ImGuiInputTextFlags_EnterReturnsTrue);
+				std::string path = data->model_path;
+				if (ImGui::InputText("Path", &path, ImGuiInputTextFlags_EnterReturnsTrue))
+					scene->updateModel(model_it.first);
 
                 // GLSL program
-                if (ImGui::BeginCombo("GLSL program", get_glsl_desc(data->glsl_program->program).c_str())) {
-                    for (std::pair<const unsigned int, glsl_data *> &glsl : glsl_stock) {
+				const std::string current_pipeline = data->program->program->getShadersPipeline();
+                if (ImGui::BeginCombo("GLSL program", current_pipeline.c_str())) {
+                    for (std::pair<const std::uint32_t, Scene::program_data *> &program : scene->getProgramStock()) {
                         // Compare GLSL program with the current
-                        bool selected = (data->glsl_id == glsl.first);
-
+                        bool selected = (data->program == program.second);
+				
                         // Add items and mark the selected
-                        if (ImGui::Selectable(get_glsl_desc(glsl.second->program).c_str(), selected)) {
-                            data->glsl_program = glsl.second;
-                            data->glsl_id = glsl.first;
-                        }
-
+						const std::string program_pipeline = program.second->program->getShadersPipeline();
+						if (ImGui::Selectable(program_pipeline.c_str(), selected))
+							scene->associate(model_it.first, program.first);
+                        
                         if (selected)
                             ImGui::SetItemDefaultFocus();
                     }
+
+					// Finish GLSL program combo
                     ImGui::EndCombo();
                 }
 
-                // Show enabled checkbox
-                if (ImGui::Checkbox("Enabled", &is_enabled)) {
+                // Enabled status
+				bool is_enabled = data->model->isEnabled();
+                if (ImGui::Checkbox("Enabled", &is_enabled))
                     data->model->setEnabled(is_enabled);
-                }
 
                 // Reload button
                 ImGui::SameLine();
-                if (ImGui::Button("Reload") || open_model) update_model(data);
+				if (ImGui::Button("Reload"))
+					data->model->reload();
 
                 // Warning message if could not open
-                if (!is_open)
-                    ImGui::TextColored(ImVec4(1.0F, 0.0F, 0.0F, 1.0F), "Could not open");
+				if (!data->model->isOpen()) {
+					ImGui::SameLine();
+					ImGui::TextColored(ImVec4(1.0F, 0.0F, 0.0F, 1.0F), "Could not open");
+				}
+
 
                 // Properties for enabled models
                 else {
-                    // Model attributes
-                    int vertices  = (int)data->model->getVertices();
-                    int triangles = (int)data->model->getTriangles();
-                    glm::vec3 position = data->model->getPosition();
-                    glm::vec3 rotation = data->model->getRotationAngles();
-                    glm::vec3 scale    = data->model->getScale();
-                    std::map<std::string, Material::property> material = data->model->getMaterial()->getProperties();
-
                     // Widgets
                     ImGui::Spacing();
                     if (ImGui::TreeNode("Summary")) {
+						int vertices = (int)data->model->getVertices();
+						int triangles = (int)data->model->getTriangles();
+
                         ImGui::DragInt("Vertices",  &vertices,  0.0F);
                         ImGui::DragInt("Triangles", &triangles, 0.0F);
                         ImGui::TreePop();
                     }
 
                     if (ImGui::TreeNode("Geometry")) {
+						glm::vec3 position = data->model->getPosition();
+						glm::vec3 rotation = data->model->getRotationAngles();
+						glm::vec3 scale = data->model->getScale();
+
                         if (ImGui::DragFloat3("Position", &position.x, 0.01F)) data->model->setPosition(position);
                         if (ImGui::DragFloat3("Rotation", &rotation.x, 0.50F)) data->model->setRotation(rotation);
                         if (ImGui::DragFloat3("Scale",    &scale.x, 0.01F))    data->model->setScale(scale);
@@ -814,23 +548,49 @@ void draw_gui(GLFWwindow *window) {
                         ImGui::TreePop();
                     }
 
+					// Materials node
                     if (ImGui::TreeNode("Materials")) {
-                        for (std::pair< const std::string, Material::property> &mat : material) {
-                            // Create material node
-                            if (ImGui::TreeNode(mat.first.c_str())) {
-                                // Modified flag
-                                bool update = false;
+						// For each material
+                        for (Material *const material : data->model->getMaterialStock()) {
+                            // Material name
+							const std::string material_name = material->getName();
 
-                                // Widgets
-                                update |= ImGui::ColorEdit3("Ambient",  &mat.second.ambient_color.r);
-                                update |= ImGui::ColorEdit3("Diffuse",  &mat.second.diffuse_color.r);
-                                update |= ImGui::ColorEdit3("Specular", &mat.second.specular_color.r);
-                                update |= ImGui::DragFloat("Shininess", &mat.second.shininess, 0.010F);
-                                update |= ImGui::DragFloat("Roughness", &mat.second.roughness, 0.005F, 0.0F,    1.0F);
-                                update |= ImGui::DragFloat("Metalness", &mat.second.metalness, 0.005F, 0.0F,    1.0F);
+							// Material node
+                            if (ImGui::TreeNode(material_name.c_str())) {
+								// Colors
 
-                                // Update material
-                                if (update) data->model->updateMaterial(mat.first, mat.second);
+								// Ambient color
+								glm::vec3 ambient_color = material->getAmbientColor();
+								if (ImGui::ColorEdit3("Ambient", &ambient_color.r))
+									material->setAmbientColor(ambient_color);
+
+								// Diffuse color
+								glm::vec3 diffuse_color = material->getDiffuseColor();
+                                if (ImGui::ColorEdit3("Diffuse",  &diffuse_color.r))
+									material->setDiffuseColor(diffuse_color);
+
+								// Specular color
+								glm::vec3 specular_color = material->getSpecularColor();
+                                if (ImGui::ColorEdit3("Specular", &specular_color.r))
+									material->setSpecularColor(specular_color);
+
+
+								// Attributes
+
+								// Shininess
+								float shininess = material->getShininess();
+								if (ImGui::DragFloat("Shininess", &shininess, 0.010F))
+									material->setShininess(shininess);
+
+								// Roughness
+								float roughness = material->getRoughness();
+								if (ImGui::DragFloat("Roughness", &roughness, 0.005F, 0.0F, 1.0F))
+									material->setRoughness(roughness);
+
+								// Metalness
+								float metalness = material->getMetalness();
+                                if (ImGui::DragFloat("Metalness", &metalness, 0.005F, 0.0F,    1.0F))
+									material->setMetalness(metalness);
 
                                 // Finish material node
                                 ImGui::TreePop();
@@ -842,7 +602,7 @@ void draw_gui(GLFWwindow *window) {
                     }
                 }
 
-                // Finish material node
+                // Finish model node
                 ImGui::TreePop();
             }
         }
@@ -850,38 +610,31 @@ void draw_gui(GLFWwindow *window) {
 
     // Lights
     if (ImGui::CollapsingHeader("Lights")) {
-        for (std::pair<const unsigned int, light_data *> &light : light_stock) {
+        for (std::pair<const std::uint32_t, Scene::light_data *> &light_data : scene->getLightStock()) {
+			// Types of lights labels
+			static const char *const LIGHT_TYPE_LABEL[3] = {"Directional", "Point", "Spotlight"};
+
+			// GUI ID and light object
+			const std::uint32_t id = light_data.first;
+			Light *const light = light_data.second->light;
+
             // Light title
-            Light::TYPE light_type = light.second->light->getType();
-            std::string gui_id = GUI_ID_TAG + std::to_string(light.first);
-            std::string light_id = std::to_string(light.second->light->getID());
-            std::string light_label = LIGHT_TYPE_LABEL.at(light_type);
-            std::string light_title = "[" + light_id + "] " + light_label + gui_id;
+			Light::Type type = light->getType();
+            std::string light_id = std::to_string(light->getID());
+            std::string light_label = LIGHT_TYPE_LABEL[type];
+            std::string light_title = "[" + std::to_string(light->getID()) + "] " + light_label + GUI_ID_TAG + std::to_string(id);
 
             // Create light node
             if (ImGui::TreeNode(light_title.c_str())) {
-                // Light variables
-                bool enabled             = light.second->light->isEnabled();
-                glm::vec3 direction      = light.second->light->getDirection();
-                glm::vec3 ambient        = light.second->light->getAmbient();
-                glm::vec3 diffuse        = light.second->light->getDiffuse();
-                glm::vec3 specular       = light.second->light->getSpecular();
-                float     ambient_level  = light.second->light->getAmbientLevel();
-                float     specular_level = light.second->light->getSpecularLevel();
-                float     shininess      = light.second->light->getShininess();
-                glm::vec3 position       = light.second->light->getPosition();
-                glm::vec3 attenuation    = light.second->light->getAttenuation();
-                glm::vec2 cutoff         = light.second->light->getCutoff();
-
-                // Widgets
+                // Type of light
                 if (ImGui::BeginCombo("Type", light_label.c_str())) {
-                    for (std::pair<const Light::TYPE, std::string> label: LIGHT_TYPE_LABEL) {
+					for (std::uint32_t i = 0; i < 3; i++) {
                         // Compare type with the current
-                        bool selected = (light_label == label.second);
+                        bool selected = (type == i);
 
                         // Add items and mark the selected
-                        if (ImGui::Selectable(label.second.c_str(), selected))
-                            light.second->light->setType(label.first);
+                        if (ImGui::Selectable(LIGHT_TYPE_LABEL[i], selected))
+							light->setType((Light::Type)i);
 
                         if (selected)
                             ImGui::SetItemDefaultFocus();
@@ -889,36 +642,88 @@ void draw_gui(GLFWwindow *window) {
                     ImGui::EndCombo();
                 }
 
-                if (ImGui::Checkbox("Enabled", &enabled)) light.second->light->setEnabled(enabled);
+				// Enabled status
+				bool enabled = light->isEnabled();
+				if (ImGui::Checkbox("Enabled", &enabled))
+					light->setEnabled(enabled);
 
+				// Draw arrow status
                 ImGui::SameLine();
-                ImGui::Checkbox("Draw arrow", &light.second->draw);
+                ImGui::Checkbox("Draw arrow", &light_data.second->draw);
 
-                if (light_type == Light::SPOTLIGHT) {
+				// Grab checkbox for spotlight lights
+                if (type == Light::SPOTLIGHT) {
                     ImGui::SameLine();
-                    ImGui::Checkbox("Grab", &light.second->grab);
+					if (ImGui::Checkbox("Grab", &light_data.second->grab))
+						scene->updateGrabbedLights();
                 }
 
-                ImGui::Spacing();
-                if (ImGui::DragFloat3("Position", &position.x, 0.01F)) light.second->light->setPosition(position);
-                if (ImGui::DragFloat3("Direction", &direction.x, 0.01F, -1.0F, 1.0F)) light.second->light->setDirection(direction);
 
+				// General attributes
                 ImGui::Spacing();
-                if (ImGui::ColorEdit3("Ambient",   &ambient.r))  light.second->light->setAmbient(ambient);
-                if (ImGui::ColorEdit3("Diffuse",   &diffuse.r))  light.second->light->setDiffuse(diffuse);
-                if (ImGui::ColorEdit3("Specular",  &specular.r)) light.second->light->setSpecular(specular);
 
+				// Position
+				glm::vec3 position = light->getPosition();
+				if (ImGui::DragFloat3("Position", &position.x, 0.01F))
+					light->setPosition(position);
+
+				// Direction
+				glm::vec3 direction = light->getDirection();
+				if (ImGui::DragFloat3("Direction", &direction.x, 0.01F, -1.0F, 1.0F))
+					light->setDirection(direction);
+
+
+				// Color by component
                 ImGui::Spacing();
-                if (ImGui::DragFloat("Ambient level",  &ambient_level,  0.005F, 0.0F, 1.0F)) light.second->light->setAmbientLevel(ambient_level);
-                if (ImGui::DragFloat("Specular level", &specular_level, 0.005F, 0.0F, 1.0F)) light.second->light->setSpecularLevel(specular_level);
-                if (ImGui::DragFloat("Shininess",      &shininess,      0.010F))             light.second->light->setShininess(shininess);
 
+				// Ambient color
+				glm::vec3 ambient = light->getAmbient();
+				if (ImGui::ColorEdit3("Ambient", &ambient.r))
+					light->setAmbient(ambient);
+
+				// Diffuse color
+				glm::vec3 diffuse = light->getAmbient();
+				if (ImGui::ColorEdit3("Diffuse", &diffuse.r))
+					light->setDiffuse(diffuse);
+
+				glm::vec3 specular = light->getSpecular();
+				if (ImGui::ColorEdit3("Specular", &specular.r))
+					light->setSpecular(specular);
+
+
+				// Components attributes
                 ImGui::Spacing();
-                if (light_type != Light::DIRECTIONAL)
-                    if (ImGui::DragFloat3("Attenuation", &attenuation.x, 0.005F, 0.0F)) light.second->light->setAttenuation(attenuation);
 
-                if (light_type == Light::SPOTLIGHT)
-                    if (ImGui::DragFloat2("Cutoff", &cutoff.x, 0.01F)) light.second->light->setCutoff(cutoff);
+				// Ambient level
+				float ambient_level = light->getAmbientLevel();
+				if (ImGui::DragFloat("Ambient level", &ambient_level, 0.005F, 0.0F, 1.0F))
+					light->setAmbientLevel(ambient_level);
+
+				// Specular level
+				float specular_level = light->getSpecularLevel();
+                if (ImGui::DragFloat("Specular level", &specular_level, 0.005F, 0.0F, 1.0F))
+					light->setSpecularLevel(specular_level);
+
+				// Shininess
+				float shininess = light->getShininess();
+				if (ImGui::DragFloat("Shininess", &shininess, 0.010F))
+					light->setShininess(shininess);
+
+
+				// Attenuation for non directional lights
+                ImGui::Spacing();
+				if (type != Light::DIRECTIONAL) {
+					glm::vec3 attenuation = light->getAttenuation();
+					if (ImGui::DragFloat3("Attenuation", &attenuation.x, 0.005F, 0.0F))
+						light->setAttenuation(attenuation);
+				}
+
+				// Cutoff for spotlight lights
+				if (type == Light::SPOTLIGHT) {
+					glm::vec2 cutoff = light->getCutoff();
+					if (ImGui::DragFloat2("Cutoff", &cutoff.x, 0.01F))
+						light->setCutoff(cutoff);
+				}
                 
                 // Finish light node
                 ImGui::TreePop();
@@ -928,25 +733,65 @@ void draw_gui(GLFWwindow *window) {
 
     // GLSL programs
     if (ImGui::CollapsingHeader("GLSL Programs")) {
-        for (std::pair<const unsigned int, glsl_data *> &glsl : glsl_stock) {
-            // Get GLSL pipeline string
-            std::string gui_id = GUI_ID_TAG + std::to_string(glsl.first);
-            std::string glsl_title = get_glsl_desc(glsl.second->program) + gui_id;
-
-            // Create GLSL node
+        for (std::pair<const std::uint32_t, Scene::program_data *> &program_it : scene->getProgramStock()) {
+            // Get GLSL program object and its pipeline string
+			Scene::program_data *program_data = program_it.second;
+			GLSLProgram *program = program_data->program;
+            std::string gui_id = GUI_ID_TAG + std::to_string(program_it.first);
+            std::string glsl_title = program->getShadersPipeline() + gui_id;
+	
+            // Create GLSL program node
             if (ImGui::TreeNode(glsl_title.c_str())) {
-                bool open_glsl = false;
-                open_glsl |= ImGui::InputText("Vertex",          &glsl.second->vertex,    ImGuiInputTextFlags_EnterReturnsTrue);
-                open_glsl |= ImGui::InputText("Tess Control",    &glsl.second->tess_ctrl, ImGuiInputTextFlags_EnterReturnsTrue);
-                open_glsl |= ImGui::InputText("Tess Evaluation", &glsl.second->tess_eval, ImGuiInputTextFlags_EnterReturnsTrue);
-                open_glsl |= ImGui::InputText("Geometry",        &glsl.second->geometry,  ImGuiInputTextFlags_EnterReturnsTrue);
-                open_glsl |= ImGui::InputText("Fragment",        &glsl.second->fragment,  ImGuiInputTextFlags_EnterReturnsTrue);
-                open_glsl |= ImGui::Button("Reload");
+				// Rebuild flag
+                bool update = false;
 
+				// Shaders paths
+                update |= ImGui::InputText("Vertex",          &program_data->vert_path, ImGuiInputTextFlags_EnterReturnsTrue);
+                update |= ImGui::InputText("Tess Control",    &program_data->tesc_path, ImGuiInputTextFlags_EnterReturnsTrue);
+                update |= ImGui::InputText("Tess Evaluation", &program_data->tese_path, ImGuiInputTextFlags_EnterReturnsTrue);
+                update |= ImGui::InputText("Geometry",        &program_data->geom_path, ImGuiInputTextFlags_EnterReturnsTrue);
+                update |= ImGui::InputText("Fragment",        &program_data->frag_path, ImGuiInputTextFlags_EnterReturnsTrue);
+
+				// Reload button
+                if (ImGui::Button("Reload"))
+					program->reload();
+
+				// Message for invalid GLSL programs
+				if (!program->isValid()) {
+					ImGui::SameLine();
+					ImGui::TextColored(ImVec4(1.0F, 0.0F, 0.0F, 1.0F), "Invalid GLSL program");
+				}
+	
                 // Update shader
-                if (open_glsl) update_glsl(glsl.second);
+				if (update)
+					scene->updateProgram(program_it.first);
 
-                // Finish GLSL node
+
+				// Associated models
+				const std::size_t models = program_it.second->model_id.size();
+				const std::string msg = "Associated models: " + std::to_string(models);
+				
+				// Print text if any model is associated to this GLSL program
+				if (models == 0)
+					ImGui::Text(msg.c_str());
+
+				// Else print a node with a list of the models
+				else if (ImGui::TreeNode(msg.c_str())) {
+					// Get the model stock
+					const std::map<std::uint32_t, Scene::model_data *> model = scene->getModelStock();
+
+					// Print each associated model name
+					for (const std::uint32_t i : program_it.second->model_id) {
+						const std::string name = model.at(i)->model->getName();
+						ImGui::BulletText(name.c_str());
+					}
+
+					// Finish associated models node
+					ImGui::TreePop();
+				}
+				
+	
+                // Finish GLSL program node
                 ImGui::TreePop();
             }
         }
@@ -970,86 +815,18 @@ void draw_gui(GLFWwindow *window) {
         double xpos;
         double ypos;
         glfwGetCursorPos(window, &xpos, &ypos);
-        mouse->setTranslationPoint((int)xpos, (int)ypos);
+		scene->getMouse()->setTranslationPoint((int)xpos, (int)ypos);
     }
 }
 
 // Main loop
 void main_loop() {
     while (!glfwWindowShouldClose(window)) {
-        // Get delta time
-        double time_current = glfwGetTime();
-        time_delta = time_current - time_last;
-        time_last = time_current;
-
         // Clear color and depth buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Draw models
-        for (std::pair<const unsigned int, model_data *> &data : model_stock) {
-            // Get model adn GLSL program
-            GLSLProgram *const program = data.second->glsl_program->program;
-
-            // Draw if is the model and program are not null and drawable
-            if (data.second->model->isEnabled() && program->isValid()) {
-                // Use camera
-                camera->use(program);
-
-                // Set the number of lights
-                program->use();
-                program->setUniform("light_size", Light::getNumberOfLights());
-
-                // Update and use lights
-                for (std::pair<const unsigned int, light_data *> &light : light_stock) {
-                    if (light.second->light->isEnabled() && (light.second->light->getType() == Light::SPOTLIGHT) && (light.second->grab)) {
-                        light.second->light->setPosition(camera->getPosition());
-                        light.second->light->setDirection(camera->getLookDirection());
-                    }
-
-                    light.second->light->use(program);
-                }
-
-                // Draw model
-                data.second->model->draw(program);
-            }
-        }
-
-        // Draw lights
-        for (std::pair<const unsigned int, light_data *> &light : light_stock) {
-            // Use camera
-            camera->use(light_glsl);
-
-            if (light.second->draw) {
-                // Light direction
-                glm::vec3 light_direction = light.second->light->getDirection();
-                glm::vec3 light_axis = glm::cross(FRONT, light_direction);
-                float light_cos = glm::dot(FRONT, light_direction);
-                float light_angle = glm::acos(glm::abs(light_cos));
-
-                // Setup geometry
-                light_arrow->reset();
-                light_arrow->setPosition(light.second->light->getPosition() - LIGHT_SCALE * light_direction);
-                light_arrow->setRotation(glm::angleAxis(light_angle, light_axis));
-
-                // Front light
-                if (light_cos > 0.0F)
-                    light_arrow->setScale(glm::vec3(LIGHT_SCALE));
-
-                // Back light
-                else {
-                    light_arrow->rotate(glm::vec3(180.0F,   0.0F,  0.0F));
-                    light_arrow->rotate(glm::vec3(  0.0F, 180.0F,  0.0F));
-                    light_arrow->setScale(glm::vec3(LIGHT_SCALE, LIGHT_SCALE, -LIGHT_SCALE));
-                }
-
-                // Use light
-                light.second->light->use(light_glsl, false);
-
-                // Draw arrow
-                light_arrow->draw(light_glsl);
-            }
-        }
-
+        // Draw scene
+		scene->draw();
 
         // Draw GUI or process input
         show_gui ? draw_gui(window) : process_input(window);
@@ -1062,35 +839,8 @@ void main_loop() {
 
 // Clean up
 void clean_up() {
-    // Delete mouse and camera
-    if (mouse != nullptr) delete mouse;
-    if (camera != nullptr) delete camera;
-
-    // Delete dummy GLSL program
-    delete glsl_dummy->program;
-    delete glsl_dummy;
-
-    // Delete light arrow
-    delete light_arrow;
-    delete light_glsl;
-
-    // Delete glsl programs
-    for (std::pair<const unsigned int, glsl_data *> &it : glsl_stock) {
-        delete it.second->program;
-        delete it.second;
-    }
-
-    // Delete models
-    for (std::pair<const unsigned int, model_data *> &it : model_stock) {
-        delete it.second->model;
-        delete it.second;
-    }
-
-    // Delete lights
-    for (std::pair<const unsigned int, light_data *> &it : light_stock) {
-        delete it.second->light;
-        delete it.second;
-    }
+    // Delete scene
+	delete scene;
 
     // Terminate GUI
     ImGui_ImplOpenGL3_Shutdown();

@@ -12,15 +12,15 @@
 class GLSLProgram {
     private:
         // Paths
-        Shader *vertex;
-        Shader *tess_ctrl;
-        Shader *tess_eval;
-        Shader *geometry;
-        Shader *fragment;
+        Shader *vert;
+        Shader *tesc;
+        Shader *tese;
+        Shader *geom;
+        Shader *frag;
 
         // Program attributes
         GLuint program;
-        std::map<std::string, GLint> uniform;
+        std::map<std::string, GLint> location;
 
         // Disable copy and assignation
         GLSLProgram(const GLSLProgram &) = delete;
@@ -29,23 +29,29 @@ class GLSLProgram {
         // Link program
         void link();
 
-        // Destroy shader
+        // Destroy program and shaders
         void destroy();
+		void destroyShaders();
         
         // Program setup
         GLint getUniformLocation(const char *name);
 
     public:
-        GLSLProgram();
-        GLSLProgram(const std::string &vertex_path, const std::string &tess_ctrl_path, const std::string &tess_eval_path, std::string &geometry_path, const std::string &fragment_path);
+		GLSLProgram(const std::string &vert_path, const std::string &frag_path);
+		GLSLProgram(const std::string &vert_path, const std::string &geom_path, const std::string &frag_path);
+        GLSLProgram(const std::string &vert_path, const std::string &tesc_path, const std::string &tese_path, const std::string &geom_path, const std::string &frag_path);
         
         void reload();
 
         void use() const;
         bool isValid() const;
+		bool isValidShader(const GLenum &type) const;
 
-        void setUniform(const std::string &name, const int &scalar);
-        void setUniform(const std::string &name, const unsigned int &scalar);
+		void setShaders(const std::string &vert_path, const std::string &tesc_path, const std::string &tese_path, const std::string &geom_path, const std::string &frag_path);
+
+        void setUniform(const std::string &name, const GLint &scalar);
+        void setUniform(const std::string &name, const GLuint &scalar);
+		void setUniform(const std::string &name, const std::size_t &scalar);
 
         void setUniform(const std::string &name, const float &scalar);
 
@@ -58,11 +64,8 @@ class GLSLProgram {
 
         GLuint getID() const;
 
-        const Shader *getVertex() const;
-        const Shader *getTessCtrl() const;
-        const Shader *getTessEval() const;
-        const Shader *getGeometry() const;
-        const Shader *getFragment() const;
+		const Shader *getShader(const GLenum &type) const;
+		std::string getShadersPipeline() const;
 
         ~GLSLProgram();
 };
