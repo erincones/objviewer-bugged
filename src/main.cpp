@@ -480,11 +480,11 @@ void draw_gui(GLFWwindow *window) {
             // Create model node
             if (ImGui::TreeNode(model_title.c_str())) {
                 // Model status
-                bool is_enabled = data->model->isEnabled();
-                bool is_open = data->model->isOpen();
 
                 // Model path
-                bool open_model = ImGui::InputText("Path", &data->model->getPath(), ImGuiInputTextFlags_EnterReturnsTrue);
+				std::string path = data->model_path;
+				if (ImGui::InputText("Path", &path, ImGuiInputTextFlags_EnterReturnsTrue))
+					scene->updateModel(model_it.first);
 
                 // GLSL program
 				const std::string current_pipeline = data->program->program->getShadersPipeline();
@@ -506,18 +506,22 @@ void draw_gui(GLFWwindow *window) {
                     ImGui::EndCombo();
                 }
 
-                // Show enabled checkbox
-                if (ImGui::Checkbox("Enabled", &is_enabled)) {
+                // Enabled status
+				bool is_enabled = data->model->isEnabled();
+                if (ImGui::Checkbox("Enabled", &is_enabled))
                     data->model->setEnabled(is_enabled);
-                }
 
                 // Reload button
-                //ImGui::SameLine();
-                //if (ImGui::Button("Reload") || open_model) update_model(data);
+                ImGui::SameLine();
+				if (ImGui::Button("Reload"))
+					data->model->reload();
 
                 // Warning message if could not open
-                if (!is_open)
-                    ImGui::TextColored(ImVec4(1.0F, 0.0F, 0.0F, 1.0F), "Could not open");
+				if (!data->model->isOpen()) {
+					ImGui::SameLine();
+					ImGui::TextColored(ImVec4(1.0F, 0.0F, 0.0F, 1.0F), "Could not open");
+				}
+
 
                 // Properties for enabled models
                 else {
