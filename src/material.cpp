@@ -20,14 +20,14 @@ Material::Material(const std::string &material_name) {
 	refractive_index = 1.00F;
 
 	// Texture maps
-	ambient_map      = new Texture();
-	diffuse_map      = new Texture();
-	specular_map     = new Texture();
-	shininess_map    = new Texture();
-	alpha_map        = new Texture();
-	bump_map         = new Texture();
-	displacement_map = new Texture();
-	stencil_map      = new Texture();
+	ambient_map      = Texture::white();
+	diffuse_map      = Texture::white();
+	specular_map     = Texture::white();
+	shininess_map    = Texture::white();
+	alpha_map        = Texture::white();
+	bump_map         = Texture::white();
+	displacement_map = Texture::white();
+	stencil_map      = Texture::white();
 }
 
 // Bind material
@@ -39,16 +39,16 @@ void Material::use(GLSLProgram *const program) const {
     program->use();
 
     // Set uniforms
-    program->setUniform("material.ambient_color",     ambient_color);
-    program->setUniform("material.diffuse_color",     diffuse_color);
-    program->setUniform("material.specular_color",    specular_color);
+    program->setUniform("material.ambient_color",      ambient_color);
+    program->setUniform("material.diffuse_color",      diffuse_color);
+    program->setUniform("material.specular_color",     specular_color);
     program->setUniform("material.transmission_color", transmission_color);
-    program->setUniform("material.alpha",             alpha);
-    program->setUniform("material.sharpness",         sharpness);
-    program->setUniform("material.shininess",         shininess);
-    program->setUniform("material.roughness",         roughness * roughness);
-    program->setUniform("material.metalness",         metalness);
-    program->setUniform("material.refractive_index",  refractive_index);
+    program->setUniform("material.alpha",              alpha);
+    program->setUniform("material.sharpness",          sharpness);
+    program->setUniform("material.shininess",          shininess);
+    program->setUniform("material.roughness",          roughness * roughness);
+    program->setUniform("material.metalness",          metalness);
+    program->setUniform("material.refractive_index",   refractive_index);
 
     // Set texture uniforms
     program->setUniform("material.ambient_map",      0);

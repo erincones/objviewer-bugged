@@ -12,6 +12,16 @@
 GLuint Texture::default_id = GL_FALSE;
 unsigned int Texture::default_count = 0;
 
+
+// Default constructor
+Texture::Texture() {
+	// Set the dafault name
+	name = "Default";
+
+	// Load the default texture
+	loadDefault();
+}
+
 // Read and load texture
 void Texture::load() {
     // Image properties
@@ -47,7 +57,6 @@ void Texture::load() {
 
 // Create default texture;
 void Texture::loadDefault() {
-	// Create the default texture
 	if (Texture::default_id == GL_FALSE) {
 		// White color
 		float white_float[] = {1.0F, 1.0F, 1.0F, 1.0F};
@@ -73,20 +82,6 @@ void Texture::loadDefault() {
 	Texture::default_count++;
 }
 
-// Destroy the texture
-void Texture::destroy() {
-	// Delete texture
-	if ((id != Texture::default_id) || (Texture::default_count-- == 1U))
-		glDeleteTextures(1, &id);
-
-	// Reset ID
-	id = GL_FALSE;
-
-	// Reset default ID
-	if (Texture::default_count == 0)
-		Texture::default_id = GL_FALSE;
-}
-
 // Texture constructor
 Texture::Texture(const std::string &file_path) {
     // Initialize texture
@@ -98,41 +93,17 @@ Texture::Texture(const std::string &file_path) {
 
     // Load texture
     try {
-        path.empty() ? loadDefault() : load();
+        load();
     } catch (std::exception &exception) {
         std::cerr << exception.what() << std::endl;
         loadDefault();
     }
 }
 
-// Reload texture
-void Texture::reload() {
-	// Destroy texture
-	destroy();
-
-	// Load texture
-	try {
-		path.empty() ? loadDefault() : load();
-	} catch (std::exception &exception) {
-		std::cerr << exception.what() << std::endl;
-		loadDefault();
-	}
-}
-
 // Bind texture
 void Texture::bind(const GLenum &unit) const {
     glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(GL_TEXTURE_2D, id);
-}
-
-// Set path and load texture
-void Texture::setPath(const std::string &file_path) {
-	// Set new path and name
-	path = file_path;
-	name = path.substr(path.find_last_of(DIR_SEP) + 1);
-
-	// Load texture
-	reload();
 }
 
 // Get open status
@@ -150,7 +121,12 @@ std::string Texture::getName() const {
     return name;
 }
 
+Texture *Texture::white() {
+	return new Texture();
+}
+
 // Delete texture
 Texture::~Texture() {
-	destroy();
+	if ((id != Texture::default_id) || (--Texture::default_count == 0U))
+		glDeleteTextures(1, &id);
 }

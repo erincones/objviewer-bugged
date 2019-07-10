@@ -20,29 +20,28 @@ class Texture {
         Texture(const Texture &) = delete;
         Texture &operator = (const Texture &) = delete;
 
+		// Default creator
+		Texture();
+
         // Read and load texture
         void load();
         void loadDefault();
-
-		// Destroy texture
-		void destroy();
 
 		// Static variables
 		static GLuint default_id;
 		static unsigned int default_count;
 
     public:
-        Texture(const std::string &file_path = "");
-
-		void reload();
+        Texture(const std::string &file_path);
 
         void bind(const GLenum &unit) const;
-
-		void setPath(const std::string &file_path);
 
         bool isOpen() const;
         std::string getPath() const;
         std::string getName() const;
+
+
+		static Texture *white();
 
         ~Texture();
 };
