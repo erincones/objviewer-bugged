@@ -15,7 +15,6 @@ class Texture {
 
         // Texture ID
         GLuint id;
-        std::uint64_t hash;
 
         // Disable copy and assignation
         Texture(const Texture &) = delete;
@@ -23,21 +22,23 @@ class Texture {
 
         // Read and load texture
         void load();
+        void loadDefault();
 
-        // Static variables
-        static GLuint default_id;
-        static unsigned int default_count;
-        static std::map<std::uint64_t, GLuint> dictionary;
-        static std::map<GLuint, std::size_t> stock;
+		// Destroy texture
+		void destroy();
 
-        // Static methods
-        static void createDefault();
+		// Static variables
+		static GLuint default_id;
+		static unsigned int default_count;
 
     public:
-        Texture();
-        Texture(const std::string &file_path);
+        Texture(const std::string &file_path = "");
+
+		void reload();
 
         void bind(const GLenum &unit) const;
+
+		void setPath(const std::string &file_path);
 
         bool isOpen() const;
         std::string getPath() const;

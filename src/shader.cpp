@@ -1,5 +1,4 @@
 #include "shader.hpp"
-#include "fnv.hpp"
 #include "glslexception.hpp"
 #include "dirseparator.hpp"
 
