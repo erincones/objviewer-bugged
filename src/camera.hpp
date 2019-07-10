@@ -34,6 +34,7 @@ class Camera {
 
         // Static attributes
         static float speed;
+		static float speed_boost;
         static float sensibility;
         static float zoom_factor;
     
@@ -62,7 +63,7 @@ class Camera {
 
         void zoom(const double &level);
 
-        void move(const Movement &dir, const double &time);
+        void move(const Movement &dir, const double &time, const bool &boost = false);
 
         void rotate(const glm::vec2 &dir);
         void translate(const glm::vec3 &dir);
@@ -83,10 +84,12 @@ class Camera {
 
 
 		static void setSpeed(const float &value);
+		static void setSpeedBoost(const float &value);
 		static void setSensibility(const float &value);
 		static void setZoomFactor(const float &value);
 
 		static float getSpeed();
+		static float getSpeedBoost();
 		static float getSensibility();
 		static float getZoomFactor();
 };

@@ -6,6 +6,7 @@
 
 // Static variables
 float Camera::speed = 0.5F;
+float Camera::speed_boost = 0.25F;
 float Camera::sensibility = 15.0F;
 float Camera::zoom_factor = 1.0625F;
 
@@ -132,9 +133,9 @@ void Camera::zoom(const double &level) {
 }
 
 // Move the camera trought look vector
-void Camera::move(const Movement &dir, const double &time) {
+void Camera::move(const Movement &dir, const double &time, const bool &boost) {
     // Calculate distance
-    float distance = Camera::speed * (float)time;
+    float distance = (boost ? Camera::speed + Camera::speed_boost : Camera::speed) * (float)time;
 
     // Move camera
     switch (dir) {
@@ -251,6 +252,11 @@ void Camera::setSpeed(const float &value) {
 	Camera::speed = value;
 }
 
+// Set the speed
+void Camera::setSpeedBoost(const float &value) {
+	Camera::speed_boost = value;
+}
+
 // Set the sensibility
 void Camera::setSensibility(const float &value) {
 	Camera::sensibility = value;
@@ -265,6 +271,11 @@ void Camera::setZoomFactor(const float &value) {
 // Get the speed
 float Camera::getSpeed() {
 	return Camera::speed;
+}
+
+// Get the speed
+float Camera::getSpeedBoost() {
+	return Camera::speed_boost;
 }
 
 // Get the sensibility
