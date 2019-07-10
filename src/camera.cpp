@@ -3,6 +3,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
+
+// Static variables
+float Camera::speed = 0.5F;
+float Camera::sensibility = 15.0F;
+float Camera::zoom_factor = 1.0625F;
+
+
 // Update view matrix
 void Camera::updateViewMatrix() {
     view_matrix = glm::lookAt(position, position + look, glm::normalize(glm::cross(right, look)));
@@ -120,14 +127,14 @@ void Camera::setResolution(const int &width_res, const int &height_res) {
 
 // Apply zoom
 void Camera::zoom(const double &level) {
-    level > 0 ? fov /= Camera::ZOOM_FACTOR : fov *= Camera::ZOOM_FACTOR;
+    level != 0 ? fov /= Camera::zoom_factor : fov *= Camera::zoom_factor;
     updateProjectionMatrix();
 }
 
 // Move the camera trought look vector
 void Camera::move(const Movement &dir, const double &time) {
     // Calculate distance
-    float distance = Camera::SPEED * (float)time;
+    float distance = Camera::speed * (float)time;
 
     // Move camera
     switch (dir) {
@@ -146,8 +153,8 @@ void Camera::move(const Movement &dir, const double &time) {
 // Rotate camera
 void Camera::rotate(const glm::vec2 &dir) {
     // Calculate angles
-    yaw += dir.x * Camera::SENSIBILITY;
-    pitch = glm::clamp(pitch + dir.y * Camera::SENSIBILITY, -89.0F, 89.0F);
+    yaw += dir.x * Camera::sensibility;
+    pitch = glm::clamp(pitch + dir.y * Camera::sensibility, -89.0F, 89.0F);
 
     // Update look vector
     look.x = glm::cos(glm::radians(pitch)) * glm::cos(glm::radians(yaw));
@@ -235,4 +242,37 @@ glm::mat4 Camera::getViewMatrix() const {
 // Get the projection matrix
 glm::mat4 Camera::getProjectionMatrix() const {
     return projection_matrix;
+}
+
+
+
+// Set the speed
+void Camera::setSpeed(const float &value) {
+	Camera::speed = value;
+}
+
+// Set the sensibility
+void Camera::setSensibility(const float &value) {
+	Camera::sensibility = value;
+}
+
+// Set the zoom factor
+void Camera::setZoomFactor(const float &value) {
+	Camera::zoom_factor = value;
+}
+
+
+// Get the speed
+float Camera::getSpeed() {
+	return Camera::speed;
+}
+
+// Get the sensibility
+float Camera::getSensibility() {
+	return Camera::sensibility;
+}
+
+// Get the zoom factor
+float Camera::getZoomFactor() {
+	return Camera::zoom_factor;
 }

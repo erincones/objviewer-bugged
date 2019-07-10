@@ -33,9 +33,9 @@ class Camera {
         void updateProjectionMatrix();
 
         // Static attributes
-        static constexpr float SPEED = 0.5F;
-        static constexpr float SENSIBILITY = 15.0F;
-        static constexpr float ZOOM_FACTOR = 1.0625F;
+        static float speed;
+        static float sensibility;
+        static float zoom_factor;
     
     public:
         enum Movement : unsigned int {
@@ -80,6 +80,15 @@ class Camera {
 
         glm::mat4 getViewMatrix() const;
         glm::mat4 getProjectionMatrix() const;
+
+
+		static void setSpeed(const float &value);
+		static void setSensibility(const float &value);
+		static void setZoomFactor(const float &value);
+
+		static float getSpeed();
+		static float getSensibility();
+		static float getZoomFactor();
 };
 
 #endif // __CAMERA_HPP_
