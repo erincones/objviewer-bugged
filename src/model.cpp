@@ -433,6 +433,9 @@ Model::Model(const std::string &file_path) {
 
 // Reload model
 void Model::reload() {
+	// Clear the model stock
+	model_stock.clear();
+	
     // Delete all materials
 	for (const Material *const material : material_stock)
 		delete material;
