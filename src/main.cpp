@@ -487,22 +487,24 @@ void draw_gui(GLFWwindow *window) {
                 bool open_model = ImGui::InputText("Path", &data->model->getPath(), ImGuiInputTextFlags_EnterReturnsTrue);
 
                 // GLSL program
-                //if (ImGui::BeginCombo("GLSL program", get_glsl_desc(data->glsl_program->program).c_str())) {
-                //    for (std::pair<const unsigned int, glsl_data *> &glsl : glsl_stock) {
-                //        // Compare GLSL program with the current
-                //        bool selected = (data->glsl_id == glsl.first);
-				//
-                //        // Add items and mark the selected
-                //        if (ImGui::Selectable(get_glsl_desc(glsl.second->program).c_str(), selected)) {
-                //            data->glsl_program = glsl.second;
-                //            data->glsl_id = glsl.first;
-                //        }
-				//
-                //        if (selected)
-                //            ImGui::SetItemDefaultFocus();
-                //    }
-                //    ImGui::EndCombo();
-                //}
+				const std::string current_pipeline = data->program->program->getShadersPipeline();
+                if (ImGui::BeginCombo("GLSL program", current_pipeline.c_str())) {
+                    for (std::pair<const std::uint32_t, Scene::program_data *> &program : scene->getProgramStock()) {
+                        // Compare GLSL program with the current
+                        bool selected = (data->program == program.second);
+				
+                        // Add items and mark the selected
+						const std::string program_pipeline = program.second->program->getShadersPipeline();
+						if (ImGui::Selectable(program_pipeline.c_str(), selected))
+							scene->associate(model_it.first, program.first);
+                        
+                        if (selected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+
+					// Finish GLSL program combo
+                    ImGui::EndCombo();
+                }
 
                 // Show enabled checkbox
                 if (ImGui::Checkbox("Enabled", &is_enabled)) {
@@ -756,9 +758,9 @@ void draw_gui(GLFWwindow *window) {
 					ImGui::TextColored(ImVec4(1.0F, 0.0F, 0.0F, 1.0F), "Invalid GLSL program");
 				}
 	
-                // Rebuild shader
+                // Update shader
 				if (update)
-					scene->updateModel(program_it.first);
+					scene->updateProgram(program_it.first);
 
 
 				// Associated models

@@ -147,17 +147,19 @@ std::uint32_t Scene::pushModel(const std::string &path, const std::uint32_t &pro
 
 	// Textures paths
 	std::vector<Scene::texture_data *> texture_path;
-	for (const Material *const material : model->getMaterialStock())
-		texture_path.push_back(new Scene::texture_data({
-			material->getAmbientMap()->getPath(),
-			material->getDiffuseMap->getPath(),
-			material->getSpecularMap()->getPath(),
-			material->getShininessMap()->getPath(),
-			material->getAlphaMap()->getPath(),
-			material->getBumpMap()->getPath(),
-			material->getDisplacementMap()->getPath(),
-			material->getStencilMap()->getPath(),
-		}));
+	if (model != nullptr) {
+		for (const Material *const material : model->getMaterialStock())
+			texture_path.push_back(new Scene::texture_data({
+				material->getAmbientMap()->getPath(),
+				material->getDiffuseMap()->getPath(),
+				material->getSpecularMap()->getPath(),
+				material->getShininessMap()->getPath(),
+				material->getAlphaMap()->getPath(),
+				material->getBumpMap()->getPath(),
+				material->getDisplacementMap()->getPath(),
+				material->getStencilMap()->getPath(),
+			}));
+	}
 
 	// Associated program id
 	std::uint32_t program_id = (program > default_program_id) && (program_stock.find(program) != program_stock.end()) ? program : default_program_id;
@@ -223,12 +225,59 @@ std::uint32_t Scene::pushProgram(const std::string &vert_path, const std::string
 
 // Update model by ID
 void Scene::updateModel(const std::uint32_t &id) {
+	// Search model
+	std::map<std::uint32_t, model_data *>::iterator result = model_stock.find(id);
 
+	// Return if the model is not found
+	if (result == model_stock.end()) {
+		std::cerr << "error: could not find the model (ID = " << id << ")" << std::endl;
+		return;
+	}
+
+	// Delete the texture data
+	for (const Scene::texture_data *const texture : result->second->texture_path)
+		delete texture;
+
+	// Clear texture data
+	result->second->texture_path.clear();
+	
+	// Reload model
+	result->second->model->setPath(result->second->model_path);
+
+	// Textures paths
+	for (const Material *const material : result->second->model->getMaterialStock())
+		result->second->texture_path.push_back(new Scene::texture_data({
+			material->getAmbientMap()->getPath(),
+			material->getDiffuseMap()->getPath(),
+			material->getSpecularMap()->getPath(),
+			material->getShininessMap()->getPath(),
+			material->getAlphaMap()->getPath(),
+			material->getBumpMap()->getPath(),
+			material->getDisplacementMap()->getPath(),
+			material->getStencilMap()->getPath(),
+		}));
 }
 
 // Update GLSL program by ID
 void Scene::updateProgram(const std::uint32_t &id) {
-	
+	// Search GLSL program
+	std::map<std::uint32_t, Scene::program_data *>::iterator result = program_stock.find(id);
+
+	// Return if the GLSL program is not found
+	if (result == program_stock.end()) {
+		std::cerr << "error: could not find the GLSL program (ID = " << id << ")" << std::endl;
+		return;
+	}
+
+	// Set the new shader path to the GLSL program
+	Scene::program_data *program = result->second;
+	program->program->setShaders(
+		program->vert_path,
+		program->tesc_path,
+		program->tese_path,
+		program->geom_path,
+		program->frag_path
+	);
 }
 
 // Pop camera by ID
@@ -517,6 +566,11 @@ Scene::~Scene() {
 
 	// Delete models
 	for (std::pair<const std::uint32_t, Scene::model_data *> &model : model_stock) {
+		// Delete the texture data
+		for (const Scene::texture_data *const texture : model.second->texture_path)
+			delete texture;
+
+		// Delete model
 		delete model.second->model;
 		delete model.second;
 	}
