@@ -5,7 +5,6 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
-#include <cstdlib>
 
 // Create, compile, attach and delete shader
 void GLSLProgram::link() {
@@ -40,11 +39,11 @@ void GLSLProgram::link() {
         glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
 
         // Print the log info
-		GLchar *log = (GLchar *)std::malloc(length * sizeof(GLchar));
-        if (log != NULL) {
+        if (length > 0) {
+			GLchar *log = new GLchar[length];
             glGetProgramInfoLog(program, length, 0, log);
             msg.append(". Log output:\n").append(log);
-            std::free(log);
+			delete[] log;
         }
 
         // Destroy program

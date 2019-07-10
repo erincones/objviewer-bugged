@@ -5,7 +5,6 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
-#include <cstdlib>
 
 void Shader::load() {
 	// Create and check new shader
@@ -43,12 +42,12 @@ void Shader::load() {
         glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
 
         // Get the log info
-		GLchar *log = (GLchar *)std::malloc(length * sizeof(GLchar));
-        if (log != NULL) {
+		if (length > 0) {
+			GLchar *log = new GLchar[length];
             glGetShaderInfoLog(shader, length, 0, log);
-            msg.append(". Log output:\n").append(log);
-            std::free(log);
-        }
+			msg.append(". Log output:\n").append(log);
+			delete[] log;
+		}
 
 		// Destroy shader
 		destroy();
