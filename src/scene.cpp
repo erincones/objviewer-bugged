@@ -234,19 +234,23 @@ void Scene::updateModel(const std::uint32_t &id) {
 		return;
 	}
 
+	// Get the model data
+	Scene::model_data *model = result->second;
+
 	// Delete the texture data
-	for (const Scene::texture_data *const texture : result->second->texture_path)
+	for (const Scene::texture_data *const texture : model->texture_path)
 		delete texture;
 
 	// Clear texture data
-	result->second->texture_path.clear();
+	model->texture_path.clear();
 	
-	// Reload model
-	result->second->model->setPath(result->second->model_path);
+	// Load the new model
+	delete model->model;
+	model->model = new Model(model->model_path);
 
 	// Textures paths
-	for (const Material *const material : result->second->model->getMaterialStock())
-		result->second->texture_path.push_back(new Scene::texture_data({
+	for (const Material *const material : model->model->getMaterialStock())
+		model->texture_path.push_back(new Scene::texture_data({
 			material->getAmbientMap()->getPath(),
 			material->getDiffuseMap()->getPath(),
 			material->getSpecularMap()->getPath(),
@@ -269,9 +273,12 @@ void Scene::updateProgram(const std::uint32_t &id) {
 		return;
 	}
 
-	// Set the new shader path to the GLSL program
+	// Get the GLSL program data
 	Scene::program_data *program = result->second;
-	program->program->setShaders(
+
+	// Load the new GLSL program
+	delete program->program;
+	program->program = new GLSLProgram(
 		program->vert_path,
 		program->tesc_path,
 		program->tese_path,
@@ -421,7 +428,7 @@ void Scene::associate(const std::uint32_t &model_id, const std::uint32_t &progra
 // Reload shaders
 void Scene::reloadShaders() {
 	for (std::pair<const std::uint32_t, Scene::program_data *> &program : program_stock)
-		program.second->program->reload();
+		updateProgram(program.first);
 }
 
 

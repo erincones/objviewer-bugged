@@ -28,10 +28,6 @@ class GLSLProgram {
 
         // Link program
         void link();
-
-        // Destroy program and shaders
-        void destroy();
-		void destroyShaders();
         
         // Program setup
         GLint getUniformLocation(const char *name);
@@ -41,13 +37,8 @@ class GLSLProgram {
 		GLSLProgram(const std::string &vert_path, const std::string &geom_path, const std::string &frag_path);
         GLSLProgram(const std::string &vert_path, const std::string &tesc_path, const std::string &tese_path, const std::string &geom_path, const std::string &frag_path);
         
-        void reload();
-
         void use() const;
         bool isValid() const;
-		bool isValidShader(const GLenum &type) const;
-
-		void setShaders(const std::string &vert_path, const std::string &tesc_path, const std::string &tese_path, const std::string &geom_path, const std::string &frag_path);
 
         void setUniform(const std::string &name, const GLint &scalar);
         void setUniform(const std::string &name, const GLuint &scalar);

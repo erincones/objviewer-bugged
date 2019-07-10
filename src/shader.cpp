@@ -50,14 +50,12 @@ void Shader::load() {
 		}
 
 		// Destroy shader
-		destroy();
+		glDeleteShader(shader);
+		shader = GL_FALSE;
 
         // Throw exception
         throw GLSLException(msg, path, stage);
     }
-
-	// Compiled status
-	compiled = true;
 }
 
 // Shader constructor
@@ -72,9 +70,6 @@ Shader::Shader(const std::string &file_path, const GLenum &type) {
     // Set stage
     stage = type;
 
-	// Compiled status
-	compiled = false;
-
     // Load shader
     try {
         load();
@@ -83,37 +78,9 @@ Shader::Shader(const std::string &file_path, const GLenum &type) {
     }
 }
 
-void Shader::reload() {
-	// Destroy shader
-	destroy();
-
-	// Compiled status
-	compiled = false;
-
-	// Load shader
-	try {
-		load();
-	} catch (std::exception &exception) {
-		std::cerr << exception.what() << std::endl;
-	}
-}
-
-// Destroy the shader
-void Shader::destroy() {
-	if (shader == GL_FALSE) return;
-
-	glDeleteShader(shader);
-	shader = GL_FALSE;
-}
-
 // Get the valid status
 bool Shader::isValid() const {
     return shader != GL_FALSE;
-}
-
-// Get the complied status
-bool Shader::hasCompiled() const {
-	return compiled;
 }
 
 // Get path
@@ -138,5 +105,6 @@ GLenum Shader::getType() const {
 
 // Delete shader
 Shader::~Shader() {
-	destroy();
+	glDeleteShader(shader);
+	shader = GL_FALSE;
 }

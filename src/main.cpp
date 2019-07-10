@@ -513,7 +513,7 @@ void draw_gui(GLFWwindow *window) {
                 // Reload button
                 ImGui::SameLine();
 				if (ImGui::Button("Reload"))
-					data->model->reload();
+					scene->updateModel(model_it.first);
 
                 // Warning message if could not open
 				if (!data->model->isOpen()) {
@@ -752,8 +752,8 @@ void draw_gui(GLFWwindow *window) {
                 update |= ImGui::InputText("Fragment",        &program_data->frag_path, ImGuiInputTextFlags_EnterReturnsTrue);
 
 				// Reload button
-                if (ImGui::Button("Reload"))
-					program->reload();
+				if (ImGui::Button("Reload"))
+					scene->updateProgram(program_it.first);
 
 				// Message for invalid GLSL programs
 				if (!program->isValid()) {

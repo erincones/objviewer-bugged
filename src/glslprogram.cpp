@@ -22,7 +22,13 @@ void GLSLProgram::link() {
 
     // Link the program
     glLinkProgram(program);
-	destroyShaders();
+
+	// Delete shaders
+	if (vert != nullptr) glDeleteShader(vert->getID());
+	if (tesc != nullptr) glDeleteShader(tesc->getID());
+	if (tese != nullptr) glDeleteShader(tese->getID());
+	if (geom != nullptr) glDeleteShader(geom->getID());
+	if (frag != nullptr) glDeleteShader(frag->getID());
 
     // Check the program status
     int status;
@@ -47,7 +53,8 @@ void GLSLProgram::link() {
         }
 
         // Destroy program
-        destroy();
+		glDeleteProgram(program);
+		program = GL_FALSE;
 
         // Throw exception
         throw GLSLException(msg);
@@ -70,31 +77,6 @@ GLint GLSLProgram::getUniformLocation(const char *name) {
     GLint new_location = glGetUniformLocation(program, name);
     location[name] = new_location;
     return new_location;
-}
-
-// Destroy program
-void GLSLProgram::destroy() {
-    // Delete not empty program
-	if (program == GL_FALSE) return;
-
-	// Destroy shaders
-	destroyShaders();
-
-	// Destroy program
-    glDeleteProgram(program);
-    program = GL_FALSE;
-
-	// Clear uniform locations
-	location.clear();
-}
-
-// Destroy shaders
-void GLSLProgram::destroyShaders() {
-	if (vert != nullptr) vert->destroy();
-	if (tesc != nullptr) tesc->destroy();
-	if (tese != nullptr) tese->destroy();
-	if (geom != nullptr) geom->destroy();
-	if (frag != nullptr) frag->destroy();
 }
 
 // GLSL program constructor
@@ -161,26 +143,6 @@ GLSLProgram::GLSLProgram(const std::string &vert_path, const std::string &tesc_p
     }
 }
 
-// Reload program
-void GLSLProgram::reload() {
-    // Destroy program
-    destroy();
-
-    // Reload shaders
-	if (vert != nullptr) vert->reload();
-	if (tesc != nullptr) tesc->reload();
-	if (tese != nullptr) tese->reload();
-	if (geom != nullptr) geom->reload();
-	if (frag != nullptr) frag->reload();
-
-    // Link program
-    try {
-        link();
-    } catch (GLSLException &exception) {
-        std::cerr << exception.what() << std::endl;
-    }
-}
-
 // Use the program
 void GLSLProgram::use() const {
     glUseProgram(program);
@@ -189,45 +151,6 @@ void GLSLProgram::use() const {
 // Check the program status
 bool GLSLProgram::isValid() const {
     return program != GL_FALSE;
-}
-
-// Get shader ID
-bool GLSLProgram::isValidShader(const GLenum &type) const {
-	switch (type) {
-		case GL_VERTEX_SHADER:          return vert != nullptr ? vert->hasCompiled() : false;
-		case GL_TESS_CONTROL_SHADER:    return tesc != nullptr ? tesc->hasCompiled() : true;
-		case GL_TESS_EVALUATION_SHADER: return tese != nullptr ? tese->hasCompiled() : true;
-		case GL_GEOMETRY_SHADER:        return geom != nullptr ? geom->hasCompiled() : true;
-		case GL_FRAGMENT_SHADER:        return frag != nullptr ? frag->hasCompiled() : false;
-		default:                        throw std::runtime_error("error: unknown shader type (" + std::to_string(type) + ")");
-	}
-}
-
-// Set new shaders paths and compile
-void GLSLProgram::setShaders(const std::string &vert_path, const std::string &tesc_path, const std::string &tese_path, const std::string &geom_path, const std::string &frag_path) {
-	// Destroy program
-	destroy();
-
-	// Delete previous shaders
-	if (vert != nullptr) delete vert;
-	if (tesc != nullptr) delete tesc;
-	if (tese != nullptr) delete tese;
-	if (geom != nullptr) delete geom;
-	if (frag != nullptr) delete frag;
-
-	// Load the new shaders
-	vert = (!vert_path.empty() ? new Shader(vert_path, GL_VERTEX_SHADER)          : nullptr);
-	tesc = (!tesc_path.empty() ? new Shader(tesc_path, GL_TESS_CONTROL_SHADER)    : nullptr);
-	tese = (!tese_path.empty() ? new Shader(tese_path, GL_TESS_EVALUATION_SHADER) : nullptr);
-	geom = (!geom_path.empty() ? new Shader(geom_path, GL_GEOMETRY_SHADER)        : nullptr);
-	frag = (!frag_path.empty() ? new Shader(frag_path, GL_FRAGMENT_SHADER)        : nullptr);
-
-	// Link program
-	try {
-		link();
-	} catch (GLSLException &exception) {
-		std::cerr << exception.what() << std::endl;
-	}
 }
 
 
@@ -334,5 +257,7 @@ std::string GLSLProgram::getShadersPipeline() const {
 
 // Delete program
 GLSLProgram::~GLSLProgram() {
-    destroy();
+	// Destroy program
+	glDeleteProgram(program);
+	program = GL_FALSE;
 }

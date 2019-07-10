@@ -94,8 +94,6 @@ class Model {
     public:
         Model(const std::string &file_path);
 
-        void reload();
-
         void draw(GLSLProgram *const program) const;
         void setEnabled(const bool &status);
 
@@ -112,8 +110,6 @@ class Model {
         void setScale(const glm::vec3 &scale_new);
 
         void setMatrix(const glm::mat4 &matrix);
-
-		void setPath(const std::string &model_path);
 
         bool isOpen() const;
 		bool isMaterialOpen() const;
