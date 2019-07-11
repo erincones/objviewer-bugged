@@ -27,19 +27,8 @@ class Model {
             Material *material;
         };
 
-        // Open status
-        bool open;
-		bool material_open;
-
-		// Enabled status
-        bool enabled;
-
-        // File paths
-        std::string path;
+        // Material file path and name
 		std::string material_path;
-
-		// File names
-        std::string name;
 		std::string material_name;
 
         // Raw model data
@@ -52,50 +41,61 @@ class Model {
         std::vector<std::uint32_t> index;
         std::vector<Model::vertex_data> vertex;
 
-        // Objects model data
-        std::vector<model_data> model_stock;
-		std::vector<Material *> material_stock;
-
-        // Buffers
-        GLuint vao;
-        GLuint vbo;
-        GLuint ebo;
-
         // Geometry attributes
         glm::mat4 origin_mat;
         glm::vec3 position;
         glm::quat rotation;
         glm::vec3 scale;
-        glm::vec3 max;
-        glm::vec3 min;
-
-        // Statistics
-        std::size_t indices;
-        std::size_t vertices;
-        std::size_t materials;
 
         // Disable copy and assignation
         Model(const Model &) = delete;
         Model &operator = (const Model &) = delete;
 
-        // File reading
-        void readOBJ();
-		void readMTL();
-
 		// Store vertex
         void storeVertex(const std::string &vertex_data);
 
-        // Load data to GPU
-        void loadData();
-
         // Static methods
         static void rtrim(std::string &str);
+
+	protected:
+		// File path and name
+		std::string path;
+		std::string name;
+
+		// Open status
+		bool open;
+		bool material_open;
+
+		// Model and material stock
+		std::vector<model_data> model_stock;
+		std::vector<Material *> material_stock;
+
+		// Limits
+		glm::vec3 max;
+		glm::vec3 min;
+
+		// Buffers
+		GLuint vao;
+		GLuint vbo;
+		GLuint ebo;
+
+		// Statistics
+		std::size_t indices;
+		std::size_t vertices;
+		std::size_t materials;
+
+		// File reading
+		void readOBJ();
+		void readMTL();
+
+		// Load data to GPU
+		void loadData();
+		
 
     public:
         Model(const std::string &file_path);
 
         void draw(GLSLProgram *const program) const;
-        void setEnabled(const bool &status);
 
         void reset();
         
@@ -113,8 +113,6 @@ class Model {
 
         bool isOpen() const;
 		bool isMaterialOpen() const;
-
-        bool isEnabled() const;
 
         std::string getPath() const;
 		std::string getMaterialPath() const;

@@ -413,7 +413,6 @@ Model::Model(const std::string &file_path) {
 
 	// Default status
 	open = false;
-	enabled = false;
 	material_open = false;
 
     // Read file and load data to GPU
@@ -422,7 +421,6 @@ Model::Model(const std::string &file_path) {
 		open = true;
 
 		loadData();
-		enabled = true;
 	} catch (std::exception &exception) {
 		std::cerr << exception.what() << std::endl;
 	}
@@ -433,9 +431,6 @@ Model::Model(const std::string &file_path) {
 
 // Draw model
 void Model::draw(GLSLProgram *const program) const {
-    // Draw if is enabled
-    if (!enabled) return;
-
     // Check program
     if (!program->isValid()) return;
 
@@ -545,16 +540,6 @@ bool Model::isMaterialOpen() const {
 }
 
 
-// Set enabled status
-void Model::setEnabled(const bool &status) {
-	enabled = status;
-}
-
-
-// Get enabled status
-bool Model::isEnabled() const {
-    return open && enabled;
-}
 
 // Get model path
 std::string Model::getPath() const {

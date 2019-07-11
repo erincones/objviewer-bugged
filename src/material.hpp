@@ -10,7 +10,7 @@
 #include <map>
 
 class Material {
-	private:
+	protected:
 		// Material name
 		std::string name;
 

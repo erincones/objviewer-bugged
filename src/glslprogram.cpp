@@ -218,42 +218,6 @@ const Shader *GLSLProgram::getShader(const GLenum &type) const {
 	}
 }
 
-// Get the shaders pipeline as std::string
-std::string GLSLProgram::getShadersPipeline() const {
-	// The pipeline string
-	std::string pipeline;
-
-	// Append vertex name
-	if (vert != nullptr) pipeline.append(vert->getName());
-
-	// Append tessellation control name
-	if (tesc != nullptr) {
-		if (!pipeline.empty()) pipeline.append(" -> ");
-		pipeline.append(tesc->getName());
-	}
-
-	// Append tessellation evaluation name
-	if (tese != nullptr) {
-		if (!pipeline.empty()) pipeline.append(" -> ");
-		pipeline.append(tese->getName());
-	}
-
-	// Append geometry name
-	if (geom != nullptr) {
-		if (!pipeline.empty()) pipeline.append(" -> ");
-		pipeline.append(geom->getName());
-	}
-
-	// Append fragment name
-	if (frag != nullptr) {
-		if (!pipeline.empty()) pipeline.append(" -> ");
-		pipeline.append(frag->getName());
-	}
-
-	// Return pipeline
-	return pipeline;
-}
-
 
 // Delete program
 GLSLProgram::~GLSLProgram() {

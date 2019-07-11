@@ -37,6 +37,7 @@ class Texture {
         void bind(const GLenum &unit) const;
 
         bool isOpen() const;
+		GLuint getID() const;
         std::string getPath() const;
         std::string getName() const;
 

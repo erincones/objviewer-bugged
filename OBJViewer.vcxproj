@@ -176,6 +176,11 @@
     <ClInclude Include="src\model.hpp" />
     <ClInclude Include="src\mouse.hpp" />
     <ClInclude Include="src\scene.hpp" />
+    <ClInclude Include="src\scene\scene.hpp" />
+    <ClInclude Include="src\scene\scenelight.hpp" />
+    <ClInclude Include="src\scene\scenematerial.hpp" />
+    <ClInclude Include="src\scene\scenemodel.hpp" />
+    <ClInclude Include="src\scene\sceneprogram.hpp" />
     <ClInclude Include="src\shader.hpp" />
     <ClInclude Include="src\stb\stb_image.h" />
     <ClInclude Include="src\texture.hpp" />
@@ -198,6 +203,11 @@
     <ClCompile Include="src\model.cpp" />
     <ClCompile Include="src\mouse.cpp" />
     <ClCompile Include="src\scene.cpp" />
+    <ClCompile Include="src\scene\scene.cpp" />
+    <ClCompile Include="src\scene\scenelight.cpp" />
+    <ClCompile Include="src\scene\scenematerial.cpp" />
+    <ClCompile Include="src\scene\scenemodel.cpp" />
+    <ClCompile Include="src\scene\sceneprogram.cpp" />
     <ClCompile Include="src\shader.cpp" />
     <ClCompile Include="src\texture.cpp" />
   </ItemGroup>

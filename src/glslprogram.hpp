@@ -11,26 +11,31 @@
 
 class GLSLProgram {
     private:
-        // Paths
-        Shader *vert;
-        Shader *tesc;
-        Shader *tese;
-        Shader *geom;
-        Shader *frag;
-
-        // Program attributes
-        GLuint program;
-        std::map<std::string, GLint> location;
 
         // Disable copy and assignation
         GLSLProgram(const GLSLProgram &) = delete;
         GLSLProgram &operator = (const GLSLProgram &) = delete;
-
-        // Link program
-        void link();
         
-        // Program setup
+        // Get uniform location
         GLint getUniformLocation(const char *name);
+
+	protected:
+		// Program ID
+		GLuint program;
+
+		// Shaders
+		Shader *vert;
+		Shader *tesc;
+		Shader *tese;
+		Shader *geom;
+		Shader *frag;
+
+		// Uniform locations
+		std::map<std::string, GLint> location;
+
+		// Link program
+		void link();
+		
 
     public:
 		GLSLProgram(const std::string &vert_path, const std::string &frag_path);
@@ -56,7 +61,6 @@ class GLSLProgram {
         GLuint getID() const;
 
 		const Shader *getShader(const GLenum &type) const;
-		std::string getShadersPipeline() const;
 
         ~GLSLProgram();
 };

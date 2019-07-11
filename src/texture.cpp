@@ -111,6 +111,11 @@ bool Texture::isOpen() const {
     return id != GL_FALSE;
 }
 
+// Get the ID
+GLuint Texture::getID() const {
+	return id;
+}
+
 // Get path
 std::string Texture::getPath() const {
     return path;
