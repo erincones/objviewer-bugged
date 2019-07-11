@@ -90,6 +90,8 @@ class Scene {
 
 		static double getTotalTimer();
 		static double getDeltaTimer();
+
+		~Scene();
 };
 
 #endif // __SCENE_HPP_

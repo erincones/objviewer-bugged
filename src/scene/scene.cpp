@@ -303,3 +303,26 @@ double Scene::getTotalTimer() {
 double Scene::getDeltaTimer() {
 	return *Scene::delta_timer;
 }
+
+
+// Scene destructor
+Scene::~Scene() {
+	// Delete mouse
+	delete mouse;
+
+	// Delete all cameras and clear camera stock
+	for (const Camera *const cam : camera_stock)
+		delete cam;
+	
+	// Delete all cameras and clear camera stock
+	for (const SceneLight *const light : light_stock)
+		delete light;
+
+	// Delete all cameras and clear camera stock
+	for (const SceneModel *const model : model_stock)
+		delete model;
+
+	// Delete all cameras and clear camera stock
+	for (const SceneProgram *const program : program_stock)
+		delete program;
+}
