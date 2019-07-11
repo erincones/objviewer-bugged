@@ -234,8 +234,19 @@ void Scene::popProgram(const std::size_t &index) {
 
 // Set the resolution
 void Scene::setResolution(const int &width_res, const int &height_res) {
+	// Save resolution
 	width = width_res;
 	height = height_res;
+
+	// Set resolution to mouse
+	mouse->setResolution(width, height);
+
+	// Set resolution to all cameras
+	for (Camera *const cam : camera_stock)
+		cam->setResolution(width, height);
+
+	// Update viewport
+	glViewport(0, 0, width, height);
 }
 
 // Set the background color
