@@ -63,7 +63,7 @@ class Scene {
 
 		std::size_t pushCamera();
 		std::size_t pushLight(const Light::Type &type = Light::DIRECTIONAL);
-		std::size_t pushModel(const std::string &path = "", const std::uint32_t &program = -1);
+		std::size_t pushModel(const std::string &path = "", const std::size_t &program = -1);
 		std::size_t pushProgram(const std::string &vert_path, const std::string &frag_path);
 		std::size_t pushProgram(const std::string &vert_path, const std::string &geom_path, const std::string &frag_path);
 		std::size_t pushProgram(const std::string &vert_path, const std::string &tesc_path, const std::string &tese_path, const std::string &geom_path, const std::string &frag_path);

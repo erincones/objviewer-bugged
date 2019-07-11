@@ -10,6 +10,11 @@
 #include <string>
 #include <unordered_set>
 
+
+// Forward declaration of scene model
+class SceneModel;
+
+
 class SceneProgram : public GLSLProgram {
 	private:
 		// Shader paths
@@ -23,7 +28,7 @@ class SceneProgram : public GLSLProgram {
 		std::string label;
 
 		// Related models
-		std::unordered_set<SceneModel *const>related_model;
+		std::unordered_set<SceneModel *>related_model;
 
 		// Disable copy and assignation
 		SceneProgram(const SceneProgram &) = delete;

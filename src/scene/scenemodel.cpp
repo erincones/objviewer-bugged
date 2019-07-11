@@ -10,6 +10,7 @@
 
 // Static decalration
 std::uint32_t SceneModel::count = 0U;
+SceneProgram *SceneModel::default_program = nullptr;
 
 
 // Scene model constructor

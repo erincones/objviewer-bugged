@@ -144,7 +144,7 @@ std::size_t Scene::pushLight(const Light::Type &type) {
 }
 
 // Push a new scene model and relate to a scene program
-std::size_t Scene::pushModel(const std::string &path, const std::uint32_t &program) {
+std::size_t Scene::pushModel(const std::string &path, const std::size_t &program) {
 	// Store the new scene model
 	SceneModel *const model = new SceneModel(path);
 	model_stock.push_back(model);

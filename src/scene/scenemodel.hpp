@@ -11,6 +11,11 @@
 #include <string>
 #include <list>
 
+
+// Forward declaration of SceneProgram
+class SceneProgram;
+
+
 class SceneModel : public Model {
 	private:
 		// Model ID

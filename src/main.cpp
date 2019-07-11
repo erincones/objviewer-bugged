@@ -195,7 +195,7 @@ void key_callback(GLFWwindow *window, int key, int, int action, int modifier) {
         // Toggle the GUI visibility
         case GLFW_KEY_F12:
             // Update flag
-			scene->toggleGUI;
+			scene->toggleGUI();
 
             // Normal cursor when the GUI is visible
             if (scene->showingGUI())
@@ -257,14 +257,14 @@ void setup_scene(const std::string &bin_path) {
 	SceneModel::setDefaultProgram(new SceneProgram(vertex, shader_path + "normals.frag.glsl"));
 
     // Add programs
-	const std::uint32_t blinn_phong_id   = scene->pushProgram(vertex, shader_path + "blinn_phong.frag.glsl");
-	const std::uint32_t oren_nayar_id    = scene->pushProgram(vertex, shader_path + "oren_nayar.frag.glsl");
-	const std::uint32_t cook_torrance_id = scene->pushProgram(vertex, shader_path + "cook_torrance.frag.glsl");
+	const std::size_t blinn_phong_id   = scene->pushProgram(vertex, shader_path + "blinn_phong.frag.glsl");
+	const std::size_t oren_nayar_id    = scene->pushProgram(vertex, shader_path + "oren_nayar.frag.glsl");
+	const std::size_t cook_torrance_id = scene->pushProgram(vertex, shader_path + "cook_torrance.frag.glsl");
 
     // Add models
-	const std::uint32_t nanosuit_id = scene->pushModel(model_path + "nanosuit" + DIR_SEP + "nanosuit.obj",    cook_torrance_id);
-	const std::uint32_t suzanne_id = scene->pushModel(model_path + "suzanne"  + DIR_SEP + "suzanne.obj",      blinn_phong_id);
-	const std::uint32_t crash_id = scene->pushModel(model_path + "crash"    + DIR_SEP + "crashbandicoot.obj", oren_nayar_id);
+	const std::size_t nanosuit_id = scene->pushModel(model_path + "nanosuit" + DIR_SEP + "nanosuit.obj",    cook_torrance_id);
+	const std::size_t suzanne_id = scene->pushModel(model_path + "suzanne"  + DIR_SEP + "suzanne.obj",      blinn_phong_id);
+	const std::size_t crash_id = scene->pushModel(model_path + "crash"    + DIR_SEP + "crashbandicoot.obj", oren_nayar_id);
 
 
 	// Suzanne geometry
