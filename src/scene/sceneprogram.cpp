@@ -8,7 +8,7 @@
 
 
 // Static attributes definition
-const std::string SceneProgram::ARROW;
+constexpr const char *const SceneProgram::ARROW;
 
 
 // Scene program constructor

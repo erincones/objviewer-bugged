@@ -8,7 +8,7 @@
 #include "../glad/glad.h"
 
 #include <string>
-#include <set>
+#include <unordered_set>
 
 class SceneProgram : public GLSLProgram {
 	private:
@@ -23,14 +23,14 @@ class SceneProgram : public GLSLProgram {
 		std::string label;
 
 		// Related models
-		std::set<SceneModel *const>related_model;
+		std::unordered_set<SceneModel *const>related_model;
 
 		// Disable copy and assignation
 		SceneProgram(const SceneProgram &) = delete;
 		SceneProgram &operator = (const SceneProgram &) = delete;
 		
 		// Static attributes
-		static constexpr std::string ARROW = "->";
+		static constexpr const char *const ARROW = "->";
 
 	public:
 		SceneProgram(const std::string &vert_path, const std::string &frag_path);

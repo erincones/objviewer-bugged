@@ -2,7 +2,7 @@
 
 // Static definition
 std::uint32_t Light::count = 0U;
-std::set<std::uint32_t> Light::stock;
+std::unordered_set<std::uint32_t> Light::stock;
 
 // Constructor
 Light::Light(const Light::Type &value) {

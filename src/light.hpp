@@ -5,7 +5,7 @@
 
 #include <glm/glm.hpp>
 
-#include <set>
+#include <unordered_set>
 #include <cstdint>
 
 class Light {
@@ -48,7 +48,7 @@ class Light {
         static std::uint32_t count;
 
         // Sets by type
-        static std::set<std::uint32_t> stock;
+        static std::unordered_set<std::uint32_t> stock;
 
 
     public:
