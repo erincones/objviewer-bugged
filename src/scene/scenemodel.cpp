@@ -3,7 +3,6 @@
 #include "../material.hpp"
 #include "../dirseparator.hpp"
 
-#include <vector>
 #include <limits>
 #include <iostream>
 #include <stdexcept>

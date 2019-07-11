@@ -3,7 +3,7 @@
 #include <glm/gtc/quaternion.hpp>
 
 // Static const declaration
-constexpr glm::vec3 SceneLight::FRONT;
+constexpr const glm::vec3 SceneLight::FRONT;
 
 // Static variables declaration
 const Camera *const *SceneLight::camera = nullptr;

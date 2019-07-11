@@ -30,7 +30,7 @@ class SceneLight : public Light {
 		static SceneProgram *program;
 		static SceneModel *model;
 
-		static constexpr glm::vec3 FRONT = glm::vec3(0.0F, 0.0F, -1.0F);
+		static constexpr const glm::vec3 FRONT = glm::vec3(0.0F, 0.0F, -1.0F);
 
 	public:
 		SceneLight(const Light::Type &light_type);

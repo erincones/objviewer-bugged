@@ -18,7 +18,7 @@ class Mouse {
         glm::vec3 rotation_point;
 
         // Static attributes
-        static constexpr float ROTATION_ANGLE = glm::half_pi<float>();
+        static constexpr const float ROTATION_ANGLE = glm::half_pi<float>();
 
     public:
         Mouse(const int &width_res, const int &height_res);
