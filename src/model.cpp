@@ -89,10 +89,10 @@ void Model::readOBJ() {
 			// Search material
 			Material *material = nullptr;
 			std::list<Material *>::const_iterator it = material_stock.begin();
-			do {
+			while ((material == nullptr) && (++it != material_stock.end())) {
 				if ((*it)->getName() == token)
 					material = *it;
-			} while ((material == nullptr) && (++it != material_stock.end()));
+			};
 
 			// Add the new material
             model_stock.push_back(Model::model_data{0, sizeof(std::uint32_t) * count, material});
