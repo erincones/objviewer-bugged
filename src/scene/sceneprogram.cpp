@@ -20,9 +20,6 @@ SceneProgram::SceneProgram(const std::string &vert_path, const std::string &frag
 	// Default label
 	label.append("[").append(std::to_string(GLSLProgram::getID())).append("] ")
 		 .append(GLSLProgram::vert->getName()).append(ARROW)
-		 .append(GLSLProgram::tesc->getName()).append(ARROW)
-		 .append(GLSLProgram::tese->getName()).append(ARROW)
-		 .append(GLSLProgram::geom->getName()).append(ARROW)
 		 .append(GLSLProgram::frag->getName());
 }
 
@@ -36,8 +33,6 @@ SceneProgram::SceneProgram(const std::string &vert_path, const std::string &geom
 	// Label
 	label.append("[").append(std::to_string(GLSLProgram::getID())).append("] ")
 		 .append(GLSLProgram::vert->getName()).append(ARROW)
-		 .append(GLSLProgram::tesc->getName()).append(ARROW)
-		 .append(GLSLProgram::tese->getName()).append(ARROW)
 		 .append(GLSLProgram::geom->getName()).append(ARROW)
 		 .append(GLSLProgram::frag->getName());
 }
@@ -76,6 +71,7 @@ void SceneProgram::reload() {
 	GLSLProgram::geom = (!geom.empty() ? new Shader(geom, GL_GEOMETRY_SHADER)        : nullptr);
 	GLSLProgram::frag = (!frag.empty() ? new Shader(frag, GL_FRAGMENT_SHADER)        : nullptr);
 
+
 	// Link program
 	try {
 		link();
@@ -87,11 +83,11 @@ void SceneProgram::reload() {
 	// Reset label
 	label.clear();
 	label.append("[").append(std::to_string(GLSLProgram::getID())).append("] ")
-		 .append(GLSLProgram::vert->getName()).append(ARROW)
-		 .append(GLSLProgram::tesc->getName()).append(ARROW)
-		 .append(GLSLProgram::tese->getName()).append(ARROW)
-		 .append(GLSLProgram::geom->getName()).append(ARROW)
-		 .append(GLSLProgram::frag->getName());
+		 .append(GLSLProgram::vert != nullptr ? GLSLProgram::vert->getName() : "").append(ARROW)
+		 .append(GLSLProgram::tesc != nullptr ? GLSLProgram::tesc->getName() : "").append(ARROW)
+		 .append(GLSLProgram::tese != nullptr ? GLSLProgram::tese->getName() : "").append(ARROW)
+		 .append(GLSLProgram::geom != nullptr ? GLSLProgram::geom->getName() : "").append(ARROW)
+		 .append(GLSLProgram::frag != nullptr ? GLSLProgram::frag->getName() : "");
 }
 
 

@@ -158,13 +158,13 @@ std::size_t Scene::pushModel(const std::string &path, const std::size_t &program
 
 // Push a new scene program
 std::size_t Scene::pushProgram(const std::string &vert_path, const std::string &frag_path) {
-	program_stock.push_back(new SceneProgram(vert_path, "", "", "", frag_path));
+	program_stock.push_back(new SceneProgram(vert_path, frag_path));
 	return program_stock.size() - 1;
 }
 
 // Push a new scene program
 std::size_t Scene::pushProgram(const std::string &vert_path, const std::string &geom_path, const std::string &frag_path) {
-	program_stock.push_back(new SceneProgram(vert_path, "", "", geom_path, frag_path));
+	program_stock.push_back(new SceneProgram(vert_path, geom_path, frag_path));
 	return program_stock.size() - 1;
 }
 

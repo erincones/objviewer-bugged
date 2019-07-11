@@ -31,14 +31,8 @@ SceneModel::SceneModel(const std::string &file_path, SceneProgram *model_program
 	program = model_program;
 
 	// Fill the scene material stock
-	for (Material *const material : Model::material_stock) {
-		// Cast material to scene material and load paths
-		SceneMaterial *scene_material = (SceneMaterial *)material;
-		scene_material->loadPaths();
-
-		// Push scene material
-		scenematerial_stock.push_back(scene_material);
-	}
+	for (Material *const material : Model::material_stock)
+		scenematerial_stock.push_back(new SceneMaterial(material));
 }
 
 
@@ -95,14 +89,8 @@ void SceneModel::reload() {
 
 
 	// Fill the scene material stock
-	for (Material *const material : Model::material_stock) {
-		// Cast material to scene material and load paths
-		SceneMaterial *scene_material = (SceneMaterial *)material;
-		scene_material->loadPaths();
-
-		// Push scene material
-		scenematerial_stock.push_back(scene_material);
-	}
+	for (Material *const material : Model::material_stock)
+		scenematerial_stock.push_back(new SceneMaterial(material));
 }
 
 

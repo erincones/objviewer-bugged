@@ -6,7 +6,7 @@
 #include <string>
 
 
-class SceneMaterial : public Material {
+class SceneMaterial {
 	private:
 		// Texture paths
 		std::string ambient_path;
@@ -31,13 +31,15 @@ class SceneMaterial : public Material {
 		// Material label
 		std::string label;
 
+		// Material
+		Material *material;
+
 		// Disable default constructor, copy and assignation
-		SceneMaterial() = delete;
 		SceneMaterial(const SceneMaterial &) = delete;
 		SceneMaterial &operator = (const SceneMaterial &) = delete;
 
 	public:
-		void loadPaths();
+		SceneMaterial(Material *const source);
 
 		void reloadTextures();
 

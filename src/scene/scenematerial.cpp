@@ -2,127 +2,139 @@
 
 #include "../texture.hpp"
 
-// Load paths and label
-void SceneMaterial::loadPaths() {
+// Scene material constructor
+SceneMaterial::SceneMaterial(Material *const source) {
+	// Store material
+	material = source;
+
 	// Ambient texture
 	ambient_path.clear();
 	ambient_label.clear();
 
-	ambient_path = Material::ambient_map->getPath();
-	ambient_label.append("[").append(std::to_string(Material::ambient_map->getID())).append("] ").append(Material::ambient_map->getName());
+	ambient_path = material->getAmbientMap()->getPath();
+	ambient_label.append("[").append(std::to_string(material->getAmbientMap()->getID())).append("] ").append(material->getAmbientMap()->getName());
 
 	// Diffuse texture
 	diffuse_path.clear();
 	diffuse_label.clear();
 
-	diffuse_path = Material::ambient_map->getPath();
-	diffuse_label.append("[").append(std::to_string(Material::diffuse_map->getID())).append("] ").append(Material::diffuse_map->getName());
+	diffuse_path = material->getDiffuseMap()->getPath();
+	diffuse_label.append("[").append(std::to_string(material->getDiffuseMap()->getID())).append("] ").append(material->getDiffuseMap()->getName());
 
 
 	// Specular texture
 	specular_path.clear();
 	specular_label.clear();
 
-	specular_path = Material::ambient_map->getPath();
-	specular_label.append("[").append(std::to_string(Material::specular_map->getID())).append("] ").append(Material::specular_map->getName());
+	specular_path = material->getSpecularMap()->getPath();
+	specular_label.append("[").append(std::to_string(material->getSpecularMap()->getID())).append("] ").append(material->getSpecularMap()->getName());
 
 
 	// Shininess texture
 	shininess_path.clear();
 	shininess_label.clear();
 
-	shininess_path = Material::ambient_map->getPath();
-	shininess_label.append("[").append(std::to_string(Material::shininess_map->getID())).append("] ").append(Material::shininess_map->getName());
+	shininess_path = material->getShininessMap()->getPath();
+	shininess_label.append("[").append(std::to_string(material->getShininessMap()->getID())).append("] ").append(material->getShininessMap()->getName());
 
 
 	// Alpha texture
 	alpha_path.clear();
 	alpha_label.clear();
 
-	alpha_path = Material::ambient_map->getPath();
-	alpha_label.append("[").append(std::to_string(Material::alpha_map->getID())).append("] ").append(Material::alpha_map->getName());
+	alpha_path = material->getAlphaMap()->getPath();
+	alpha_label.append("[").append(std::to_string(material->getAlphaMap()->getID())).append("] ").append(material->getAlphaMap()->getName());
 
 
 	// Bump texture
 	bump_path.clear();
 	bump_label.clear();
 
-	bump_path = Material::ambient_map->getPath();
-	bump_label.append("[").append(std::to_string(Material::bump_map->getID())).append("] ").append(Material::bump_map->getName());
-	
+	bump_path = material->getBumpMap()->getPath();
+	bump_label.append("[").append(std::to_string(material->getBumpMap()->getID())).append("] ").append(material->getBumpMap()->getName());
+
 
 	// Displacement texture
 	displacement_path.clear();
 	displacement_label.clear();
 
-	displacement_path = Material::ambient_map->getPath();
-	displacement_label.append("[").append(std::to_string(Material::displacement_map->getID())).append("] ").append(Material::displacement_map->getName());
-	
+	displacement_path = material->getDisplacementMap()->getPath();
+	displacement_label.append("[").append(std::to_string(material->getDisplacementMap()->getID())).append("] ").append(material->getDisplacementMap()->getName());
+
 
 	// Stencil texture
 	stencil_path.clear();
 	stencil_label.clear();
 
-	stencil_path = Material::ambient_map->getPath();
-	stencil_label.append("[").append(std::to_string(Material::stencil_map->getID())).append("] ").append(Material::stencil_map->getName());
+	stencil_path = material->getStencilMap()->getPath();
+	stencil_label.append("[").append(std::to_string(material->getStencilMap()->getID())).append("] ").append(material->getStencilMap()->getName());
+
 }
 
 // Reload the material
 void SceneMaterial::reloadTextures() {
-	if (Material::ambient_map->getPath() != ambient_path) {
-		Material::ambient_map = new Texture(ambient_path);
+	if (material->getAmbientMap()->getPath() != ambient_path) {
+		delete material->getAmbientMap();
+		material->setAmbientMap(ambient_path);
 
 		ambient_label.clear();
-		ambient_label.append("[").append(std::to_string(Material::ambient_map->getID())).append("] ") .append(Material::ambient_map->getName());
+		ambient_label.append("[").append(std::to_string(material->getAmbientMap()->getID())).append("] ") .append(material->getAmbientMap()->getName());
 	}
 
-	if (Material::diffuse_map->getPath() != diffuse_path) {
-		Material::diffuse_map = new Texture(diffuse_path);
+	if (material->getDiffuseMap()->getPath() != diffuse_path) {
+		delete material->getDiffuseMap();
+		material->setDiffuseMap(diffuse_path);
 
 		diffuse_label.clear();
-		diffuse_label.append("[").append(std::to_string(Material::diffuse_map->getID())).append("] ").append(Material::diffuse_map->getName());
+		diffuse_label.append("[").append(std::to_string(material->getDiffuseMap()->getID())).append("] ").append(material->getDiffuseMap()->getName());
 	}
 
-	if (Material::specular_map->getPath() != specular_path) {
-		Material::specular_map = new Texture(specular_path);
+	if (material->getSpecularMap()->getPath() != specular_path) {
+		delete material->getSpecularMap();
+		material->setSpecularMap(specular_path);
 
 		specular_label.clear();
-		specular_label.append("[").append(std::to_string(Material::specular_map->getID())).append("] ").append(Material::specular_map->getName());
+		specular_label.append("[").append(std::to_string(material->getSpecularMap()->getID())).append("] ").append(material->getSpecularMap()->getName());
 	}
 
-	if (Material::shininess_map->getPath() != shininess_path) {
-		Material::shininess_map = new Texture(shininess_path);
+	if (material->getShininessMap()->getPath() != shininess_path) {
+		delete material->getShininessMap();
+		material->setShininessMap(shininess_path);
 
 		shininess_label.clear();
-		shininess_label.append("[").append(std::to_string(Material::shininess_map->getID())).append("] ").append(Material::shininess_map->getName());
+		shininess_label.append("[").append(std::to_string(material->getShininessMap()->getID())).append("] ").append(material->getShininessMap()->getName());
 	}
 
-	if (Material::alpha_map->getPath() != alpha_path) {
-		Material::alpha_map = new Texture(alpha_path);
+	if (material->getAlphaMap()->getPath() != alpha_path) {
+		delete material->getAlphaMap();
+		material->setAlphaMap(alpha_path);
 
 		alpha_label.clear();
-		alpha_label.append("[").append(std::to_string(Material::alpha_map->getID())).append("] ").append(Material::alpha_map->getName());
+		alpha_label.append("[").append(std::to_string(material->getAlphaMap()->getID())).append("] ").append(material->getAlphaMap()->getName());
 	}
 
-	if (Material::bump_map->getPath() != bump_path) {
-		Material::bump_map = new Texture(bump_path);
+	if (material->getBumpMap()->getPath() != bump_path) {
+		delete material->getBumpMap();
+		material->setBumpMap(bump_path);
 
 		bump_label.clear();
-		bump_label.append("[").append(std::to_string(Material::bump_map->getID())).append("] ").append(Material::bump_map->getName());
+		bump_label.append("[").append(std::to_string(material->getBumpMap()->getID())).append("] ").append(material->getBumpMap()->getName());
 	}
 
-	if (Material::displacement_map->getPath() != displacement_path) {
-		Material::displacement_map = new Texture(displacement_path);
+	if (material->getDisplacementMap()->getPath() != displacement_path) {
+		delete material->getDisplacementMap();
+		material->setDisplacementMap(displacement_path);
 
 		displacement_label.clear();
-		displacement_label.append("[").append(std::to_string(Material::displacement_map->getID())).append("] ").append(Material::displacement_map->getName());
+		displacement_label.append("[").append(std::to_string(material->getDisplacementMap()->getID())).append("] ").append(material->getDisplacementMap()->getName());
 	}
 
-	if (Material::stencil_map->getPath() != stencil_path) {
-		Material::stencil_map = new Texture(stencil_path);
+	if (material->getStencilMap()->getPath() != stencil_path) {
+		delete material->getStencilMap();
+		material->setStencilMap(stencil_path);
 
 		stencil_label.clear();
-		stencil_label.append("[").append(std::to_string(Material::stencil_map->getID())).append("] ").append(Material::stencil_map->getName());
+		stencil_label.append("[").append(std::to_string(material->getStencilMap()->getID())).append("] ").append(material->getStencilMap()->getName());
 	}
 }
 
