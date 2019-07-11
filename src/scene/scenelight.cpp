@@ -30,12 +30,12 @@ SceneLight::SceneLight(const Light::Type &light_type) : Light(light_type) {
 }
 
 // Use light
-void SceneLight::use(const bool &as_array) {
+void SceneLight::use(GLSLProgram *const glslprogram, const bool &as_array) {
 	// Normal use for non grabbed lights or null camera
-	if (!grabbed || (*SceneLight::camera == nullptr))
-		Light::use(program, as_array);
+	if (!grabbed)
+		Light::use(glslprogram, as_array);
 
-	else if (*SceneLight::camera != nullptr) {
+	else {
 		// Backup position and direction
 		const glm::vec3 position = Light::getPosition();
 		const glm::vec3 direction = Light::getDirection();
@@ -43,7 +43,7 @@ void SceneLight::use(const bool &as_array) {
 		// Use camera light anddirection for grabbed lights
 		Light::setPosition((*SceneLight::camera)->getPosition());
 		Light::setDirection((*SceneLight::camera)->getLookDirection());
-		Light::use(program, as_array);
+		Light::use(glslprogram, as_array);
 
 		// Restore light and direction
 		Light::setPosition(position);
@@ -52,7 +52,7 @@ void SceneLight::use(const bool &as_array) {
 }
 
 // Draw light model
-void SceneLight::drawModel() const {
+void SceneLight::draw() const {
 	// Check enabled status
 	if (!draw_model)
 		return;

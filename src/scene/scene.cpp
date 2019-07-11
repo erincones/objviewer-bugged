@@ -17,6 +17,7 @@ Scene::Scene(const int &width_res, const int &height_res) {
 	mouse = new Mouse(width, height);
 	camera = new Camera(width, height);
 	camera_stock.push_back(camera);
+	SceneLight::setCamera(&camera);
 
 	// GUI flags
 	show_gui = true;
@@ -49,8 +50,8 @@ void Scene::draw() const {
 			program->setUniform("light_size", Light::getNumberOfLights());
 
 			// Update lights
-			for (const SceneLight *const light : light_stock)
-				light->Light::use(program, true);
+			for (SceneLight *const light : light_stock)
+				light->use(program, true);
 
 			// Draw model
 			model->draw(program);
@@ -60,7 +61,7 @@ void Scene::draw() const {
 
 	// Draw lights models
 	for (const SceneLight *const light : light_stock)
-		light->drawingModel();
+		light->draw();
 }
 
 // Draw GUI
@@ -368,15 +369,15 @@ Scene::~Scene() {
 	for (const Camera *const cam : camera_stock)
 		delete cam;
 	
-	// Delete all cameras and clear camera stock
+	// Delete all lights and clear camera stock
 	for (const SceneLight *const light : light_stock)
 		delete light;
 
-	// Delete all cameras and clear camera stock
+	// Delete all models and clear camera stock
 	for (const SceneModel *const model : model_stock)
 		delete model;
 
-	// Delete all cameras and clear camera stock
+	// Delete all programs and clear camera stock
 	for (const SceneProgram *const program : program_stock)
 		delete program;
 }

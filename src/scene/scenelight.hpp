@@ -35,8 +35,8 @@ class SceneLight : public Light {
 	public:
 		SceneLight(const Light::Type &light_type);
 
-		void use(const bool &as_array);
-		void drawModel() const;
+		void use(GLSLProgram *const glslprogram, const bool &as_array);
+		void draw() const;
 
 		bool drawingModel() const;
 		bool isGrabbed() const;

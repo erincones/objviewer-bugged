@@ -309,14 +309,14 @@ void setup_scene(const std::string &bin_path) {
     light->setAttenuation(glm::vec3(1.000F,  0.70F,  1.80F));
 
 	light = scene->getLight(scene->pushLight(Light::SPOTLIGHT));
-    light->setPosition(   glm::vec3(0.000F, 0.25F,  0.250F));
-    light->setDirection(  glm::vec3(0.125F, 0.50F, -1.000F));
-    light->setDiffuse(    glm::vec3(0.875F, 0.75F,  1.000F));
-    light->setAttenuation(glm::vec3(0.500F, 0.14F,  0.007F));
-    light->setAmbientLevel(0.0F);
-    light->drawModel(true);
+	light->setPosition(glm::vec3(0.000F, 0.25F, 0.250F));
+	light->setDirection(glm::vec3(0.125F, 0.50F, -1.000F));
+	light->setDiffuse(glm::vec3(0.875F, 0.75F, 1.000F));
+	light->setAttenuation(glm::vec3(0.500F, 0.14F, 0.007F));
+	light->setAmbientLevel(0.0F);
+	light->drawModel(true);
 
-	scene->getLight(scene->pushLight(Light::SPOTLIGHT));
+	light = scene->getLight(scene->pushLight(Light::SPOTLIGHT));
     light->setAmbientLevel(0.0F);
     light->setCutoff(glm::vec2(5.0F, 5.5F));
 	light->setEnabled(false);
