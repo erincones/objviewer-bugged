@@ -24,6 +24,11 @@ class Scene {
 		// Scene background
 		glm::vec3 background;
 
+		// GUI flags
+		bool show_gui;
+		bool show_info;
+		bool show_about;
+
 		// Stocks
 		std::list<Camera *> camera_stock;
 		std::list<SceneLight *> light_stock;
@@ -43,6 +48,10 @@ class Scene {
 
 		void draw() const;
 		void drawGUI();
+
+		void toggleGUI();
+		void toggleInfo();
+		void toggleAbout();
 
 		void link(const std::size_t &model, const std::size_t &program);
 		void reloadPrograms();
@@ -67,6 +76,10 @@ class Scene {
 		void setResolution(const int &width_res, const int &height_res);
 		void setBackground(const glm::vec3 &color);
 
+
+		bool showingGUI() const;
+		bool showingInfo() const;
+		bool showingAbout() const;
 
 		glm::ivec2 getResolution() const;
 		glm::vec3 getBacground() const;

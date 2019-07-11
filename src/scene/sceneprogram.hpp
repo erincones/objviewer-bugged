@@ -41,6 +41,7 @@ class SceneProgram : public GLSLProgram {
 
 		void addRelated(SceneModel *const related);
 		void removeRelated(SceneModel *const related);
+		void removeAllRelated();
 
 		std::string &getPath(const GLenum &type);
 		std::string &getLabel();

@@ -107,6 +107,16 @@ void SceneProgram::removeRelated(SceneModel *const model) {
 	related_model.erase(model);
 }
 
+// Remove all related models
+void SceneProgram::removeAllRelated() {
+	// Remove scene program for all related models and clear the set
+	std::unordered_set<SceneModel *const>::iterator model = related_model.begin();
+	while (model != related_model.end()) {
+		(*model)->setProgram(nullptr);
+		model = related_model.erase(model);
+	}
+}
+
 
 // Get shader path
 std::string &SceneProgram::getPath(const GLenum &type) {

@@ -147,11 +147,13 @@ void SceneLight::setCamera(const Camera *const *const camera) {
 // Set the new program
 void SceneLight::setProgram(SceneProgram *const program) {
 	SceneLight::program = program;
+	SceneLight::model->setProgram(program);
 }
 
 // Set the new model
 void SceneLight::setModel(SceneModel *const model) {
 	SceneLight::model = model;
+	SceneLight::model->setProgram(program);
 }
 
 

@@ -18,10 +18,6 @@ Scene::Scene(const int &width_res, const int &height_res) {
 	camera = new Camera(width, height);
 	camera_stock.push_back(camera);
 
-	// Add five lights
-	for (std::uint32_t type = 0; type < 5; type++)
-		light_stock.push_back(new SceneLight((Light::Type)(type % 5)));
-
 	// Set background color
 	background = glm::vec3(0.0F);
 }
@@ -62,12 +58,38 @@ void Scene::draw() const {
 		light->drawingModel();
 }
 
-void Scene::drawGUI() {}
+// Draw GUI
+void Scene::drawGUI() {
+	
+}
+
+
+// Toggle GUI showing
+void Scene::toggleGUI() {
+	show_gui = !show_gui;
+}
+
+// Toggle info showing
+void Scene::toggleInfo() {
+	show_info = !show_info;
+}
+
+// Toggle about showing
+void Scene::toggleAbout() {
+	show_about = !show_about;
+}
 
 
 // Link scene model to scene program
 void Scene::link(const std::size_t &model, const std::size_t &program) {
-	(*std::next(program_stock.begin(), program))->addRelated(*std::next(model_stock.begin(), model));
+	// Get the scene program
+	SceneProgram *scene_program = *std::next(program_stock.begin());
+
+	// Remove relations to the scene program
+	scene_program->removeAllRelated();
+
+	// Relate scene program to the scene model
+	scene_program->addRelated(*std::next(model_stock.begin(), model));
 }
 
 // Reload all scene program
@@ -215,6 +237,22 @@ void Scene::setResolution(const int &width_res, const int &height_res) {
 void Scene::setBackground(const glm::vec3 &color) {
 	background = color;
 	glClearColor(background.r, background.g, background.b, 1.0F);
+}
+
+
+// Get the showing GUI status
+bool Scene::showingGUI() const {
+	return show_gui;
+}
+
+// Get the showing info status
+bool Scene::showingInfo() const {
+	return show_info;
+}
+
+// Get the showing about status
+bool Scene::showingAbout() const {
+	return show_about;
 }
 
 
