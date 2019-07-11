@@ -60,7 +60,7 @@ void SceneModel::reload() {
 	scenematerial_stock.clear();
 
 	// Clear material stock
-	std::vector<Material *>::const_iterator material = Model::material_stock.begin();
+	std::list<Material *>::const_iterator material = Model::material_stock.begin();
 	while (material != Model::material_stock.end()) {
 		delete *material;
 		material = Model::material_stock.erase(material);
@@ -151,6 +151,11 @@ std::string &SceneModel::getLabel() {
 // Get the GLSL program
 SceneProgram *SceneModel::getProgram() const {
 	return program;
+}
+
+// Get the scene material stock
+std::list<SceneMaterial *> SceneModel::getMaterialStock() const {
+	return scenematerial_stock;
 }
 
 

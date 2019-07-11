@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <list>
 #include <map>
 
 class Model {
@@ -68,8 +69,8 @@ class Model {
 		bool material_open;
 
 		// Model and material stock
-		std::vector<model_data> model_stock;
-		std::vector<Material *> material_stock;
+		std::list<model_data> model_stock;
+		std::list<Material *> material_stock;
 
 		// Limits
 		glm::vec3 max;
@@ -133,7 +134,7 @@ class Model {
         std::size_t getVertices() const;
         std::size_t getMaterials() const;
 
-		std::vector<Material *> getMaterialStock() const;
+		std::list<Material *> getMaterialStock() const;
 
         ~Model();
 };

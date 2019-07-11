@@ -88,10 +88,11 @@ void Model::readOBJ() {
 
 			// Search material
 			Material *material = nullptr;
-			for (std::vector<Material *>::const_iterator it = ++material_stock.begin(); (material == nullptr) && (it != material_stock.end()); it++) {
+			std::list<Material *>::const_iterator it = material_stock.begin();
+			do {
 				if ((*it)->getName() == token)
 					material = *it;
-			}
+			} while ((material == nullptr) && (++it != material_stock.end()));
 
 			// Add the new material
             model_stock.push_back(Model::model_data{0, sizeof(std::uint32_t) * count, material});
@@ -150,7 +151,7 @@ void Model::readOBJ() {
 
     // Associate all geometry to the default material
 	else
-		model_stock.insert(model_stock.begin(), Model::model_data{(GLsizei)index.size(), 0, material_stock[0]});
+		model_stock.insert(model_stock.begin(), Model::model_data{(GLsizei)index.size(), 0, material_stock.front()});
 
     // Close file
     file.close();
@@ -609,7 +610,7 @@ std::size_t Model::getMaterials() const {
 }
 
 // Material
-std::vector<Material *> Model::getMaterialStock() const {
+std::list<Material *> Model::getMaterialStock() const {
     return material_stock;
 }
 

@@ -7,9 +7,9 @@
 #include "sceneprogram.hpp"
 #include "../glslprogram.hpp"
 
-#include <string>
-#include <vector>
 #include <cstdint>
+#include <string>
+#include <list>
 
 class SceneModel : public Model {
 	private:
@@ -29,7 +29,7 @@ class SceneModel : public Model {
 		SceneProgram *program;
 
 		// Scene material stock
-		std::vector<SceneMaterial *> scenematerial_stock;
+		std::list<SceneMaterial *> scenematerial_stock;
 
 		// Disable copy and assignation
 		SceneModel(const SceneModel &) = delete;
@@ -55,6 +55,7 @@ class SceneModel : public Model {
 		std::string &getLabel();
 
 		SceneProgram *getProgram() const;
+		std::list<SceneMaterial *> getMaterialStock() const;
 
 		void setEnabled(const bool &status);
 		void showNormals(const bool &status);
