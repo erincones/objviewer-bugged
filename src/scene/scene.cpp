@@ -18,6 +18,11 @@ Scene::Scene(const int &width_res, const int &height_res) {
 	camera = new Camera(width, height);
 	camera_stock.push_back(camera);
 
+	// GUI flags
+	show_gui = true;
+	show_info = false;
+	show_about = false;
+
 	// Set background color
 	background = glm::vec3(0.0F);
 }

@@ -27,6 +27,10 @@
 GLFWwindow *window = nullptr;
 Scene *scene = nullptr;
 
+// Time variables
+double total_timer = 0;
+double delta_timer = 0;
+
 // OpenGL and scene initialization
 void init_opengl();
 void make_opengl_context();
@@ -251,6 +255,10 @@ void setup_scene(const std::string &bin_path) {
 	scene->setBackground(glm::vec3(0.45F, 0.55F, 0.60F));
 	scene->getSelectedCamera()->setPosition(glm::vec3(0.0F, 0.0F, 2.0F));
 
+	// Setup timers
+	Scene::setTotalTimer(&total_timer);
+	Scene::setDeltaTimer(&delta_timer);
+
 
 	// Default program
 	const std::string vertex = shader_path + "common.vert.glsl";
@@ -340,6 +348,11 @@ void setup_gui() {
 // Main loop
 void main_loop() {
     while (!glfwWindowShouldClose(window)) {
+		// Calculate delta and total
+		double current_timer = glfwGetTime();
+		delta_timer = current_timer - total_timer;
+		total_timer = current_timer;
+
         // Clear color and depth buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
