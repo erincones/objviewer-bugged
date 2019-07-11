@@ -60,7 +60,7 @@ class SceneLight : public Light {
 		static void setModel(SceneModel *const model);
 
 		static const Camera *const getCamera();
-		static const SceneProgram *const getProgram();
+		static SceneProgram *const getProgram();
 		static const SceneModel *const getModel();
 };
 

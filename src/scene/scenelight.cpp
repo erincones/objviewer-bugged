@@ -161,7 +161,7 @@ const Camera *const SceneLight::getCamera() {
 }
 
 // Get the program
-const SceneProgram *const SceneLight::getProgram() {
+SceneProgram *const SceneLight::getProgram() {
 	return SceneLight::program;
 }
 

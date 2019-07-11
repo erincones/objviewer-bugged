@@ -42,7 +42,6 @@ class SceneModel : public Model {
 	public:
 		SceneModel(const std::string &file_path, SceneProgram *model_program = nullptr);
 
-		void draw();
 		void reload();
 
 		bool isEnabled() const;

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -175,7 +175,6 @@
     <ClInclude Include="src\material.hpp" />
     <ClInclude Include="src\model.hpp" />
     <ClInclude Include="src\mouse.hpp" />
-    <ClInclude Include="src\scene.hpp" />
     <ClInclude Include="src\scene\scene.hpp" />
     <ClInclude Include="src\scene\scenelight.hpp" />
     <ClInclude Include="src\scene\scenematerial.hpp" />
@@ -202,7 +201,6 @@
     <ClCompile Include="src\material.cpp" />
     <ClCompile Include="src\model.cpp" />
     <ClCompile Include="src\mouse.cpp" />
-    <ClCompile Include="src\scene.cpp" />
     <ClCompile Include="src\scene\scene.cpp" />
     <ClCompile Include="src\scene\scenelight.cpp" />
     <ClCompile Include="src\scene\scenematerial.cpp" />

@@ -9,7 +9,7 @@
 
 #include <glm/glm.hpp>
 
-#include <forward_list>
+#include <list>
 
 class Scene {
 	private:
@@ -22,13 +22,13 @@ class Scene {
 		Camera *camera;
 
 		// Scene background
-		glm::vec3 brackground;
+		glm::vec3 background;
 
 		// Stocks
-		std::forward_list<Camera *> camera_stock;
-		std::forward_list<SceneLight *> light_stock;
-		std::forward_list<SceneModel *> model_stock;
-		std::forward_list<SceneProgram *> program_stock;
+		std::list<Camera *> camera_stock;
+		std::list<SceneLight *> light_stock;
+		std::list<SceneModel *> model_stock;
+		std::list<SceneProgram *> program_stock;
 
 		// Disable copy and assignation
 		Scene(const Scene &) = delete;
@@ -39,7 +39,7 @@ class Scene {
 		static double *delta_timer;
 
 	public:
-		Scene(const int &width_res, const int &height_res, const std::string &model_path, const std::string &shader_path);
+		Scene(const int &width_res, const int &height_res);
 
 		void draw() const;
 		void drawGUI();
@@ -54,7 +54,7 @@ class Scene {
 
 		std::size_t pushCamera();
 		std::size_t pushLight(const Light::Type &type = Light::DIRECTIONAL);
-		std::size_t pushModel(const std::string &path = "", const std::uint32_t &program = 0);
+		std::size_t pushModel(const std::string &path = "", const std::uint32_t &program = -1);
 		std::size_t pushProgram(const std::string &vert_path, const std::string &frag_path);
 		std::size_t pushProgram(const std::string &vert_path, const std::string &geom_path, const std::string &frag_path);
 		std::size_t pushProgram(const std::string &vert_path, const std::string &tesc_path, const std::string &tese_path, const std::string &geom_path, const std::string &frag_path);
@@ -68,7 +68,7 @@ class Scene {
 		void setBackground(const glm::vec3 &color);
 
 
-		glm::ivec3 getResolution() const;
+		glm::ivec2 getResolution() const;
 		glm::vec3 getBacground() const;
 
 		Mouse *getMouse() const;
@@ -78,15 +78,15 @@ class Scene {
 		SceneModel *getModel(const std::size_t &index) const;
 		SceneProgram *getProgram(const std::size_t &index); const
 
-		std::forward_list<Camera *> getCameraStock() const;
-		std::forward_list<SceneLight *> getLightStock() const;
-		std::forward_list<SceneModel *> getModelStock() const;
-		std::forward_list<SceneProgram *> getProgramStock() const;
+		std::list<Camera *> getCameraStock() const;
+		std::list<SceneLight *> getLightStock() const;
+		std::list<SceneModel *> getModelStock() const;
+		std::list<SceneProgram *> getProgramStock() const;
 
 
 
 		static void setTotalTimer(double *const total_timer);
-		static void setDeltaTimer(double *const total_timer);
+		static void setDeltaTimer(double *const delta_timer);
 
 		static double getTotalTimer();
 		static double getDeltaTimer();

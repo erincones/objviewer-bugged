@@ -41,16 +41,6 @@ SceneModel::SceneModel(const std::string &file_path, SceneProgram *model_program
 }
 
 
-// Draw model
-void SceneModel::draw() {
-	// Check enabled status
-	if (!enabled)
-		return;
-
-	// Draw with the default program if the main program is null
-	Model::draw((program != nullptr) && program->isValid() ? program : SceneModel::default_program);
-}
-
 // Reload model
 void SceneModel::reload() {
 	// Clear model stock
