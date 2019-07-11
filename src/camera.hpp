@@ -33,6 +33,8 @@ class Camera {
         void updateProjectionMatrix();
 
         // Static attributes
+        static bool boost;
+
         static float speed;
 		static float speed_boost;
         static float sensibility;
@@ -63,7 +65,7 @@ class Camera {
 
         void zoom(const double &level);
 
-        void move(const Movement &dir, const double &time, const bool &boost = false);
+        void move(const Movement &dir, const double &time);
 
         void rotate(const glm::vec2 &dir);
         void translate(const glm::vec3 &dir);
@@ -83,11 +85,13 @@ class Camera {
         glm::mat4 getProjectionMatrix() const;
 
 
+        static void setBoosted(const bool &status);
 		static void setSpeed(const float &value);
 		static void setSpeedBoost(const float &value);
 		static void setSensibility(const float &value);
 		static void setZoomFactor(const float &value);
 
+        static bool isBoosted();
 		static float getSpeed();
 		static float getSpeedBoost();
 		static float getSensibility();

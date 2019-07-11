@@ -2,9 +2,19 @@
 
 #include "../glad/glad.h"
 
+
+#include "../imgui/imgui_stdlib.h"
+#include "../imgui/imgui_impl_glfw.h"
+#include "../imgui/imgui_impl_opengl3.h"
+
+
+
 // Static definitions
-double *Scene::total_timer;
-double *Scene::delta_timer;
+ImGuiIO *Scene::io = nullptr;
+
+// Static const definitions
+constexpr const char *const Scene::GUI_ID_TAG;
+constexpr const ImGuiWindowFlags Scene::GUI_FLAGS;
 
 
 // Scene constructor
@@ -21,6 +31,8 @@ Scene::Scene(const int &width_res, const int &height_res) {
 
 	// GUI flags
 	show_gui = true;
+    focus_gui = true;
+
 	show_info = false;
 	show_about = false;
 
@@ -66,23 +78,64 @@ void Scene::draw() const {
 
 // Draw GUI
 void Scene::drawGUI() {
-	
+	// Check the visibility of all windows
+	if (!show_gui && !show_info && !show_about)
+		return;
+
+
+	// New ImGui frame
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
+
+	// Show built in windows
+	if (show_info)  ImGui::ShowMetricsWindow(&show_info);
+	if (show_about) ImGui::ShowAboutWindow(&show_about);
+
+	// Show the main GUI
+	if (show_gui) {
+        // Setup style
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0F);
+        ImGui::SetNextWindowPos(ImVec2(0.0F, 0.0F), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(450.0F, (float)height), ImGuiCond_Always);
+
+        // Create main window
+        ImGui::Begin("Settings", &show_gui, Scene::GUI_FLAGS);
+        ImGui::PopStyleVar();
+
+
+        // End main window
+        ImGui::End();
+	}
+
+    // Set focus to most front window
+    if (focus_gui) {
+        ImGui::SetWindowFocus();
+        focus_gui = false;
+    }
+
+
+	// Render gui
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 
 // Toggle GUI showing
-void Scene::toggleGUI() {
-	show_gui = !show_gui;
+void Scene::showGUI(const bool &status) {
+	show_gui = status;
+    focus_gui = status;
 }
 
 // Toggle info showing
-void Scene::toggleInfo() {
-	show_info = !show_info;
+void Scene::showInfo(const bool &status) {
+	show_info = status;
 }
 
 // Toggle about showing
-void Scene::toggleAbout() {
-	show_about = !show_about;
+void Scene::showAbout(const bool &status) {
+	show_about = status;
 }
 
 
@@ -112,20 +165,22 @@ void Scene::selectCamera(const std::size_t &index) {
 
 // Apply zoom
 void Scene::zoom(const double &level) {
-	// Check GUI
 	camera->zoom(level);
 }
 
 // Travell trhough scene
 void Scene::travell(const Camera::Movement &direction) {
-	// Check GUI
-	camera->move(direction, *Scene::delta_timer);
+	camera->move(direction, Scene::io->DeltaTime);
 }
 
 // Look around
 void Scene::lookAround(const double &xpos, const double &ypos) {
-	// Check GUI
 	camera->rotate(mouse->translate(xpos, ypos));
+}
+
+// Update the mouse position
+void Scene::setTranslationPoint(const double &xpos, const double &ypos) {
+    mouse->setTranslationPoint(xpos, ypos);
 }
 
 
@@ -245,9 +300,6 @@ void Scene::setResolution(const int &width_res, const int &height_res) {
 	// Set resolution to all cameras
 	for (Camera *const cam : camera_stock)
 		cam->setResolution(width, height);
-
-	// Update viewport
-	glViewport(0, 0, width, height);
 }
 
 // Set the background color
@@ -336,29 +388,10 @@ std::list<SceneProgram *> Scene::getProgramStock() const {
 }
 
 
-
-
-// Set the total timer pointer
-void Scene::setTotalTimer(double *const total_timer) {
-	Scene::total_timer = total_timer;
+// Load the ImGuiIO pointer
+void Scene::loadImGuiIO() {
+    Scene::io = &ImGui::GetIO();
 }
-
-// Set the delta timer pointer
-void Scene::setDeltaTimer(double *const delta_timer) {
-	Scene::delta_timer = delta_timer;
-}
-
-
-// Get the total timer value
-double Scene::getTotalTimer() {
-	return *Scene::total_timer;
-}
-
-// Get the delta timer value
-double Scene::getDeltaTimer() {
-	return *Scene::delta_timer;
-}
-
 
 // Scene destructor
 Scene::~Scene() {

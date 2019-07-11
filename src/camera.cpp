@@ -5,6 +5,8 @@
 
 
 // Static variables
+bool Camera::boost = false;
+
 float Camera::speed = 0.5F;
 float Camera::speed_boost = 0.25F;
 float Camera::sensibility = 15.0F;
@@ -133,9 +135,9 @@ void Camera::zoom(const double &level) {
 }
 
 // Move the camera trought look vector
-void Camera::move(const Movement &dir, const double &time, const bool &boost) {
+void Camera::move(const Movement &dir, const double &time) {
     // Calculate distance
-    float distance = (boost ? Camera::speed + Camera::speed_boost : Camera::speed) * (float)time;
+    float distance = (Camera::boost ? Camera::speed + Camera::speed_boost : Camera::speed) * (float)time;
 
     // Move camera
     switch (dir) {
@@ -247,6 +249,11 @@ glm::mat4 Camera::getProjectionMatrix() const {
 
 
 
+// Set the boost status
+void Camera::setBoosted(const bool &status) {
+    Camera::boost = status;
+}
+
 // Set the speed
 void Camera::setSpeed(const float &value) {
 	Camera::speed = value;
@@ -267,6 +274,11 @@ void Camera::setZoomFactor(const float &value) {
 	Camera::zoom_factor = value;
 }
 
+
+// Get the boost status
+bool Camera::isBoosted() {
+    return Camera::boost;
+}
 
 // Get the speed
 float Camera::getSpeed() {

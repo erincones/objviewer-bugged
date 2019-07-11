@@ -8,7 +8,6 @@
 
 
 #include "imgui/imgui.h"
-#include "imgui/imgui_stdlib.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
@@ -27,9 +26,13 @@
 GLFWwindow *window = nullptr;
 Scene *scene = nullptr;
 
-// Time variables
-double total_timer = 0;
-double delta_timer = 0;
+// Mouse position
+double xpos;
+double ypos;
+
+// ImGui IO
+ImGuiIO *io = nullptr;
+
 
 // OpenGL and scene initialization
 void init_opengl();
@@ -42,6 +45,7 @@ void setup_opengl();
 // GLFW callbacks
 void error_callback(int error, const char *description);
 void framebuffer_size_callback(GLFWwindow *, int width, int height);
+void mouse_button_callback(GLFWwindow *, int button, int action, int);
 void cursor_position_callback(GLFWwindow *, double xpos, double ypos);
 void scroll_callback(GLFWwindow *, double, double yoffset);
 void key_callback(GLFWwindow *window, int key, int, int action, int modifier);
@@ -82,11 +86,11 @@ int main(const int argc, const char **const argv) {
         print_opengl_info();
         setup_opengl();
 
-        // Load scene
-        setup_scene(argv[0]);
-
         // Setup GUI
         setup_gui();
+
+        // Load scene
+        setup_scene(argv[0]);
 
         // Main loop
         main_loop();    
@@ -160,6 +164,7 @@ void setup_opengl() {
 
     // Register the callbacks
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetScrollCallback(window, scroll_callback);
     glfwSetKeyCallback(window, key_callback);
@@ -180,53 +185,73 @@ void framebuffer_size_callback(GLFWwindow *, int width, int height) {
 	scene->setResolution(width, height);
 }
 
+// Mouse button callback
+void mouse_button_callback(GLFWwindow *, int button, int action, int) {
+    // Disable cursor if don't click any window
+    if ((action == GLFW_RELEASE) && !io->WantCaptureKeyboard) {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        glfwGetCursorPos(window, &xpos, &ypos);
+        scene->setTranslationPoint(xpos, ypos);
+    }
+}
+
 // Cursor position callback
 void cursor_position_callback(GLFWwindow *, double xpos, double ypos) {
-    scene->lookAround(xpos, ypos);
+    if (!io->WantCaptureKeyboard || !scene->showingGUI())
+        scene->lookAround(xpos, ypos);
 }
 
 // Scroll callback
 void scroll_callback(GLFWwindow *, double, double yoffset) {
-    scene->zoom(yoffset);
+    if (!io->WantCaptureKeyboard || !scene->showingGUI())
+        scene->zoom(yoffset);
 }
 
 // Key callback
 void key_callback(GLFWwindow *window, int key, int, int action, int modifier) {
-    // Just process the press actions
-    if (action != GLFW_PRESS) return;
-
     switch (key) {
         // Toggle the GUI visibility
-        case GLFW_KEY_F12:
-            // Update flag
-			scene->toggleGUI();
+        case GLFW_KEY_ESCAPE:
+            if (action == GLFW_PRESS) {
+                // Hide GUI and disable cursor if is using the GUI
+                if (io->WantCaptureKeyboard && scene->showingGUI()) {
+                    scene->showGUI(false);
+                    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+                }
 
-            // Normal cursor when the GUI is visible
-            if (scene->showingGUI())
-                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+                // Show GUI and enable cursor otherwise
+                else {
+                    scene->showGUI(true);
+                    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+                }
 
-            // Disable cursor when the GUI is not visible
-            else {
-                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-                // Update mouse position
-                double xpos;
-                double ypos;
+                // Update mouse translation position
                 glfwGetCursorPos(window, &xpos, &ypos);
-                scene->getMouse()->setTranslationPoint((int)xpos, (int)ypos);
+                scene->setTranslationPoint(xpos, ypos);
+                return;
             }
 
+
+        // Boost the camera speed
+        case GLFW_KEY_LEFT_SHIFT:
+        case GLFW_KEY_RIGHT_SHIFT:
+            Camera::setBoosted(action != GLFW_RELEASE);
             return;
+
 
         // Reload shaders if the CTRL key is pressed
         case GLFW_KEY_R:
-			if (modifier == GLFW_MOD_CONTROL)
+			if ((action == GLFW_PRESS) && (modifier == GLFW_MOD_CONTROL))
 				scene->reloadPrograms();
     }
 }
 
 // Process key input
 void process_input(GLFWwindow *window) {
+    // Check if the GUI want to capture the keyboard
+    if (io->WantCaptureKeyboard && scene->showingGUI())
+        return;
+
     // Camera movement
     if (glfwGetKey(window, GLFW_KEY_W))                                          scene->travell(Camera::FORWARD);
     if (glfwGetKey(window, GLFW_KEY_S))                                          scene->travell(Camera::BACKWARD);
@@ -234,6 +259,30 @@ void process_input(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_D)     | glfwGetKey(window, GLFW_KEY_RIGHT)) scene->travell(Camera::RIGHT);
     if (glfwGetKey(window, GLFW_KEY_SPACE) | glfwGetKey(window, GLFW_KEY_UP))    scene->travell(Camera::UP);
     if (glfwGetKey(window, GLFW_KEY_C)     | glfwGetKey(window, GLFW_KEY_DOWN))  scene->travell(Camera::DOWN);
+}
+
+// Setup GUI
+void setup_gui() {
+    // Setup ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+
+    // Setup platform and render
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330 core");
+
+    // Setup global style
+    ImGui::StyleColorsDark();
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0F);
+    ImGui::PushStyleVar(ImGuiStyleVar_GrabRounding, 2.0F);
+
+    // Setup key navigation and disable ini file
+    io = &ImGui::GetIO();
+    io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io->IniFilename = NULL;
+
+    // Load ImGuiIO in Scene
+    Scene::loadImGuiIO();
 }
 
 
@@ -254,10 +303,6 @@ void setup_scene(const std::string &bin_path) {
 	scene = new Scene(width, height);
 	scene->setBackground(glm::vec3(0.45F, 0.55F, 0.60F));
 	scene->getSelectedCamera()->setPosition(glm::vec3(0.0F, 0.0F, 2.0F));
-
-	// Setup timers
-	Scene::setTotalTimer(&total_timer);
-	Scene::setDeltaTimer(&delta_timer);
 
 
 	// Default program
@@ -321,38 +366,15 @@ void setup_scene(const std::string &bin_path) {
     light->setCutoff(glm::vec2(5.0F, 5.5F));
 	light->setEnabled(false);
     light->setGrabbed(true);
-}
 
-// Setup GUI
-void setup_gui() {
-	// Setup ImGui context
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
 
-	// Setup platform and render
-	ImGui_ImplGlfw_InitForOpenGL(window, true);
-	ImGui_ImplOpenGL3_Init("#version 330 core");
-
-	// Setup style
-	ImGui::StyleColorsDark();
-	ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0F);
-	ImGui::PushStyleVar(ImGuiStyleVar_GrabRounding, 2.0F);
-
-	// Setup key navigation and disable ini file
-	ImGuiIO &io = ImGui::GetIO();
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-	io.NavActive = true;
-	io.IniFilename = NULL;
+    // Draw GUI first of all
+    scene->drawGUI();
 }
 
 // Main loop
 void main_loop() {
     while (!glfwWindowShouldClose(window)) {
-		// Calculate delta and total
-		double current_timer = glfwGetTime();
-		delta_timer = current_timer - total_timer;
-		total_timer = current_timer;
-
         // Clear color and depth buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

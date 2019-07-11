@@ -7,6 +7,8 @@
 #include "scenelight.hpp"
 #include "sceneprogram.hpp"
 
+#include "../imgui/imgui.h"
+
 #include <glm/glm.hpp>
 
 #include <list>
@@ -26,8 +28,12 @@ class Scene {
 
 		// GUI flags
 		bool show_gui;
+        bool focus_gui;
+
+        // Other windows
 		bool show_info;
 		bool show_about;
+
 
 		// Stocks
 		std::list<Camera *> camera_stock;
@@ -40,8 +46,15 @@ class Scene {
 		Scene &operator = (const Scene &) = delete;
 
 		// Static attributes
-		static double *total_timer;
-		static double *delta_timer;
+        static ImGuiIO *io;
+
+		// Static const attributes
+		static constexpr const char *const GUI_ID_TAG = "###";
+		static constexpr const ImGuiWindowFlags GUI_FLAGS = ImGuiWindowFlags_NoCollapse |
+															ImGuiWindowFlags_NoResize |
+															ImGuiWindowFlags_NoMove |
+															ImGuiWindowFlags_NoBringToFrontOnFocus;
+
 
 	public:
 		Scene(const int &width_res, const int &height_res);
@@ -49,9 +62,9 @@ class Scene {
 		void draw() const;
 		void drawGUI();
 
-		void toggleGUI();
-		void toggleInfo();
-		void toggleAbout();
+		void showGUI(const bool &status);
+		void showInfo(const bool &status);
+		void showAbout(const bool &status);
 
 		void link(const std::size_t &model, const std::size_t &program);
 		void reloadPrograms();
@@ -60,6 +73,8 @@ class Scene {
 		void zoom(const double &level);
 		void travell(const Camera::Movement &direction);
 		void lookAround(const double &xpos, const double &ypos);
+
+        void setTranslationPoint(const double &xpos, const double &ypos);
 
 		std::size_t pushCamera();
 		std::size_t pushLight(const Light::Type &type = Light::DIRECTIONAL);
@@ -97,12 +112,7 @@ class Scene {
 		std::list<SceneProgram *> getProgramStock() const;
 
 
-
-		static void setTotalTimer(double *const total_timer);
-		static void setDeltaTimer(double *const delta_timer);
-
-		static double getTotalTimer();
-		static double getDeltaTimer();
+        static void loadImGuiIO();
 
 		~Scene();
 };
