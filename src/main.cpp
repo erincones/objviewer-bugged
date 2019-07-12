@@ -52,6 +52,7 @@ void key_callback(GLFWwindow *window, int key, int, int action, int modifier);
 
 // Process inputs
 void process_input(GLFWwindow *window);
+void setMouseEnabled(const bool &status);
 
 // Setup scene and GUI
 void setup_scene(const std::string &bin_path);
@@ -187,11 +188,8 @@ void framebuffer_size_callback(GLFWwindow *, int width, int height) {
 // Mouse button callback
 void mouse_button_callback(GLFWwindow *, int button, int action, int) {
     // Disable cursor if don't click any window
-    if ((action == GLFW_RELEASE) && !io->WantCaptureKeyboard) {
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        glfwGetCursorPos(window, &xpos, &ypos);
-        scene->setTranslationPoint(xpos, ypos);
-    }
+    if ((action == GLFW_RELEASE) && !io->WantCaptureKeyboard)
+        setMouseEnabled(false);
 }
 
 // Cursor position callback
@@ -212,21 +210,9 @@ void key_callback(GLFWwindow *window, int key, int, int action, int modifier) {
         // Toggle the GUI visibility
         case GLFW_KEY_ESCAPE:
             if (action == GLFW_PRESS) {
-                // Hide GUI and disable cursor if is using the GUI
-                if (io->WantCaptureKeyboard && scene->showingGUI()) {
-                    scene->showGUI(false);
-                    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-                }
-
-                // Show GUI and enable cursor otherwise
-                else {
-                    scene->showGUI(true);
-                    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-                }
-
-                // Update mouse translation position
-                glfwGetCursorPos(window, &xpos, &ypos);
-                scene->setTranslationPoint(xpos, ypos);
+                const bool show = !io->WantCaptureKeyboard || !scene->showingGUI();
+                setMouseEnabled(show);
+                scene->showGUI(show);
             }
             return;
 
@@ -234,15 +220,13 @@ void key_callback(GLFWwindow *window, int key, int, int action, int modifier) {
         // Show the about window
         case GLFW_KEY_F1:
             if (action == GLFW_PRESS)
-                scene->showAboutGUI(true);
-
+                scene->showAbout(!scene->showingAbout());
             return;
 
         // Show the metric window
         case GLFW_KEY_F12:
             if (action == GLFW_PRESS)
-                scene->showMetrics(true);
-
+                scene->showMetrics(!scene->showingMetrics());
             return;
 
 
@@ -272,6 +256,25 @@ void process_input(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_D)     | glfwGetKey(window, GLFW_KEY_RIGHT)) scene->travell(Camera::RIGHT);
     if (glfwGetKey(window, GLFW_KEY_SPACE) | glfwGetKey(window, GLFW_KEY_UP))    scene->travell(Camera::UP);
     if (glfwGetKey(window, GLFW_KEY_C)     | glfwGetKey(window, GLFW_KEY_DOWN))  scene->travell(Camera::DOWN);
+}
+
+// Set the mouse status
+void setMouseEnabled(const bool &status) {
+    // Enable mouse
+    if (status) {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        io->ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
+    }
+
+    // Disable mouse
+    else {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        io->ConfigFlags |= ImGuiConfigFlags_NoMouse;
+    }
+
+    // Update position
+    glfwGetCursorPos(window, &xpos, &ypos);
+    scene->setTranslationPoint(xpos, ypos);
 }
 
 // Setup GUI
@@ -401,11 +404,9 @@ void main_loop() {
 
 
         // Disable window if the showing GUI status has shanged
-        if (scene->showingGUI() != showing_gui) {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-            glfwGetCursorPos(window, &xpos, &ypos);
-            scene->setTranslationPoint(xpos, ypos);
-        }
+        if (scene->showingGUI() != showing_gui)
+            setMouseEnabled(false);
+        
 
         // Draw GUI or process input
         process_input(window);
