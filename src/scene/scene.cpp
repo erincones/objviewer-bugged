@@ -13,8 +13,104 @@
 ImGuiIO *Scene::io = nullptr;
 
 // Static const definitions
+char Scene::URL[] = "https://github.com/Rebaya17/objviewer/";
 constexpr const char *const Scene::GUI_ID_TAG;
 constexpr const ImGuiWindowFlags Scene::GUI_FLAGS;
+
+
+// Draw the settings window
+void Scene::drawSettingsWindow() {
+    // Setup style
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0F);
+    ImGui::SetNextWindowPos(ImVec2(0.0F, 0.0F), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(470.0F, (float)height), ImGuiCond_Always);
+
+    // Create the settings window
+    const bool open = ImGui::Begin("OBJViewer Settings", &show_gui, Scene::GUI_FLAGS);
+    ImGui::PopStyleVar();
+
+    // Abort if the window is not showing
+    if (!show_gui || !open) {
+        ImGui::End();
+        return;
+    }
+
+
+    // About section
+    if (show_gui && ImGui::CollapsingHeader("User Guide", ImGuiTreeNodeFlags_DefaultOpen)) {
+        // Navigation mode
+        ImGui::BulletText("ESCAPE to toggle the navigation mode.");
+        ImGui::BulletText("Click in the scene to enter in the navigation mode.");
+        ImGui::BulletText("F1 to toggle the about Dear ImGui window.");
+        ImGui::BulletText("F12 to toggle the Dear ImGui metrics window.");
+        ImGui::BulletText("Double-click on title bar to collapse window.");
+        ImGui::Spacing();
+
+        // Windows manipulation
+        ImGui::BulletText("For others than the settings window:\n");
+        ImGui::Indent();
+        ImGui::BulletText("Click and drag on lower right corner to resize window\n(double-click to auto fit window to its contents).");
+        ImGui::BulletText("Click and drag on any empty space to move window.");
+        ImGui::BulletText("TAB/SHIFT+TAB to cycle through keyboard editable fields.");
+        ImGui::BulletText("CTRL+Click on a slider or drag box to input value as text.");
+        ImGui::Unindent();
+        ImGui::Spacing();
+
+        // Keyboard input
+        ImGui::BulletText("While editing text:\n");
+        ImGui::Indent();
+        ImGui::BulletText("Hold SHIFT or use mouse to select text.");
+        ImGui::BulletText("CTRL+Left/Right to word jump.");
+        ImGui::BulletText("CTRL+A or double-click to select all.");
+        ImGui::BulletText("CTRL+X,CTRL+C,CTRL+V to use clipboard.");
+        ImGui::BulletText("CTRL+Z,CTRL+Y to undo/redo.");
+        ImGui::BulletText("ESCAPE to revert.");
+        ImGui::BulletText("You can apply arithmetic operators +,*,/ on numerical\nvalues. Use +- to subtract.");
+        ImGui::Unindent();
+        ImGui::Spacing();
+
+        // About and info buttons
+        show_about |= ImGui::Button("About OBJViewer");  ImGui::SameLine();
+        show_about_gui |= ImGui::Button("About Dear ImGui"); ImGui::SameLine();
+        show_metrics |= ImGui::Button("Metrics");
+    }
+
+
+    // End main window
+    ImGui::End();
+}
+
+// Draw the about window
+void Scene::drawAboutWindow() {
+    // Creates the about window
+    const bool open = ImGui::Begin("About OBJViewer", &show_about, ImGuiWindowFlags_NoResize);
+
+    // Abort if the window is not showing
+    if (!show_about || !open) {
+        ImGui::End();
+        return;
+    }
+
+
+    // Title
+    ImGui::Text("OBJViewer - Another OBJ models viewer");
+    ImGui::Separator();
+
+    // Signature
+    ImGui::Text("By Erick Rincones 2019.");
+    ImGui::Text("OBJViewer is licensed under the MIT License, see LICENSE for more information.");
+    ImGui::Spacing();
+
+    // Repository
+    ImGui::Text("GitHub repository:");
+
+    ImGui::PushItemWidth(-1);
+    ImGui::InputText("###github", Scene::URL, 39U, ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_ReadOnly);
+    ImGui::PopItemWidth();
+
+    // End window
+    ImGui::End();
+}
 
 
 // Scene constructor
@@ -33,8 +129,9 @@ Scene::Scene(const int &width_res, const int &height_res) {
 	show_gui = true;
     focus_gui = true;
 
-	show_info = false;
-	show_about = false;
+    show_about = false;
+	show_about_gui = false;
+    show_metrics = false;
 
 	// Set background color
 	background = glm::vec3(0.0F);
@@ -79,9 +176,8 @@ void Scene::draw() const {
 // Draw GUI
 void Scene::drawGUI() {
 	// Check the visibility of all windows
-	if (!show_gui && !show_info && !show_about)
+	if (!show_gui && !show_about && !show_about_gui && !show_metrics)
 		return;
-
 
 	// New ImGui frame
 	ImGui_ImplOpenGL3_NewFrame();
@@ -89,25 +185,14 @@ void Scene::drawGUI() {
 	ImGui::NewFrame();
 
 
+    // Show the settings and about window
+    if (show_gui)   Scene::drawSettingsWindow();
+    if (show_about) Scene::drawAboutWindow();
+
 	// Show built in windows
-	if (show_info)  ImGui::ShowMetricsWindow(&show_info);
-	if (show_about) ImGui::ShowAboutWindow(&show_about);
+    if (show_about_gui) ImGui::ShowAboutWindow(&show_about_gui);
+	if (show_metrics)   ImGui::ShowMetricsWindow(&show_metrics);
 
-	// Show the main GUI
-	if (show_gui) {
-        // Setup style
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0F);
-        ImGui::SetNextWindowPos(ImVec2(0.0F, 0.0F), ImGuiCond_Always);
-        ImGui::SetNextWindowSize(ImVec2(450.0F, (float)height), ImGuiCond_Always);
-
-        // Create main window
-        ImGui::Begin("Settings", &show_gui, Scene::GUI_FLAGS);
-        ImGui::PopStyleVar();
-
-
-        // End main window
-        ImGui::End();
-	}
 
     // Set focus to most front window
     if (focus_gui) {
@@ -115,27 +200,32 @@ void Scene::drawGUI() {
         focus_gui = false;
     }
 
-
 	// Render gui
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 
-// Toggle GUI showing
+// // Set the show GUI status
 void Scene::showGUI(const bool &status) {
 	show_gui = status;
     focus_gui = status;
 }
 
-// Toggle info showing
-void Scene::showInfo(const bool &status) {
-	show_info = status;
+// Set the show about status
+void Scene::showAbout(const bool &status) {
+    show_about = status;
 }
 
-// Toggle about showing
-void Scene::showAbout(const bool &status) {
-	show_about = status;
+
+// Set the show about GUI status
+void Scene::showAboutGUI(const bool &status) {
+	show_about_gui = status;
+}
+
+// Set the show metrics status
+void Scene::showMetrics(const bool &status) {
+    show_metrics = status;
 }
 
 
@@ -314,14 +404,19 @@ bool Scene::showingGUI() const {
 	return show_gui;
 }
 
-// Get the showing info status
-bool Scene::showingInfo() const {
-	return show_info;
-}
-
 // Get the showing about status
 bool Scene::showingAbout() const {
-	return show_about;
+    return show_about;
+}
+
+// Get the showing about GUI status
+bool Scene::showingAboutGUI() const {
+	return show_about_gui;
+}
+
+// Get the showing info status
+bool Scene::showingMetrics() const {
+    return show_metrics;
 }
 
 

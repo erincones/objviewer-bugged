@@ -228,8 +228,23 @@ void key_callback(GLFWwindow *window, int key, int, int action, int modifier) {
                 // Update mouse translation position
                 glfwGetCursorPos(window, &xpos, &ypos);
                 scene->setTranslationPoint(xpos, ypos);
-                return;
             }
+            return;
+
+
+        // Show the about window
+        case GLFW_KEY_F1:
+            if (action == GLFW_PRESS)
+                scene->showAboutGUI(true);
+
+            return;
+
+        // Show the metric window
+        case GLFW_KEY_F12:
+            if (action == GLFW_PRESS)
+                scene->showMetrics(true);
+
+            return;
 
 
         // Boost the camera speed
@@ -237,7 +252,6 @@ void key_callback(GLFWwindow *window, int key, int, int action, int modifier) {
         case GLFW_KEY_RIGHT_SHIFT:
             Camera::setBoosted(action != GLFW_RELEASE);
             return;
-
 
         // Reload shaders if the CTRL key is pressed
         case GLFW_KEY_R:
@@ -378,9 +392,21 @@ void main_loop() {
         // Clear color and depth buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // Showing GUI status
+        bool showing_gui = scene->showingGUI();
+
+
         // Draw scene and GUI
 		scene->draw();
 		scene->drawGUI();
+
+
+        // Disable window if the showing GUI status has shanged
+        if (scene->showingGUI() != showing_gui) {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            glfwGetCursorPos(window, &xpos, &ypos);
+            scene->setTranslationPoint(xpos, ypos);
+        }
 
         // Draw GUI or process input
         process_input(window);

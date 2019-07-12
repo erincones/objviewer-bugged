@@ -31,8 +31,9 @@ class Scene {
         bool focus_gui;
 
         // Other windows
-		bool show_info;
-		bool show_about;
+        bool show_about;
+		bool show_about_gui;
+        bool show_metrics;
 
 
 		// Stocks
@@ -45,13 +46,17 @@ class Scene {
 		Scene(const Scene &) = delete;
 		Scene &operator = (const Scene &) = delete;
 
+        // Draw the about window
+        void drawSettingsWindow();
+        void drawAboutWindow();
+
 		// Static attributes
         static ImGuiIO *io;
+        static char URL[];
 
 		// Static const attributes
 		static constexpr const char *const GUI_ID_TAG = "###";
-		static constexpr const ImGuiWindowFlags GUI_FLAGS = ImGuiWindowFlags_NoCollapse |
-															ImGuiWindowFlags_NoResize |
+		static constexpr const ImGuiWindowFlags GUI_FLAGS = ImGuiWindowFlags_NoResize |
 															ImGuiWindowFlags_NoMove |
 															ImGuiWindowFlags_NoBringToFrontOnFocus;
 
@@ -63,8 +68,9 @@ class Scene {
 		void drawGUI();
 
 		void showGUI(const bool &status);
-		void showInfo(const bool &status);
-		void showAbout(const bool &status);
+        void showAbout(const bool &status);
+        void showAboutGUI(const bool &status);
+		void showMetrics(const bool &status);
 
 		void link(const std::size_t &model, const std::size_t &program);
 		void reloadPrograms();
@@ -93,8 +99,9 @@ class Scene {
 
 
 		bool showingGUI() const;
-		bool showingInfo() const;
-		bool showingAbout() const;
+        bool showingAbout() const;
+        bool showingAboutGUI() const;
+		bool showingMetrics() const;
 
 		glm::ivec2 getResolution() const;
 		glm::vec3 getBacground() const;
