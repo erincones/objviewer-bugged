@@ -18,6 +18,20 @@ constexpr const char *const Scene::GUI_ID_TAG;
 constexpr const ImGuiWindowFlags Scene::GUI_FLAGS;
 
 
+
+// Display a little (?) mark which shows a tooltip when hovered.
+void Scene::HelpMarker(const char *const text) {
+    ImGui::SameLine();
+    ImGui::TextDisabled("(?)");
+    if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+        ImGui::TextUnformatted(text);
+        ImGui::PopTextWrapPos();
+        ImGui::EndTooltip();
+    }
+}
+
 // Draw the settings window
 void Scene::drawSettingsWindow() {
     // Setup style
@@ -37,42 +51,113 @@ void Scene::drawSettingsWindow() {
 
 
     // About section
-    if (show_gui && ImGui::CollapsingHeader("User Guide", ImGuiTreeNodeFlags_DefaultOpen)) {
+    if (ImGui::CollapsingHeader("User Guide", ImGuiTreeNodeFlags_DefaultOpen)) {
         // Navigation mode
         ImGui::BulletText("ESCAPE to toggle the navigation mode.");
         ImGui::BulletText("Click in the scene to enter in the navigation mode.");
         ImGui::BulletText("F1 to toggle the about Dear ImGui window.");
         ImGui::BulletText("F12 to toggle the Dear ImGui metrics window.");
         ImGui::BulletText("Double-click on title bar to collapse window.");
-        ImGui::Spacing();
 
         // Windows manipulation
-        ImGui::BulletText("For others than the settings window:\n");
-        ImGui::Indent();
-        ImGui::BulletText("Click and drag on lower right corner to resize window\n(double-click to auto fit window to its contents).");
-        ImGui::BulletText("Click and drag on any empty space to move window.");
-        ImGui::BulletText("TAB/SHIFT+TAB to cycle through keyboard editable fields.");
-        ImGui::BulletText("CTRL+Click on a slider or drag box to input value as text.");
-        ImGui::Unindent();
-        ImGui::Spacing();
+        if (ImGui::TreeNodeEx("For others than the settings window", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::BulletText("Click and drag on lower right corner to resize window\n(double-click to auto fit window to its contents).");
+            ImGui::BulletText("Click and drag on any empty space to move window.");
+            ImGui::BulletText("TAB/SHIFT+TAB to cycle through keyboard editable fields.");
+            ImGui::BulletText("CTRL+Click on a slider or drag box to input value as text.");
+            ImGui::TreePop();
+        }
 
         // Keyboard input
-        ImGui::BulletText("While editing text:\n");
-        ImGui::Indent();
-        ImGui::BulletText("Hold SHIFT or use mouse to select text.");
-        ImGui::BulletText("CTRL+Left/Right to word jump.");
-        ImGui::BulletText("CTRL+A or double-click to select all.");
-        ImGui::BulletText("CTRL+X,CTRL+C,CTRL+V to use clipboard.");
-        ImGui::BulletText("CTRL+Z,CTRL+Y to undo/redo.");
-        ImGui::BulletText("ESCAPE to revert.");
-        ImGui::BulletText("You can apply arithmetic operators +,*,/ on numerical\nvalues. Use +- to subtract.");
-        ImGui::Unindent();
-        ImGui::Spacing();
+        if (ImGui::TreeNodeEx("While editing text", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::BulletText("Hold SHIFT or use mouse to select text.");
+            ImGui::BulletText("CTRL+Left/Right to word jump.");
+            ImGui::BulletText("CTRL+A or double-click to select all.");
+            ImGui::BulletText("CTRL+X,CTRL+C,CTRL+V to use clipboard.");
+            ImGui::BulletText("CTRL+Z,CTRL+Y to undo/redo.");
+            ImGui::BulletText("ESCAPE to revert.");
+            ImGui::BulletText("You can apply arithmetic operators +,*,/ on numerical\nvalues. Use +- to subtract.");
+            ImGui::TreePop();
+        }
 
         // About and info buttons
         show_about |= ImGui::Button("About OBJViewer");  ImGui::SameLine();
         show_about_gui |= ImGui::Button("About Dear ImGui"); ImGui::SameLine();
         show_metrics |= ImGui::Button("Metrics");
+    }
+
+
+    // Scene section
+    if (ImGui::CollapsingHeader("Scene info")) {
+        // OpenGL info
+        if (ImGui::TreeNodeEx("OpenGL", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::BulletText("OpenGL vendor: %s", glGetString(GL_VENDOR));
+            ImGui::BulletText("OpenGL renderer: %s", glGetString(GL_RENDERER));
+            ImGui::BulletText("OpenGL version: %s", glGetString(GL_VERSION));
+            ImGui::BulletText("GLSL version: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
+            ImGui::TreePop();
+        }
+
+        // Window info
+        if (ImGui::TreeNodeEx("Window", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::BulletText("Width: %d", width);
+            ImGui::BulletText("Height: %d", height);
+            if (ImGui::ColorEdit3("Background", &background.r))
+                glClearColor(background.r, background.g, background.b, 1.0F);
+
+            ImGui::TreePop();
+        }
+
+        // Scene statistics
+        if (ImGui::TreeNodeEx("Statistics*", ImGuiTreeNodeFlags_DefaultOpen)) {
+            // Calculate models statistics
+            std::size_t polygons = 0U;
+            std::size_t vertices = 0U;
+            std::size_t elements = 0U;
+            std::size_t materials = 0U;
+            std::size_t textures  = 0U;
+            for (SceneModel *const model : model_stock) {
+                polygons += model->Model::getPolygons();
+                vertices += model->Model::getVertices();
+                elements += model->Model::getElements();
+                materials += model->Model::getMaterials();
+                textures += model->Model::getTextures();
+            }
+
+            // Calculate GLSL programs statistics
+            unsigned int shaders = 0;
+            unsigned int default_shaders = SceneModel::getDefaultProgram()->getShaders() + SceneLight::getProgram()->getShaders();
+            for (SceneProgram *const program : program_stock)
+                shaders += program->getShaders();
+
+            // Cameras
+            ImGui::BulletText("Cameras: %u", camera_stock.size());
+
+            // Models
+            if (ImGui::TreeNodeEx("modelsstats", ImGuiTreeNodeFlags_DefaultOpen, "Models: %u", model_stock.size())) {
+                ImGui::BulletText("Polygons: %u", polygons);
+                ImGui::BulletText("Vertices: %u", vertices); Scene::HelpMarker("Unique vertices");
+                ImGui::BulletText("Elements: %u", elements); Scene::HelpMarker("Total of vertices");
+                ImGui::BulletText("Materials: %u", materials);
+                ImGui::BulletText("Textures: %u", textures);
+                ImGui::TreePop();
+            }
+
+            // Lights
+            ImGui::BulletText("Lights: %u", light_stock.size());
+
+            // GLSL programs
+            if (ImGui::TreeNodeEx("programsstats", ImGuiTreeNodeFlags_DefaultOpen, "GLSL programs: %u + 2", program_stock.size())) {
+                ImGui::BulletText("Shaders: %u + %u", shaders, default_shaders); Scene::HelpMarker("Loaded + Defaults");
+                ImGui::TreePop();
+            }
+
+            // Note
+            ImGui::Spacing();
+            ImGui::TextWrapped("*Including the elements with errors.");
+
+            ImGui::TreePop();
+        }
     }
 
 
@@ -111,7 +196,6 @@ void Scene::drawAboutWindow() {
     // End window
     ImGui::End();
 }
-
 
 // Scene constructor
 Scene::Scene(const int &width_res, const int &height_res) {

@@ -60,6 +60,9 @@ class Scene {
 															ImGuiWindowFlags_NoMove |
 															ImGuiWindowFlags_NoBringToFrontOnFocus;
 
+        // Static methods
+        static void HelpMarker(const char *const text);
+
 
 	public:
 		Scene(const int &width_res, const int &height_res);
