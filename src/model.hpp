@@ -82,9 +82,11 @@ class Model {
 		GLuint ebo;
 
 		// Statistics
-		std::size_t indices;
+        std::size_t polygons;
 		std::size_t vertices;
+        std::size_t elements;
 		std::size_t materials;
+        std::size_t textures;
 
 		// File reading
 		void readOBJ();
@@ -130,9 +132,11 @@ class Model {
         glm::quat getRotationQuaternion() const;
         glm::vec3 getScale() const;
 
-        std::size_t getTriangles() const;
+        std::size_t getPolygons() const;
         std::size_t getVertices() const;
+        std::size_t getElements() const;
         std::size_t getMaterials() const;
+        std::size_t getTextures() const;
 
 		std::list<Material *> getMaterialStock() const;
 

@@ -64,9 +64,14 @@ void SceneModel::reload() {
 	label = "[" + std::to_string(id) + "] " + Model::name;
 
 	// Initialize attributes
-	Model::material_stock.push_back(new Material("default"));
-	Model::min = glm::vec3(std::numeric_limits<float>::max());
-	Model::max = glm::vec3(std::numeric_limits<float>::min());
+    polygons = 0U;
+    vertices = 0U;
+    elements = 0U;
+    materials = 0U;
+    textures  = 0U;
+    min = glm::vec3(std::numeric_limits<float>::max());
+    max = glm::vec3(std::numeric_limits<float>::min());
+    material_stock.push_back(new Material("default"));
 
 	// Default status
 	enabled = false;

@@ -157,8 +157,9 @@ void Model::readOBJ() {
     file.close();
 
     // Save statistics
-    indices = index.size();
+    polygons = index.size() / 3U;
     vertices = vertex_position.size();
+    elements = vertex.size();
 	materials = material_stock.size();
 
     // Free memory
@@ -268,6 +269,7 @@ void Model::readMTL() {
 			stream >> std::ws;
 			std::getline(stream, token);
 			material_stock.back()->setAmbientMap(dir_path + token);
+            textures++;
 		}
 
 		// Diffuse map
@@ -275,6 +277,7 @@ void Model::readMTL() {
 			stream >> std::ws;
 			std::getline(stream, token);
 			material_stock.back()->setDiffuseMap(dir_path + token);
+            textures++;
 		}
 
 		// Specular map
@@ -282,6 +285,7 @@ void Model::readMTL() {
 			stream >> std::ws;
 			std::getline(stream, token);
 			material_stock.back()->setSpecularMap(dir_path + token);
+            textures++;
 		}
 
 		// Shininess map
@@ -289,6 +293,7 @@ void Model::readMTL() {
 			stream >> std::ws;
 			std::getline(stream, token);
 			material_stock.back()->setShininessMap(dir_path + token);
+            textures++;
 		}
 
 		// Alpha map
@@ -296,6 +301,7 @@ void Model::readMTL() {
 			stream >> std::ws;
 			std::getline(stream, token);
 			material_stock.back()->setAlphaMap(dir_path + token);
+            textures++;
 		}
 
 		// Bump map
@@ -303,6 +309,7 @@ void Model::readMTL() {
 			stream >> std::ws;
 			std::getline(stream, token);
 			material_stock.back()->setBumpMap(dir_path + token);
+            textures++;
 		}
 
 		// Displacement map
@@ -310,6 +317,7 @@ void Model::readMTL() {
 			stream >> std::ws;
 			std::getline(stream, token);
 			material_stock.back()->setDisplacementMap(dir_path + token);
+            textures++;
 		}
 
 		// Stencil map
@@ -317,6 +325,7 @@ void Model::readMTL() {
 			stream >> std::ws;
 			std::getline(stream, token);
 			material_stock.back()->setStencilMap(dir_path + token);
+            textures++;
 		}
 	}
 
@@ -408,9 +417,14 @@ Model::Model(const std::string &file_path) {
     name = path.substr(path.find_last_of(DIR_SEP) + 1);
 
     // Initialize attributes
-	material_stock.push_back(new Material("default"));
+    polygons = 0U;
+    vertices = 0U;
+    elements = 0U;
+    materials = 0U;
+    textures  = 0U;
     min = glm::vec3(std::numeric_limits<float>::max());
     max = glm::vec3(std::numeric_limits<float>::min());
+    material_stock.push_back(new Material("default"));
 
 	// Default status
 	open = false;
@@ -594,20 +608,32 @@ glm::vec3 Model::getScale() const {
     return scale;
 }
 
-// Get indices
-std::size_t Model::getTriangles() const {
-    return indices / 3U;
+
+// Get the total of polygons
+std::size_t Model::getPolygons() const {
+    return polygons;
 }
 
-// Get unique vertices
+// Get number of vertices
 std::size_t Model::getVertices() const {
     return vertices;
 }
 
-// Get materials
+// Get the total of vertices
+std::size_t Model::getElements() const {
+    return elements;
+}
+
+// Get the number of materials
 std::size_t Model::getMaterials() const {
     return materials;
 }
+
+// Get the number of textures
+std::size_t Model::getTextures() const {
+    return textures;
+}
+
 
 // Material
 std::list<Material *> Model::getMaterialStock() const {
