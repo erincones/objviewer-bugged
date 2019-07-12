@@ -131,7 +131,6 @@ void make_opengl_context() {
 
     // Maximize and show window
     glfwMaximizeWindow(window);
-    // glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
 
     // Create the window context and return window
     glfwMakeContextCurrent(window);
