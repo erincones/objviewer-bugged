@@ -71,6 +71,13 @@ void SceneProgram::reload() {
 	GLSLProgram::geom = (!geom.empty() ? new Shader(geom, GL_GEOMETRY_SHADER)        : nullptr);
 	GLSLProgram::frag = (!frag.empty() ? new Shader(frag, GL_FRAGMENT_SHADER)        : nullptr);
 
+    // Count the number of shaders
+    shaders = (GLSLProgram::vert != nullptr)
+            + (GLSLProgram::tesc != nullptr)
+            + (GLSLProgram::tese != nullptr)
+            + (GLSLProgram::geom != nullptr)
+            + (GLSLProgram::frag != nullptr);
+
 
 	// Link program
 	try {

@@ -93,6 +93,9 @@ GLSLProgram::GLSLProgram(const std::string &vert_path, const std::string &frag_p
 	tese = nullptr;
 	geom = nullptr;
 
+    // Count the number of shaders
+    shaders = (vert != nullptr) + (tesc != nullptr) + (tese != nullptr) + (geom != nullptr) + (frag != nullptr);
+
 	// Link program
 	try {
 		link();
@@ -115,6 +118,9 @@ GLSLProgram::GLSLProgram(const std::string &vert_path, const std::string &geom_p
 	tesc = nullptr;
 	tese = nullptr;
 
+    // Count the number of shaders
+    shaders = (vert != nullptr) + (tesc != nullptr) + (tese != nullptr) + (geom != nullptr) + (frag != nullptr);
+
 	// Link program
 	try {
 		link();
@@ -134,6 +140,9 @@ GLSLProgram::GLSLProgram(const std::string &vert_path, const std::string &tesc_p
 	tese = (!tese_path.empty() ? new Shader(tese_path, GL_TESS_EVALUATION_SHADER) : nullptr);
 	geom = (!geom_path.empty() ? new Shader(geom_path, GL_GEOMETRY_SHADER)        : nullptr);
 	frag = (!frag_path.empty() ? new Shader(frag_path, GL_FRAGMENT_SHADER)        : nullptr);
+
+    // Count the number of shaders
+    shaders = (vert != nullptr) + (tesc != nullptr) + (tese != nullptr) + (geom != nullptr) + (frag != nullptr);
 
     // Link program
     try {
@@ -216,6 +225,11 @@ const Shader *GLSLProgram::getShader(const GLenum &type) const {
 		case GL_FRAGMENT_SHADER:        return frag;
 		default:                        throw std::runtime_error("error: unknown shader type (" + std::to_string(type) + ")");
 	}
+}
+
+// Get the number of shaders
+unsigned int GLSLProgram::getShaders() const {
+    return shaders;
 }
 
 

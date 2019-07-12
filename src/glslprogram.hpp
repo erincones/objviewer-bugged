@@ -30,6 +30,9 @@ class GLSLProgram {
 		Shader *geom;
 		Shader *frag;
 
+        // Number of shaders
+        unsigned int shaders;
+
 		// Uniform locations
 		std::map<std::string, GLint> location;
 
@@ -61,6 +64,7 @@ class GLSLProgram {
         GLuint getID() const;
 
 		const Shader *getShader(const GLenum &type) const;
+        unsigned int getShaders() const;
 
         ~GLSLProgram();
 };
