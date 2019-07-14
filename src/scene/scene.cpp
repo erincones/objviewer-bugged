@@ -131,20 +131,22 @@ void Scene::drawSettingsWindow() {
                 shaders += program->getShaders();
 
             // Cameras
-            ImGui::Text("Cameras: %u", camera_stock.size());
+            ImGui::BulletText("Cameras: %u", camera_stock.size());
 
             // Models
             if (ImGui::TreeNodeEx("modelsstats", ImGuiTreeNodeFlags_DefaultOpen, "Models: %u", model_stock.size())) {
                 ImGui::Text("Polygons: %u", polygons);
-                ImGui::Text("Vertices: %u", vertices); Scene::HelpMarker("Unique vertices");
-                ImGui::Text("Elements: %u", elements); Scene::HelpMarker("Total of vertices");
+                ImGui::SameLine(210.0F);
                 ImGui::Text("Materials: %u", materials);
+                ImGui::Text("Vertices: %u", vertices); Scene::HelpMarker("Unique vertices");
+                ImGui::SameLine(210.0F);
                 ImGui::Text("Textures: %u", textures);
+                ImGui::Text("Elements: %u", elements); Scene::HelpMarker("Total of vertices");
                 ImGui::TreePop();
             }
 
             // Lights
-            ImGui::Text("Lights: %u", light_stock.size());
+            ImGui::BulletText("Lights: %u", light_stock.size());
 
             // GLSL programs
             if (ImGui::TreeNodeEx("programsstats", ImGuiTreeNodeFlags_DefaultOpen, "GLSL programs: %u + 2", program_stock.size())) {
@@ -191,8 +193,36 @@ void Scene::drawSettingsWindow() {
             popCamera(remove);
 
         // Add button
-        if (ImGui::Button("Add camera", ImVec2(452.0F, 19.0F)))
+        if (ImGui::Button("Add camera", ImVec2(454.0F, 19.0F)))
             pushCamera();
+    }
+
+    // Models
+    if (ImGui::CollapsingHeader("Models")) {
+        // Model indices
+        std::size_t index = -1;
+        std::size_t remove = -1;
+
+        // Draw model node
+        for (SceneModel *model : model_stock) {
+
+            const std::string title = model->getLabel() + Scene::GUI_ID_TAG + std::to_string(model->getGUIID());
+            index++;
+
+            if (ImGui::TreeNode(title.c_str())) {
+                if (!Scene::drawModelGUI(model))
+                    remove = index;
+                ImGui::TreePop();
+            }
+        }
+
+        // Remove camera
+        if (remove != -1)
+            popModel(remove);
+
+        // Add button
+        if (ImGui::Button("Add model", ImVec2(454.0F, 19.0F)))
+            pushModel();
     }
 
 
@@ -234,7 +264,7 @@ void Scene::drawAboutWindow() {
 
 // Draw camera data and return false if have to remove
 bool Scene::drawCameraGUI(SceneCamera *const scene_cam, const bool select_button) {
-    // Remove flag
+    // Keep flag
     bool keep = true;
 
     // Label
@@ -291,6 +321,99 @@ bool Scene::drawCameraGUI(SceneCamera *const scene_cam, const bool select_button
     float fov = scene_cam->getFOV();
     if (ImGui::DragFloat("FOV", &fov, 0.01F, 0.0F, 0.0F, "%.4F"))
         scene_cam->setFOV(fov);
+
+    // Return keep status
+    return keep;
+}
+
+// Draw model data and return false if have to remove
+bool Scene::drawModelGUI(SceneModel *const model) {
+    // Keep flag
+    bool keep = true;
+
+    // Model path
+    if (ImGui::InputText("Path", &model->getPath(), ImGuiInputTextFlags_EnterReturnsTrue))
+        model->reload();
+
+    // Model name
+    ImGui::InputText("Name", &model->getLabel());
+
+    // Reload buttons
+    if (ImGui::Button("Reload model"))
+        model->reload();
+
+    // Remove button if there are more than one camera
+    ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.60F, 0.24F, 0.24F, 1.00F));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.80F, 0.16F, 0.16F, 1.00F));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.70F, 0.21F, 0.21F, 1.00F));
+    ImGui::SameLine();
+    if (ImGui::Button("Remove"))
+        keep = false;
+    ImGui::PopStyleColor(3);
+
+
+    // Check open status
+    if (!model->isOpen()) {
+        if (!model->Model::getPath().empty())
+            ImGui::TextColored(ImVec4(0.80F, 0.16F, 0.16F, 1.00F), "Could not open the model");
+        return keep;
+    }
+
+    // Enabled status
+    ImGui::Spacing();
+    bool enabled = model->isEnabled();
+    if (ImGui::Checkbox("Enabled", &enabled))
+        model->setEnabled(enabled);
+    
+
+    // Sumary
+    if (ImGui::TreeNodeEx("Sumary", ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::Text("Polygons: %u", model->getPolygons());
+        ImGui::SameLine(210.0F);
+        ImGui::Text("Materials: %u", model->getMaterials());
+        ImGui::Text("Vertices: %u", model->getVertices()); Scene::HelpMarker("Unique vertices");
+        ImGui::SameLine(210.0F);
+        ImGui::Text("Textures: %u", model->getTextures());
+        ImGui::Text("Elements: %u", model->getElements()); Scene::HelpMarker("Total of vertices");
+        ImGui::TreePop();
+    }
+
+    // Scene programs
+    ImGui::Spacing();
+    const char *const program_title = (model->getProgram() != nullptr ? model->getProgram()->getLabel().c_str() : "null");
+    if (ImGui::BeginCombo("GLSL program", program_title)) {
+        // Default shader
+        bool selected = (model->getProgram() == SceneProgram::getDefault());
+
+        // Add item and mark the selected
+        if (ImGui::Selectable(SceneProgram::getDefault()->getLabel().c_str(), selected)) {
+            model->getProgram()->removeAllRelated();
+            SceneProgram::getDefault()->addRelated(model);
+        }
+
+        // Set default focus to selected
+        if (selected)
+            ImGui::SetItemDefaultFocus();
+        
+        // The programs in stock
+        for (SceneProgram *const program : program_stock) {
+            // Compare GLSL program with the current
+            selected = (model->getProgram() == program);
+
+            // Add items and mark the selected
+            if (ImGui::Selectable(program->getLabel().c_str(), selected)) {
+                model->getProgram()->removeAllRelated();
+                program->addRelated(model);
+            }
+
+            // Set default focus to selected
+            if (selected)
+                ImGui::SetItemDefaultFocus();
+        }
+
+        // Finish GLSL program combo
+        ImGui::EndCombo();
+    }
 
     // Return keep status
     return keep;

@@ -20,7 +20,7 @@ SceneProgram::SceneProgram(const std::string &vert_path, const std::string &frag
     gui_id = SceneProgram::count++;
 
     // Default label
-    label.append("[").append(std::to_string(GLSLProgram::getID())).append("] ")
+    label.append("[").append(std::to_string(gui_id)).append("] ")
         .append(GLSLProgram::vert->getName()).append(ARROW)
         .append(GLSLProgram::frag->getName());
 

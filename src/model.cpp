@@ -433,17 +433,19 @@ Model::Model(const std::string &file_path) {
 	open = false;
 	material_open = false;
 
-	try {
-        // Read file and load data to GPU
-		readOBJ();
-		loadData();
-        open = true;
+    if (!file_path.empty()) {
+	    try {
+            // Read file and load data to GPU
+                readOBJ();
+                loadData();
+                open = true;
+	    } catch (std::exception &exception) {
+		    std::cerr << exception.what() << std::endl;
+	    }
+    }
 
-        // Initialize matrices
-        reset();
-	} catch (std::exception &exception) {
-		std::cerr << exception.what() << std::endl;
-	}
+    // Initialize matrices
+    reset();
 }
 
 // Draw model

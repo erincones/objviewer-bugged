@@ -37,6 +37,7 @@ class SceneModel : public Model {
 		std::list<SceneMaterial *> scenematerial_stock;
 
 		// Disable copy and assignation
+        SceneModel() = delete;
 		SceneModel(const SceneModel &) = delete;
 		SceneModel &operator = (const SceneModel &) = delete;
 

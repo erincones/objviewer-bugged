@@ -98,7 +98,7 @@ class Model {
 		
 
     public:
-        Model(const std::string &file_path);
+        Model(const std::string &file_path = "");
 
         void draw(GLSLProgram *const program) const;
 

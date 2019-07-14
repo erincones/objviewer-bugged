@@ -18,8 +18,8 @@ SceneModel::SceneModel(const std::string &file_path, SceneProgram *model_program
 	gui_id = SceneModel::count++;
 
     // GUI path and label
-    path = Model::path;
-    label = "[" + std::to_string(gui_id) + "] " + Model::name;
+    path = (!Model::path.empty() ? Model::path : "Enter the model path");
+    label = "[" + std::to_string(gui_id) + "] " + (!Model::path.empty() ? Model::name : "Empty model");
 
 	// GUI flags
 	enabled = Model::open;
@@ -37,65 +37,64 @@ SceneModel::SceneModel(const std::string &file_path, SceneProgram *model_program
 
 // Reload model
 void SceneModel::reload() {
-	// Clear model stock
-	Model::model_stock.clear();
+    // Clear model stock
+    Model::model_stock.clear();
 
-	// Clear material stocks
-	std::list<Material *>::const_iterator material = Model::material_stock.begin();
+    // Clear material stocks
+    std::list<Material *>::const_iterator material = Model::material_stock.begin();
     std::list<SceneMaterial *>::const_iterator scene_material = scenematerial_stock.begin();
-	while ((material != Model::material_stock.end())) {
-		delete *material;
+    while ((material != Model::material_stock.end())) {
+        delete *material;
         delete *scene_material;
 
-		material = Model::material_stock.erase(material);
+        material = Model::material_stock.erase(material);
         scene_material = scenematerial_stock.erase(scene_material);
-	}
+    }
 
-	// Delete buffers
-	glDeleteBuffers(1, &vbo);
-	glDeleteBuffers(1, &ebo);
+    // Delete buffers
+    glDeleteBuffers(1, &vbo);
+    glDeleteBuffers(1, &ebo);
 
-	// Delete vertex array object
-	glDeleteVertexArrays(1, &vao);
+    // Delete vertex array object
+    glDeleteVertexArrays(1, &vao);
 
 
-	// Reset model name and label
-	Model::name = path.substr(path.find_last_of(DIR_SEP) + 1);
-	label = "[" + std::to_string(gui_id) + "] " + Model::name;
+    // Reset model name and label
+    Model::name = path.substr(path.find_last_of(DIR_SEP) + 1);
+    label = "[" + std::to_string(gui_id) + "] " + Model::name;
 
-	// Initialize attributes
+    // Initialize attributes
     Model::polygons = 0U;
     Model::vertices = 0U;
     Model::elements = 0U;
     Model::materials = 0U;
-    Model::textures  = 0U;
+    Model::textures = 0U;
     Model::min = glm::vec3(std::numeric_limits<float>::max());
     Model::max = glm::vec3(std::numeric_limits<float>::min());
     Model::material_stock.push_back(new Material("default"));
 
-    // Reset matrices
+    // Default status
+    enabled = true;
+    Model::open = false;
+    Model::material_open = false;
+
+    if (!path.empty()) {
+        try {
+            // Read file and load data to GPU
+            Model::readOBJ();
+            Model::loadData();
+            Model::open = true;
+        } catch (std::exception &exception) {
+            std::cerr << exception.what() << std::endl;
+        }
+    }
+
+    // Fill the scene material stock
+    for (Material *const material : Model::material_stock)
+        scenematerial_stock.push_back(new SceneMaterial(material));
+
+    // Initialize matrices
     Model::reset();
-
-	// Default status
-	enabled = true;
-	Model::open = false;
-	Model::material_open = false;
-
-	// Read file and load data to GPU
-	try {
-		Model::readOBJ();
-		Model::loadData();
-        Model::open = true;
-
-        // Initialize matrices
-        Model::reset();
-
-        // Fill the scene material stock
-        for (Material *const material : Model::material_stock)
-            scenematerial_stock.push_back(new SceneMaterial(material));
-	} catch (std::exception &exception) {
-		std::cerr << exception.what() << std::endl;
-	}
 }
 
 // Reload the materials
