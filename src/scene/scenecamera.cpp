@@ -9,6 +9,9 @@ SceneCamera::SceneCamera(const int &width_res, const int &height_res, const bool
     // Set GUI ID and label
     gui_id = SceneCamera::count++;
     label = "[" + std::to_string(gui_id) + "] " + (Camera::isOrthogonal() ? "Orthogonal" : "Perspective");
+
+    // Override default position
+    Camera::setPosition(glm::vec3(0.0F, 0.0F, 2.0F));
 }
 
 

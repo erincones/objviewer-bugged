@@ -318,7 +318,6 @@ void setup_scene(const std::string &bin_path) {
 	// Create scene, background color and setup camera
 	scene = new Scene(width, height);
 	scene->setBackground(glm::vec3(0.45F, 0.55F, 0.60F));
-	scene->getSelectedCamera()->setPosition(glm::vec3(0.0F, 0.0F, 2.0F));
 
     // Add a second camera
     const std::size_t cam_id = scene->pushCamera(true);

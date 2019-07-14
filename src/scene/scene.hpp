@@ -52,7 +52,7 @@ class Scene {
         void drawAboutWindow();
 
         // Draw camera widget
-        void drawCameraGUI(SceneCamera *const scene_cam, const bool select_button = true);
+        bool drawCameraGUI(SceneCamera *const scene_cam, const bool select_button = true);
 
 		// Static attributes
         static ImGuiIO *io;

@@ -170,14 +170,29 @@ void Scene::drawSettingsWindow() {
         ImGui::Unindent();
         ImGui::Spacing();
 
-        // Tree node for each camera
+        // Camera indices
+        std::size_t index = -1;
+        std::size_t remove = -1;
+
+        // Draw camera node
         for (SceneCamera *scene_cam : camera_stock) {
             const std::string title = scene_cam->getLabel() + Scene::GUI_ID_TAG + std::to_string(scene_cam->getGUIID());
+            index++;
+
             if (ImGui::TreeNode(title.c_str())) {
-                Scene::drawCameraGUI(scene_cam);
+                if (!Scene::drawCameraGUI(scene_cam))
+                    remove = index;
                 ImGui::TreePop();
             }
         }
+
+        // Remove camera
+        if (remove != -1)
+            popCamera(remove);
+
+        // Add button
+        if (ImGui::Button("Add camera", ImVec2(452.0F, 19.0F)))
+            pushCamera();
     }
 
 
@@ -217,16 +232,31 @@ void Scene::drawAboutWindow() {
 }
 
 
-// Draw
-void Scene::drawCameraGUI(SceneCamera *const scene_cam, const bool select_button) {
+// Draw camera data and return false if have to remove
+bool Scene::drawCameraGUI(SceneCamera *const scene_cam, const bool select_button) {
+    // Remove flag
+    bool keep = true;
+
     // Label
     ImGui::InputText("Name", &scene_cam->getLabel());
 
-    // Select button
+    // Select and remove camera
     if (select_button) {
+        // Select option
         bool selected = (scene_cam == camera);
         if (ImGui::Checkbox("Selected", &selected))
             camera = scene_cam;
+
+        // Remove button if there are more than one camera
+        if (camera_stock.size() > 1U) {
+            ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.60F, 0.24F, 0.24F, 1.00F));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.80F, 0.16F, 0.16F, 1.00F));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.70F, 0.21F, 0.21F, 1.00F));
+            ImGui::SameLine();
+            if (ImGui::Button("Remove"))
+                keep = false;
+            ImGui::PopStyleColor(3);
+        }
     }
     ImGui::Spacing();
 
@@ -261,6 +291,9 @@ void Scene::drawCameraGUI(SceneCamera *const scene_cam, const bool select_button
     float fov = scene_cam->getFOV();
     if (ImGui::DragFloat("FOV", &fov, 0.01F, 0.0F, 0.0F, "%.4F"))
         scene_cam->setFOV(fov);
+
+    // Return keep status
+    return keep;
 }
 
 
@@ -488,18 +521,18 @@ std::size_t Scene::pushProgram(const std::string &vert_path, const std::string &
 
 // Pop camera
 void Scene::popCamera(const std::size_t &index) {
+    // Return if is it only one camera
+    if (camera_stock.size() == 1)
+        return;
+
 	// Get camera
 	std::list<SceneCamera *>::const_iterator old_camera = std::next(camera_stock.begin(), index);
 
-	// Set the selected camera as null if is the only one
-	if (camera_stock.size() == 1)
-		camera = nullptr;
-
 	// Update the selected camera if it is to be deleted
-	else if (camera == *old_camera)
-		camera = *std::next(old_camera, (old_camera != camera_stock.end() ? 1 : -1));
+	if (camera == *old_camera)
+		camera = *std::next(old_camera, (*old_camera != *camera_stock.rbegin() ? 1 : -1));
 
-	// Delete light and remove from list
+	// Delete camera and remove from list
 	delete *old_camera;
 	camera_stock.erase(old_camera);
 }
