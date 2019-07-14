@@ -6,53 +6,64 @@
 #include <stdexcept>
 #include <iostream>
 
+// Static variables declaration
+std::uint32_t SceneProgram::count = 0U;
 
-// Static attributes definition
+// Static const declaration
 constexpr const char *const SceneProgram::ARROW;
 
 
 // Scene program constructor
 SceneProgram::SceneProgram(const std::string &vert_path, const std::string &frag_path) : GLSLProgram(vert_path, frag_path) {
+    // Set GUI ID
+    gui_id = SceneProgram::count++;
+
+    // Default label
+    label.append("[").append(std::to_string(GLSLProgram::getID())).append("] ")
+        .append(GLSLProgram::vert->getName()).append(ARROW)
+        .append(GLSLProgram::frag->getName());
+
 	// Get shaders path
 	vert = GLSLProgram::vert->getPath();
 	frag = GLSLProgram::frag->getPath();
-
-	// Default label
-	label.append("[").append(std::to_string(GLSLProgram::getID())).append("] ")
-		 .append(GLSLProgram::vert->getName()).append(ARROW)
-		 .append(GLSLProgram::frag->getName());
 }
 
 // Scene program constructor
 SceneProgram::SceneProgram(const std::string &vert_path, const std::string &geom_path, const std::string &frag_path) : GLSLProgram(vert_path, geom_path, frag_path) {
-	// Get shaders path
+    // Set GUI ID
+    gui_id = SceneProgram::count++;
+
+    // Label
+    label.append("[").append(std::to_string(GLSLProgram::getID())).append("] ")
+        .append(GLSLProgram::vert->getName()).append(ARROW)
+        .append(GLSLProgram::geom->getName()).append(ARROW)
+        .append(GLSLProgram::frag->getName());
+
+    // Get shaders path
 	vert = GLSLProgram::vert->getPath();
 	geom = GLSLProgram::geom->getPath();
 	frag = GLSLProgram::frag->getPath();
-
-	// Label
-	label.append("[").append(std::to_string(GLSLProgram::getID())).append("] ")
-		 .append(GLSLProgram::vert->getName()).append(ARROW)
-		 .append(GLSLProgram::geom->getName()).append(ARROW)
-		 .append(GLSLProgram::frag->getName());
 }
 
 // Scene program constructor
 SceneProgram::SceneProgram(const std::string &vert_path, const std::string &tesc_path, const std::string &tese_path, const std::string &geom_path, const std::string &frag_path) : GLSLProgram(vert_path, tesc_path, tese_path, geom_path, frag_path) {
-	// Get shaders path
+    // Set GUI ID
+    gui_id = SceneProgram::count++;
+
+    // Default label
+    label.append("[").append(std::to_string(GLSLProgram::getID())).append("] ")
+        .append(GLSLProgram::vert->getName()).append(ARROW)
+        .append(GLSLProgram::tesc->getName()).append(ARROW)
+        .append(GLSLProgram::tese->getName()).append(ARROW)
+        .append(GLSLProgram::geom->getName()).append(ARROW)
+        .append(GLSLProgram::frag->getName());
+    
+    // Get shaders path
 	vert = GLSLProgram::vert->getPath();
 	tesc = GLSLProgram::tesc->getPath();
 	tese = GLSLProgram::tese->getPath();
 	geom = GLSLProgram::geom->getPath();
 	frag = GLSLProgram::frag->getPath();
-
-	// Default label
-	label.append("[").append(std::to_string(GLSLProgram::getID())).append("] ")
-		 .append(GLSLProgram::vert->getName()).append(ARROW)
-		 .append(GLSLProgram::tesc->getName()).append(ARROW)
-		 .append(GLSLProgram::tese->getName()).append(ARROW)
-		 .append(GLSLProgram::geom->getName()).append(ARROW)
-		 .append(GLSLProgram::frag->getName());
 }
 
 // Reload the shader
@@ -71,6 +82,15 @@ void SceneProgram::reload() {
 	GLSLProgram::geom = (!geom.empty() ? new Shader(geom, GL_GEOMETRY_SHADER)        : nullptr);
 	GLSLProgram::frag = (!frag.empty() ? new Shader(frag, GL_FRAGMENT_SHADER)        : nullptr);
 
+    // Reset label
+    label.clear();
+    label.append("[").append(std::to_string(GLSLProgram::getID())).append("] ")
+        .append(GLSLProgram::vert != nullptr ? GLSLProgram::vert->getName() : "").append(ARROW)
+        .append(GLSLProgram::tesc != nullptr ? GLSLProgram::tesc->getName() : "").append(ARROW)
+        .append(GLSLProgram::tese != nullptr ? GLSLProgram::tese->getName() : "").append(ARROW)
+        .append(GLSLProgram::geom != nullptr ? GLSLProgram::geom->getName() : "").append(ARROW)
+        .append(GLSLProgram::frag != nullptr ? GLSLProgram::frag->getName() : "");
+
     // Count the number of shaders
     shaders = (GLSLProgram::vert != nullptr)
             + (GLSLProgram::tesc != nullptr)
@@ -86,15 +106,6 @@ void SceneProgram::reload() {
 		std::cerr << exception.what() << std::endl;
 	}
 
-
-	// Reset label
-	label.clear();
-	label.append("[").append(std::to_string(GLSLProgram::getID())).append("] ")
-		 .append(GLSLProgram::vert != nullptr ? GLSLProgram::vert->getName() : "").append(ARROW)
-		 .append(GLSLProgram::tesc != nullptr ? GLSLProgram::tesc->getName() : "").append(ARROW)
-		 .append(GLSLProgram::tese != nullptr ? GLSLProgram::tese->getName() : "").append(ARROW)
-		 .append(GLSLProgram::geom != nullptr ? GLSLProgram::geom->getName() : "").append(ARROW)
-		 .append(GLSLProgram::frag != nullptr ? GLSLProgram::frag->getName() : "");
 }
 
 
@@ -121,8 +132,18 @@ void SceneProgram::removeAllRelated() {
 }
 
 
+// Get the GUI ID
+std::uint32_t SceneProgram::getGUIID() {
+    return gui_id;
+}
+
+// Get the GLSL program label
+std::string &SceneProgram::getLabel() {
+    return label;
+}
+
 // Get shader path
-std::string &SceneProgram::getPath(const GLenum &type) {
+std::string &SceneProgram::getShaderPath(const GLenum &type) {
 	switch (type) {
 		case GL_VERTEX_SHADER:          return vert;
 		case GL_TESS_CONTROL_SHADER:    return tesc;
@@ -133,14 +154,14 @@ std::string &SceneProgram::getPath(const GLenum &type) {
 	}
 }
 
-// Get the GLSL program label
-std::string &SceneProgram::getLabel() {
-	return label;
+
+// Set a new label
+void SceneProgram::setLabel(const std::string &new_label) {
+    label = new_label;
 }
 
-
 // Set the shader path
-void SceneProgram::setPath(const GLenum &type, const std::string &path) {
+void SceneProgram::setShaderPath(const std::string &path, const GLenum &type) {
 	switch (type) {
 		case GL_VERTEX_SHADER:          vert = path; return;
 		case GL_TESS_CONTROL_SHADER:    tesc = path; return;
@@ -149,11 +170,6 @@ void SceneProgram::setPath(const GLenum &type, const std::string &path) {
 		case GL_FRAGMENT_SHADER:        frag = path; return;
 		default:                        throw std::runtime_error("error: unknown shader type (" + std::to_string(type) + ")");
 	}
-}
-
-// Set a new label
-void SceneProgram::setLabel(const std::string &new_label) {
-	label = new_label;
 }
 
 

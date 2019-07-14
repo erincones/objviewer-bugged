@@ -257,7 +257,7 @@ void Scene::draw() const {
 
 			// Set the number of lights
 			program->use();
-			program->setUniform("light_size", Light::getNumberOfLights());
+			program->setUniform("light_size", SceneLight::getNumberOfLights());
 
 			// Update lights
 			for (SceneLight *const light : light_stock)

@@ -29,10 +29,6 @@ class Model {
             Material *material;
         };
 
-        // Material file path and name
-		std::string material_path;
-		std::string material_name;
-
         // Raw model data
         std::vector<glm::vec3> vertex_position;
         std::vector<glm::vec2> vertex_uv_coord;
@@ -63,6 +59,10 @@ class Model {
 		// File path and name
 		std::string path;
 		std::string name;
+
+        // Material file path and name
+        std::string material_path;
+        std::string material_name;
 
 		// Open status
 		bool open;

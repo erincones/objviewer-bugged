@@ -94,7 +94,7 @@ GLSLProgram::GLSLProgram(const std::string &vert_path, const std::string &frag_p
 	geom = nullptr;
 
     // Count the number of shaders
-    shaders = (vert != nullptr) + (tesc != nullptr) + (tese != nullptr) + (geom != nullptr) + (frag != nullptr);
+    shaders = (vert != nullptr) + (frag != nullptr);
 
 	// Link program
 	try {
@@ -119,7 +119,7 @@ GLSLProgram::GLSLProgram(const std::string &vert_path, const std::string &geom_p
 	tese = nullptr;
 
     // Count the number of shaders
-    shaders = (vert != nullptr) + (tesc != nullptr) + (tese != nullptr) + (geom != nullptr) + (frag != nullptr);
+    shaders = (vert != nullptr) + (geom != nullptr) + (frag != nullptr);
 
 	// Link program
 	try {

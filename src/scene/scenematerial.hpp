@@ -8,6 +8,10 @@
 
 class SceneMaterial {
 	private:
+        // GUI ID and label
+        ::uint32_t gui_id;   
+        std::string label;
+
 		// Texture paths
 		std::string ambient_path;
 		std::string diffuse_path;
@@ -27,9 +31,6 @@ class SceneMaterial {
 		std::string bump_label;
 		std::string displacement_label;
 		std::string stencil_label;
-		
-		// Material label
-		std::string label;
 
 		// Material
 		Material *material;
@@ -38,10 +39,16 @@ class SceneMaterial {
 		SceneMaterial(const SceneMaterial &) = delete;
 		SceneMaterial &operator = (const SceneMaterial &) = delete;
 
+        // Static variables
+        static std::uint32_t count;
+
 	public:
 		SceneMaterial(Material *const source);
 
 		void reloadTextures();
+
+        std::uint32_t getGUIID() const;
+        std::string &getLabel();
 
 		std::string &getAmbientPath();
 		std::string &getDiffusePath();
@@ -61,8 +68,8 @@ class SceneMaterial {
 		std::string &getDisplacementLabel();
 		std::string &getStencilLabel();
 
-		std::string &getLabel();
 
+        void setLabel(const std::string &new_label);
 
 		void setAmbientPath(const std::string &path);
 		void setDiffusePath(const std::string &path);
@@ -81,8 +88,6 @@ class SceneMaterial {
 		void setBumpLabel(const std::string &label);
 		void setDisplacementLabel(const std::string &label);
 		void setStencilLabel(const std::string &label);
-		
-		void setLabel(const std::string &label);
 };
 
 #endif // __SCENE_MATERIAL_HPP_

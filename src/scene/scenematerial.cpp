@@ -2,70 +2,53 @@
 
 #include "../texture.hpp"
 
+// Static variables declaration
+std::uint32_t SceneMaterial::count = 0U;
+
 // Scene material constructor
 SceneMaterial::SceneMaterial(Material *const source) {
+    // Set GUI ID and label
+    gui_id = SceneMaterial::count++;
+    label = "[" + std::to_string(gui_id) + "] " + source->getName();
+
 	// Store material
 	material = source;
 
 	// Ambient texture
-	ambient_path.clear();
-	ambient_label.clear();
-
 	ambient_path = material->getAmbientMap()->getPath();
 	ambient_label.append("[").append(std::to_string(material->getAmbientMap()->getID())).append("] ").append(material->getAmbientMap()->getName());
 
 	// Diffuse texture
-	diffuse_path.clear();
-	diffuse_label.clear();
-
 	diffuse_path = material->getDiffuseMap()->getPath();
 	diffuse_label.append("[").append(std::to_string(material->getDiffuseMap()->getID())).append("] ").append(material->getDiffuseMap()->getName());
 
 
 	// Specular texture
-	specular_path.clear();
-	specular_label.clear();
-
 	specular_path = material->getSpecularMap()->getPath();
 	specular_label.append("[").append(std::to_string(material->getSpecularMap()->getID())).append("] ").append(material->getSpecularMap()->getName());
 
 
 	// Shininess texture
-	shininess_path.clear();
-	shininess_label.clear();
-
 	shininess_path = material->getShininessMap()->getPath();
 	shininess_label.append("[").append(std::to_string(material->getShininessMap()->getID())).append("] ").append(material->getShininessMap()->getName());
 
 
 	// Alpha texture
-	alpha_path.clear();
-	alpha_label.clear();
-
 	alpha_path = material->getAlphaMap()->getPath();
 	alpha_label.append("[").append(std::to_string(material->getAlphaMap()->getID())).append("] ").append(material->getAlphaMap()->getName());
 
 
 	// Bump texture
-	bump_path.clear();
-	bump_label.clear();
-
 	bump_path = material->getBumpMap()->getPath();
 	bump_label.append("[").append(std::to_string(material->getBumpMap()->getID())).append("] ").append(material->getBumpMap()->getName());
 
 
 	// Displacement texture
-	displacement_path.clear();
-	displacement_label.clear();
-
 	displacement_path = material->getDisplacementMap()->getPath();
 	displacement_label.append("[").append(std::to_string(material->getDisplacementMap()->getID())).append("] ").append(material->getDisplacementMap()->getName());
 
 
 	// Stencil texture
-	stencil_path.clear();
-	stencil_label.clear();
-
 	stencil_path = material->getStencilMap()->getPath();
 	stencil_label.append("[").append(std::to_string(material->getStencilMap()->getID())).append("] ").append(material->getStencilMap()->getName());
 
@@ -136,6 +119,17 @@ void SceneMaterial::reloadTextures() {
 		stencil_label.clear();
 		stencil_label.append("[").append(std::to_string(material->getStencilMap()->getID())).append("] ").append(material->getStencilMap()->getName());
 	}
+}
+
+
+// Get the GUI ID
+std::uint32_t SceneMaterial::getGUIID() const {
+    return std::uint32_t();
+}
+
+// Get label
+std::string &SceneMaterial::getLabel() {
+    return label;
 }
 
 
@@ -220,12 +214,13 @@ std::string &SceneMaterial::getStencilLabel() {
 	return stencil_label;
 }
 
-// Get label
-std::string &SceneMaterial::getLabel() {
-	return label;
+
+
+
+// Set the new label
+void SceneMaterial::setLabel(const std::string &new_label) {
+    label = new_label;
 }
-
-
 
 // Set the ambient path
 void SceneMaterial::setAmbientPath(const std::string &path) {
@@ -307,10 +302,4 @@ void SceneMaterial::setDisplacementLabel(const std::string &label) {
 // Set the stencil label
 void SceneMaterial::setStencilLabel(const std::string &label) {
 	stencil_label = label;
-}
-
-
-// Set the new label
-void SceneMaterial::setLabel(const std::string &new_label) {
-	label = new_label;
 }

@@ -9,28 +9,39 @@
 
 #include <glm/glm.hpp>
 
+#include <cstdint>
+#include <unordered_set>
+
+
 class SceneLight : public Light {
 	private:
+        // ID and label
+        std::uint32_t gui_id;
+        std::string label;
+
 		// GUI flags
 		bool draw_model;
+        bool enabled;
 		bool grabbed;
 
 		// Model scale
 		float scale;
-
-		// Name
-		std::string label;
 
 		// Disable copy and assignation
 		SceneLight(const SceneLight &) = delete;
 		SceneLight &operator = (const SceneLight &) = delete;
 
 		// Static attributes
+        static std::uint32_t count;
+        static std::unordered_set<std::uint32_t> stock;
+
 		static const Camera *const *camera;
 		static SceneProgram *program;
 		static SceneModel *model;
 
+        // Static const attributes
 		static constexpr const glm::vec3 FRONT = glm::vec3(0.0F, 0.0F, -1.0F);
+        static constexpr const glm::vec3 BLACK = glm::vec3(0.0F);
 
 	public:
 		SceneLight(const Light::Type &light_type);
@@ -38,15 +49,9 @@ class SceneLight : public Light {
 		void use(GLSLProgram *const glslprogram, const bool &as_array);
 		void draw() const;
 
-		bool drawingModel() const;
-		bool isGrabbed() const;
-
-		float getScale() const;
-
-		std::string &getLabel();
-
 
 		void drawModel(const bool &status);
+        void setEnabled(const bool &status);
 		void setGrabbed(const bool &status);
 
 		void setScale(const float &value);
@@ -54,14 +59,28 @@ class SceneLight : public Light {
 		void setLabel(const std::string &new_label);
 
 
+        bool drawingModel() const;
+        bool isEnabled() const;
+        bool isGrabbed() const;
+
+        float getScale() const;
+
+        std::uint32_t getGUIID() const;
+        std::string &getLabel();
+
+
 
 		static void setCamera(const Camera *const *const camera);
 		static void setProgram(SceneProgram *const program);
 		static void setModel(SceneModel *const model);
 
+        static std::size_t getNumberOfLights();
 		static const Camera *const getCamera();
 		static SceneProgram *const getProgram();
 		static const SceneModel *const getModel();
+
+
+        ~SceneLight();
 };
 
 #endif // __SCENE_LIGHT_HPP_

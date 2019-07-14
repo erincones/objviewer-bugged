@@ -8,7 +8,7 @@
 #include <stdexcept>
 
 
-// Static decalration
+// Static declaration
 std::uint32_t SceneModel::count = 0U;
 SceneProgram *SceneModel::default_program = nullptr;
 
@@ -16,16 +16,16 @@ SceneProgram *SceneModel::default_program = nullptr;
 // Scene model constructor
 SceneModel::SceneModel(const std::string &file_path, SceneProgram *model_program) : Model(file_path) {
 	// ID
-	id = SceneModel::count++;
+	gui_id = SceneModel::count++;
+
+    // GUI path and label
+    path = Model::path;
+    label = "[" + std::to_string(gui_id) + "] " + Model::name;
 
 	// GUI flags
 	enabled = Model::open;
 	show_normals = false;
 	show_boundingbox = false;
-
-	// GUI path and label
-	path = Model::path;
-	label = "[" + std::to_string(id) + "] " + Model::name;
 
 	// GLSLProgram
 	program = model_program;
@@ -61,7 +61,7 @@ void SceneModel::reload() {
 
 	// Reset model name and label
 	Model::name = path.substr(path.find_last_of(DIR_SEP) + 1);
-	label = "[" + std::to_string(id) + "] " + Model::name;
+	label = "[" + std::to_string(gui_id) + "] " + Model::name;
 
 	// Initialize attributes
     polygons = 0U;
@@ -115,11 +115,10 @@ bool SceneModel::showingBoundingBox() const {
 }
 
 
-// Get the model ID
-std::uint32_t SceneModel::getID() const {
-	return id;
+// Get the GUI ID
+std::uint32_t SceneModel::getGUIID() const {
+	return gui_id;
 }
-
 
 // Get the model path
 std::string &SceneModel::getPath() {

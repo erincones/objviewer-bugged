@@ -2,10 +2,15 @@
 
 #include <glm/gtc/quaternion.hpp>
 
+
 // Static const declaration
 constexpr const glm::vec3 SceneLight::FRONT;
+constexpr const glm::vec3 SceneLight::BLACK;
 
 // Static variables declaration
+std::uint32_t SceneLight::count = 0U;
+std::unordered_set<std::uint32_t> SceneLight::stock;
+
 const Camera *const *SceneLight::camera = nullptr;
 SceneProgram *SceneLight::program = nullptr;
 SceneModel *SceneLight::model = nullptr;
@@ -13,42 +18,76 @@ SceneModel *SceneLight::model = nullptr;
 
 // Scene light constructor
 SceneLight::SceneLight(const Light::Type &light_type) : Light(light_type) {
+    // Set GUI ID and store
+    gui_id = SceneLight::count++;
+    SceneLight::stock.insert(gui_id);
+
+    // Default label
+    label = "[" + std::to_string(gui_id) + "]";
+    switch (light_type) {
+        case Light::DIRECTIONAL: label.append(" Directional"); break;
+        case Light::POINT:       label.append(" Point");       break;
+        case Light::SPOTLIGHT:   label.append(" Spotlight");
+    }
+
 	// GUI flags
 	draw_model = false;
+    enabled = true;
 	grabbed = false;
 
 	// Model scale
 	scale = 0.0625F;
-
-	// Default label
-	label = "[" + std::to_string(Light::getID()) + "]";
-	switch (light_type) {
-		case Light::DIRECTIONAL: label.append(" Directional"); break;
-		case Light::POINT:       label.append(" Point");       break;
-		case Light::SPOTLIGHT:   label.append(" Spotlight");
-	}
 }
 
 // Use light
 void SceneLight::use(GLSLProgram *const glslprogram, const bool &as_array) {
-	// Normal use for non grabbed lights or null camera
-	if (!grabbed)
-		Light::use(glslprogram, as_array);
+    // Check program
+    if (!program->isValid()) return;
 
-	else {
-		// Backup position and direction
-		const glm::vec3 position = Light::getPosition();
-		const glm::vec3 direction = Light::getDirection();
+    // Use GLSL program
+    program->use();
 
-		// Use camera light anddirection for grabbed lights
-		Light::setPosition((*SceneLight::camera)->getPosition());
-		Light::setDirection((*SceneLight::camera)->getLookDirection());
-		Light::use(glslprogram, as_array);
+    // Uniform name
+    std::string uniform = "light";
 
-		// Restore light and direction
-		Light::setPosition(position);
-		Light::setDirection(direction);
-	}
+    // Array index
+    if (as_array)
+        uniform.append("[").append(std::to_string(std::distance(SceneLight::stock.begin(), SceneLight::stock.find(gui_id)))).append("]");
+
+    // Uniform dot
+    uniform.append(".");
+
+    // Persistent values
+    program->setUniform(uniform + "type", Light::type);
+    program->setUniform(uniform + "direction", grabbed ? (*SceneLight::camera)->getLookDirection() : -Light::direction);
+
+    program->setUniform(uniform + "ambient_level", Light::ambient_level);
+    program->setUniform(uniform + "specular_level", Light::specular_level);
+    program->setUniform(uniform + "shininess", Light::shininess);
+
+    // Non directional lights attributes
+    if (type != Light::DIRECTIONAL) {
+        program->setUniform(uniform + "position", grabbed ? (*SceneLight::camera)->getPosition() : -Light::position);
+        program->setUniform(uniform + "attenuation", Light::attenuation);
+
+        // Spotlights attributes
+        if (type == Light::SPOTLIGHT)
+            program->setUniform(uniform + "cutoff", glm::cos(Light::cutoff));
+    }
+
+    // Light on
+    if (enabled) {
+        program->setUniform(uniform + "ambient", Light::ambient);
+        program->setUniform(uniform + "diffuse", Light::diffuse);
+        program->setUniform(uniform + "specular", Light::specular);
+    }
+
+    // Light off
+    else {
+        program->setUniform(uniform + "ambient", SceneLight::BLACK);
+        program->setUniform(uniform + "diffuse", SceneLight::BLACK);
+        program->setUniform(uniform + "specular", SceneLight::BLACK);
+    }
 }
 
 // Draw light model
@@ -58,14 +97,14 @@ void SceneLight::draw() const {
 		return;
 
 	// Light direction
-	glm::vec3 direction = (grabbed ? (*SceneLight::camera)->getLookDirection() : Light::getDirection());
+	glm::vec3 direction = (grabbed ? (*SceneLight::camera)->getLookDirection() : Light::direction);
 	glm::vec3 axis = glm::cross(FRONT, direction);
 	float cos   = glm::dot(FRONT, direction);
 	float angle = glm::acos(glm::abs(cos));
 
 	// Setup geometry
 	SceneLight::model->reset();
-	SceneLight::model->setPosition((grabbed ? (*SceneLight::camera)->getPosition() : Light::getPosition()) - scale * direction);
+	SceneLight::model->setPosition((grabbed ? (*SceneLight::camera)->getPosition() : Light::position) - scale * direction);
 	SceneLight::model->setRotation(glm::angleAxis(angle, axis));
 
 	// Front light
@@ -92,32 +131,14 @@ void SceneLight::draw() const {
 }
 
 
-// Get the draw model status
-bool SceneLight::drawingModel() const {
-	return draw_model;
-}
-
-// Get the grabbed status
-bool SceneLight::isGrabbed() const {
-	return grabbed;
-}
-
-
-// Get the scale value
-float SceneLight::getScale() const {
-	return scale;
-}
-
-
-// Get the label
-std::string &SceneLight::getLabel() {
-	return label;
-}
-
-
 // Set the draw model status
 void SceneLight::drawModel(const bool &status) {
 	draw_model = status;
+}
+
+// Set the enabled status
+void SceneLight::setEnabled(const bool &status) {
+    enabled = status;
 }
 
 // Set the grabbed status
@@ -125,16 +146,46 @@ void SceneLight::setGrabbed(const bool &status) {
 	grabbed = status;
 }
 
-
 // Get the model scale
 void SceneLight::setScale(const float &value) {
 	scale = value;
 }
 
-
 // Set the label
 void SceneLight::setLabel(const std::string &new_label) {
 	label = new_label;
+}
+
+
+// Get the draw model status
+bool SceneLight::drawingModel() const {
+    return draw_model;
+}
+
+// Get the grabbed status
+bool SceneLight::isEnabled() const {
+    return enabled;
+}
+
+// Get the grabbed status
+bool SceneLight::isGrabbed() const {
+    return grabbed;
+}
+
+// Get the scale value
+float SceneLight::getScale() const {
+    return scale;
+}
+
+
+// Get the GUI ID
+std::uint32_t SceneLight::getGUIID() const {
+    return gui_id;
+}
+
+// Get the label
+std::string &SceneLight::getLabel() {
+    return label;
 }
 
 
@@ -157,6 +208,11 @@ void SceneLight::setModel(SceneModel *const model) {
 }
 
 
+// Get the number of lights in the stock
+std::size_t SceneLight::getNumberOfLights() {
+    return SceneLight::stock.size();
+}
+
 // Get the camera
 const Camera *const SceneLight::getCamera() {
 	return *SceneLight::camera;
@@ -170,4 +226,10 @@ SceneProgram *const SceneLight::getProgram() {
 // Get the model
 const SceneModel *const SceneLight::getModel() {
 	return SceneLight::model;
+}
+
+
+// Scene light destructor
+SceneLight::~SceneLight() {
+    SceneLight::stock.erase(gui_id);
 }

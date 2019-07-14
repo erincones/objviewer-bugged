@@ -18,17 +18,17 @@ class SceneProgram;
 
 class SceneModel : public Model {
 	private:
-		// Model ID
-		std::uint32_t id;
+		// GUI ID
+		std::uint32_t gui_id;
+
+        // GUI label and path
+        std::string path;
+        std::string label;
 
 		// GUI flags
 		bool enabled;
 		bool show_normals;
 		bool show_boundingbox;
-
-		// GUI label and path
-		std::string path;
-		std::string label;
 
 		// GLSL program
 		SceneProgram *program;
@@ -53,8 +53,7 @@ class SceneModel : public Model {
 		bool showingNormals() const;
 		bool showingBoundingBox() const;
 
-		std::uint32_t getID() const;
-
+		std::uint32_t getGUIID() const;
 		std::string &getPath();
 		std::string &getLabel();
 

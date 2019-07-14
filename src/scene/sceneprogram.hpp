@@ -17,6 +17,10 @@ class SceneModel;
 
 class SceneProgram : public GLSLProgram {
 	private:
+        // GUI ID andLabel
+        std::uint32_t gui_id;
+        std::string label;
+
 		// Shader paths
 		std::string vert;
 		std::string tesc;
@@ -24,15 +28,15 @@ class SceneProgram : public GLSLProgram {
 		std::string geom;
 		std::string frag;
 
-		// Label
-		std::string label;
-
 		// Related models
 		std::unordered_set<SceneModel *>related_model;
 
 		// Disable copy and assignation
 		SceneProgram(const SceneProgram &) = delete;
 		SceneProgram &operator = (const SceneProgram &) = delete;
+
+        // Static attributes
+        static std::uint32_t count;
 		
 		// Static attributes
 		static constexpr const char *const ARROW = "->";
@@ -48,11 +52,12 @@ class SceneProgram : public GLSLProgram {
 		void removeRelated(SceneModel *const related);
 		void removeAllRelated();
 
-		std::string &getPath(const GLenum &type);
-		std::string &getLabel();
+        std::uint32_t getGUIID();
+        std::string &getLabel();
+		std::string &getShaderPath(const GLenum &type);
 
-		void setPath(const GLenum &type, const std::string &path);
-		void setLabel(const std::string &new_label);
+        void setLabel(const std::string &new_label);
+		void setShaderPath(const std::string &path, const GLenum &type);
 
 		~SceneProgram();
 };
