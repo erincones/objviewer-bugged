@@ -29,6 +29,7 @@ class Scene {
 		// GUI flags
 		bool show_gui;
         bool focus_gui;
+        bool focus_scene;
 
         // Other windows
         bool show_about;

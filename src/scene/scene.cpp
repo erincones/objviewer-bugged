@@ -229,6 +229,7 @@ Scene::Scene(const int &width_res, const int &height_res) {
 	// GUI flags
 	show_gui = true;
     focus_gui = true;
+    focus_scene = false;
 
     show_about = false;
 	show_about_gui = false;
@@ -295,10 +296,16 @@ void Scene::drawGUI() {
 	if (show_metrics)   ImGui::ShowMetricsWindow(&show_metrics);
 
 
-    // Set focus to most front window
+    // Set focus to the most front window
     if (focus_gui) {
         ImGui::SetWindowFocus();
         focus_gui = false;
+    }
+
+    // Set focus to the scene
+    else if (focus_scene) {
+        ImGui::SetWindowFocus(NULL);
+        focus_scene = false;
     }
 
 	// Render gui
@@ -322,11 +329,13 @@ void Scene::showAbout(const bool &status) {
 // Set the show about GUI status
 void Scene::showAboutGUI(const bool &status) {
 	show_about_gui = status;
+    focus_scene = show_gui;
 }
 
 // Set the show metrics status
 void Scene::showMetrics(const bool &status) {
     show_metrics = status;
+    focus_scene = show_gui;
 }
 
 
