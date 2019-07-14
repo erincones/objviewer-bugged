@@ -23,12 +23,6 @@ class Model {
             glm::vec3 normal;
         };
 
-        struct model_data {
-            GLsizei count;
-            std::size_t offset;
-            Material *material;
-        };
-
         // Raw model data
         std::vector<glm::vec3> vertex_position;
         std::vector<glm::vec2> vertex_uv_coord;
@@ -46,6 +40,7 @@ class Model {
         glm::vec3 scale;
 
         // Disable copy and assignation
+        Model() = delete;
         Model(const Model &) = delete;
         Model &operator = (const Model &) = delete;
 
@@ -56,6 +51,12 @@ class Model {
         static void rtrim(std::string &str);
 
 	protected:
+        struct model_data {
+            GLsizei count;
+            std::size_t offset;
+            Material *material;
+        };
+
 		// File path and name
 		std::string path;
 		std::string name;

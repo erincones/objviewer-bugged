@@ -14,12 +14,13 @@ unsigned int Texture::default_count = 0;
 
 
 // Default constructor
-Texture::Texture() {
+Texture::Texture(const bool &load_default) {
 	// Set the dafault name
 	name = "Default";
 
 	// Load the default texture
-	loadDefault();
+    if (load_default)
+	    loadDefault();
 }
 
 // Read and load texture
@@ -82,6 +83,21 @@ void Texture::loadDefault() {
 	Texture::default_count++;
 }
 
+
+// Destroy texture
+void Texture::destroy() {
+    // Non default texture
+    if (id != Texture::default_id)
+        glDeleteTextures(1, &id);
+
+    // Default texture
+    else if (--Texture::default_count == 0U) {
+        glDeleteTextures(1, &id);
+        Texture::default_id = GL_FALSE;
+    }
+}
+
+
 // Texture constructor
 Texture::Texture(const std::string &file_path) {
     // Initialize texture
@@ -126,12 +142,14 @@ std::string Texture::getName() const {
     return name;
 }
 
+
+// Create a white texture
 Texture *Texture::white() {
-	return new Texture();
+	return new Texture(true);
 }
+
 
 // Delete texture
 Texture::~Texture() {
-	if ((id != Texture::default_id) || (--Texture::default_count == 0U))
-		glDeleteTextures(1, &id);
+    destroy();
 }

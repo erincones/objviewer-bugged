@@ -42,10 +42,10 @@ SceneLight::SceneLight(const Light::Type &light_type) : Light(light_type) {
 // Use light
 void SceneLight::use(GLSLProgram *const glslprogram, const bool &as_array) {
     // Check program
-    if (!program->isValid()) return;
+    if (!glslprogram->isValid()) return;
 
     // Use GLSL program
-    program->use();
+    glslprogram->use();
 
     // Uniform name
     std::string uniform = "light";
@@ -58,35 +58,35 @@ void SceneLight::use(GLSLProgram *const glslprogram, const bool &as_array) {
     uniform.append(".");
 
     // Persistent values
-    program->setUniform(uniform + "type", Light::type);
-    program->setUniform(uniform + "direction", grabbed ? (*SceneLight::camera)->getLookDirection() : -Light::direction);
+    glslprogram->setUniform(uniform + "type", Light::type);
+    glslprogram->setUniform(uniform + "direction", -(grabbed ? (*SceneLight::camera)->getLookDirection() : Light::direction));
 
-    program->setUniform(uniform + "ambient_level", Light::ambient_level);
-    program->setUniform(uniform + "specular_level", Light::specular_level);
-    program->setUniform(uniform + "shininess", Light::shininess);
+    glslprogram->setUniform(uniform + "ambient_level", Light::ambient_level);
+    glslprogram->setUniform(uniform + "specular_level", Light::specular_level);
+    glslprogram->setUniform(uniform + "shininess", Light::shininess);
 
     // Non directional lights attributes
-    if (type != Light::DIRECTIONAL) {
-        program->setUniform(uniform + "position", grabbed ? (*SceneLight::camera)->getPosition() : -Light::position);
-        program->setUniform(uniform + "attenuation", Light::attenuation);
+    if (Light::type != Light::DIRECTIONAL) {
+        glslprogram->setUniform(uniform + "position", grabbed ? (*SceneLight::camera)->getPosition() : Light::position);
+        glslprogram->setUniform(uniform + "attenuation", Light::attenuation);
 
         // Spotlights attributes
-        if (type == Light::SPOTLIGHT)
-            program->setUniform(uniform + "cutoff", glm::cos(Light::cutoff));
+        if (Light::type == Light::SPOTLIGHT)
+            glslprogram->setUniform(uniform + "cutoff", glm::cos(Light::cutoff));
     }
 
     // Light on
     if (enabled) {
-        program->setUniform(uniform + "ambient", Light::ambient);
-        program->setUniform(uniform + "diffuse", Light::diffuse);
-        program->setUniform(uniform + "specular", Light::specular);
+        glslprogram->setUniform(uniform + "ambient", Light::ambient);
+        glslprogram->setUniform(uniform + "diffuse", Light::diffuse);
+        glslprogram->setUniform(uniform + "specular", Light::specular);
     }
 
     // Light off
     else {
-        program->setUniform(uniform + "ambient", SceneLight::BLACK);
-        program->setUniform(uniform + "diffuse", SceneLight::BLACK);
-        program->setUniform(uniform + "specular", SceneLight::BLACK);
+        glslprogram->setUniform(uniform + "ambient", SceneLight::BLACK);
+        glslprogram->setUniform(uniform + "diffuse", SceneLight::BLACK);
+        glslprogram->setUniform(uniform + "specular", SceneLight::BLACK);
     }
 }
 
@@ -120,7 +120,7 @@ void SceneLight::draw() const {
 
 
 	// Use camera
-	GLSLProgram *glslprogram = ((program != nullptr) && program->isValid() ? program : SceneModel::getDefaultProgram());
+	GLSLProgram *glslprogram = ((program != nullptr) && program->isValid() ? program : SceneProgram::getDefault());
 	(*SceneLight::camera)->use(glslprogram);
 
 	// Use light

@@ -20,6 +20,7 @@ class Shader {
         GLenum stage;
 
         // Disable copy and assignation
+        Shader() = delete;
         Shader(const Shader &) = delete;
         Shader &operator = (const Shader &) = delete;
 

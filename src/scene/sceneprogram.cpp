@@ -8,6 +8,7 @@
 
 // Static variables declaration
 std::uint32_t SceneProgram::count = 0U;
+SceneProgram *SceneProgram::default_program;
 
 // Static const declaration
 constexpr const char *const SceneProgram::ARROW;
@@ -160,16 +161,16 @@ void SceneProgram::setLabel(const std::string &new_label) {
     label = new_label;
 }
 
-// Set the shader path
-void SceneProgram::setShaderPath(const std::string &path, const GLenum &type) {
-	switch (type) {
-		case GL_VERTEX_SHADER:          vert = path; return;
-		case GL_TESS_CONTROL_SHADER:    tesc = path; return;
-		case GL_TESS_EVALUATION_SHADER: tese = path; return;
-		case GL_GEOMETRY_SHADER:        geom = path; return;
-		case GL_FRAGMENT_SHADER:        frag = path; return;
-		default:                        throw std::runtime_error("error: unknown shader type (" + std::to_string(type) + ")");
-	}
+
+
+// Get the GLSL program
+SceneProgram *const SceneProgram::getDefault() {
+    return SceneProgram::default_program;
+}
+
+// Set the new default program
+void SceneProgram::setDefault(SceneProgram *default_program) {
+    SceneProgram::default_program = default_program;
 }
 
 

@@ -179,6 +179,7 @@ void Model::readMTL() {
 	std::string dir_path = path.substr(0, path.find_last_of(DIR_SEP) + 1);
 
 	// Material description read variables
+    Material *material = material_stock.front();
 	std::string token;
 	std::string line;
 	glm::vec3 data;
@@ -207,68 +208,70 @@ void Model::readMTL() {
 		if (token == "newmtl") {
 			stream >> std::ws;
 			std::getline(stream, token);
-			material_stock.push_back(new Material(token));
+
+            material = new Material(token);
+			material_stock.push_back(material);
 		}
 
 		// Ambient color
 		else if (token == "ka") {
 			stream >> data.x >> data.y >> data.z;
-			material_stock.back()->setAmbientColor(data);
+			material->setAmbientColor(data);
 		}
 
 		// Diffuse color
 		else if (token == "kd") {
 			stream >> data.x >> data.y >> data.z;
-			material_stock.back()->setDiffuseColor(data);
+			material->setDiffuseColor(data);
 		}
 
 		// Specular reflection
 		else if (token == "ks") {
 			stream >> data.x >> data.y >> data.z;
-			material_stock.back()->setSpecularColor(data);
+			material->setSpecularColor(data);
 		}
 
 		// Transmision filter
 		else if (token == "tf") {
 			stream >> data.x >> data.y >> data.z;
-			material_stock.back()->setTransmissionColor(data);
+			material->setTransmissionColor(data);
 		}
 
 		// Disolve
 		else if (token == "d") {
 			stream >> value;
-			material_stock.back()->setAlpha(value);
+			material->setAlpha(value);
 		}
 
 		// Transparency
 		else if (token == "tr") {
 			stream >> value;
-			material_stock.back()->setAlpha(1.0F - value);
+			material->setAlpha(1.0F - value);
 		}
 
 		// Sharpness
 		else if (token == "sharpness") {
 			stream >> value;
-			material_stock.back()->setSharpness(value);
+			material->setSharpness(value);
 		}
 
 		// Shininess
 		else if (token == "ns") {
 			stream >> value;
-			material_stock.back()->setShininess(value);
+			material->setShininess(value);
 		}
 
 		// Refractive index
 		else if (token == "ni") {
 			stream >> value;
-			material_stock.back()->setRefractiveIndex(value);
+			material->setRefractiveIndex(value);
 		}
 
 		// Ambient map
 		else if (token == "map_ka") {
 			stream >> std::ws;
 			std::getline(stream, token);
-			material_stock.back()->setAmbientMap(dir_path + token);
+			material->setAmbientMap(dir_path + token);
             textures++;
 		}
 
@@ -276,7 +279,7 @@ void Model::readMTL() {
 		else if (token == "map_kd") {
 			stream >> std::ws;
 			std::getline(stream, token);
-			material_stock.back()->setDiffuseMap(dir_path + token);
+			material->setDiffuseMap(dir_path + token);
             textures++;
 		}
 
@@ -284,7 +287,7 @@ void Model::readMTL() {
 		else if (token == "map_ks") {
 			stream >> std::ws;
 			std::getline(stream, token);
-			material_stock.back()->setSpecularMap(dir_path + token);
+			material->setSpecularMap(dir_path + token);
             textures++;
 		}
 
@@ -292,7 +295,7 @@ void Model::readMTL() {
 		else if (token == "map_ns") {
 			stream >> std::ws;
 			std::getline(stream, token);
-			material_stock.back()->setShininessMap(dir_path + token);
+			material->setShininessMap(dir_path + token);
             textures++;
 		}
 
@@ -300,7 +303,7 @@ void Model::readMTL() {
 		else if (token == "map_d") {
 			stream >> std::ws;
 			std::getline(stream, token);
-			material_stock.back()->setAlphaMap(dir_path + token);
+			material->setAlphaMap(dir_path + token);
             textures++;
 		}
 
@@ -308,7 +311,7 @@ void Model::readMTL() {
 		else if (token == "map_bump" || token == "bump") {
 			stream >> std::ws;
 			std::getline(stream, token);
-			material_stock.back()->setBumpMap(dir_path + token);
+			material->setBumpMap(dir_path + token);
             textures++;
 		}
 
@@ -316,7 +319,7 @@ void Model::readMTL() {
 		else if (token == "disp") {
 			stream >> std::ws;
 			std::getline(stream, token);
-			material_stock.back()->setDisplacementMap(dir_path + token);
+			material->setDisplacementMap(dir_path + token);
             textures++;
 		}
 
@@ -324,7 +327,7 @@ void Model::readMTL() {
 		else if (token == "stencil") {
 			stream >> std::ws;
 			std::getline(stream, token);
-			material_stock.back()->setStencilMap(dir_path + token);
+			material->setStencilMap(dir_path + token);
             textures++;
 		}
 	}
@@ -430,18 +433,17 @@ Model::Model(const std::string &file_path) {
 	open = false;
 	material_open = false;
 
-    // Read file and load data to GPU
 	try {
+        // Read file and load data to GPU
 		readOBJ();
-		open = true;
-
 		loadData();
+        open = true;
+
+        // Initialize matrices
+        reset();
 	} catch (std::exception &exception) {
 		std::cerr << exception.what() << std::endl;
 	}
-
-    // Initialize matrices
-    reset();
 }
 
 // Draw model

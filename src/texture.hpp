@@ -3,29 +3,33 @@
 
 #include "glad/glad.h"
 
-#include <cstdint>
 #include <string>
 #include <map>
 
 class Texture {
     private:
+        // Disable copy and assignation
+        Texture() = delete;
+        Texture(const Texture &) = delete;
+        Texture &operator = (const Texture &) = delete;
+
+    protected:
+        // Texture ID
+        GLuint id;
+
         // Path and name
         std::string path;
         std::string name;
 
-        // Texture ID
-        GLuint id;
-
-        // Disable copy and assignation
-        Texture(const Texture &) = delete;
-        Texture &operator = (const Texture &) = delete;
-
-		// Default creator
-		Texture();
+        // Empty texture creator
+        Texture(const bool &load_default);
 
         // Read and load texture
         void load();
         void loadDefault();
+
+        // Destroy texture
+        void destroy();
 
 		// Static variables
 		static GLuint default_id;

@@ -1,8 +1,8 @@
-#include "camera.hpp"
 #include "scene/scenelight.hpp"
 #include "scene/scenemodel.hpp"
-
+#include "scene/scenetexture.hpp"
 #include "scene/scene.hpp"
+#include "camera.hpp"
 
 #include "dirseparator.hpp"
 
@@ -323,7 +323,10 @@ void setup_scene(const std::string &bin_path) {
 
 	// Default program
 	const std::string vertex = shader_path + "common.vert.glsl";
-	SceneModel::setDefaultProgram(new SceneProgram(vertex, shader_path + "normals.frag.glsl"));
+	SceneProgram::setDefault(new SceneProgram(vertex, shader_path + "normals.frag.glsl"));
+
+    // Default texture
+    SceneTexture::setDefault(Texture::white());
 
     // Add programs
 	const std::size_t blinn_phong_id   = scene->pushProgram(vertex, shader_path + "blinn_phong.frag.glsl");
@@ -370,9 +373,9 @@ void setup_scene(const std::string &bin_path) {
     light->setAttenuation(glm::vec3(1.000F,  0.70F,  1.80F));
 
 	light = scene->getLight(scene->pushLight(Light::SPOTLIGHT));
-	light->setPosition(glm::vec3(0.000F, 0.25F, 0.250F));
-	light->setDirection(glm::vec3(0.125F, 0.50F, -1.000F));
-	light->setDiffuse(glm::vec3(0.875F, 0.75F, 1.000F));
+	light->setPosition(   glm::vec3(0.000F, 0.25F, 0.250F));
+	light->setDirection(  glm::vec3(0.125F, 0.50F, -1.000F));
+	light->setDiffuse(    glm::vec3(0.875F, 0.75F, 1.000F));
 	light->setAttenuation(glm::vec3(0.500F, 0.14F, 0.007F));
 	light->setAmbientLevel(0.0F);
 	light->drawModel(true);
@@ -423,9 +426,12 @@ void clean_up() {
 	delete scene;
 
 	// Delete default scene model program
-	delete SceneModel::getDefaultProgram();
+	delete SceneProgram::getDefault();
 
-	// Delete scene light
+    // Delete default texture
+    delete SceneTexture::getDefault();
+
+	// Delete scene light static attributes
 	delete SceneLight::getModel();
 	delete SceneLight::getProgram();
 

@@ -38,8 +38,10 @@ class Material {
 		Texture *displacement_map;
 		Texture *stencil_map;
 
-    public:
+        // Protected constructor
+        Material();
 
+    public:
         Material(const std::string &material_name);
 
         void use(GLSLProgram *const program) const;

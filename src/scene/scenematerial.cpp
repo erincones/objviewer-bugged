@@ -1,124 +1,90 @@
 #include "scenematerial.hpp"
 
-#include "../texture.hpp"
 
 // Static variables declaration
 std::uint32_t SceneMaterial::count = 0U;
 
+
 // Scene material constructor
-SceneMaterial::SceneMaterial(Material *const source) {
+SceneMaterial::SceneMaterial(Material *const material) : Material() {
     // Set GUI ID and label
     gui_id = SceneMaterial::count++;
-    label = "[" + std::to_string(gui_id) + "] " + source->getName();
+    label = "[" + std::to_string(gui_id) + "] " + name;
 
-	// Store material
-	material = source;
+    // Copy attributes
+    Material::ambient_color      = material->getAmbientColor();
+    Material::diffuse_color      = material->getDiffuseColor();
+    Material::specular_color     = material->getSpecularColor();
+    Material::transmission_color = material->getTransmissionColor();
 
-	// Ambient texture
-	ambient_path = material->getAmbientMap()->getPath();
-	ambient_label.append("[").append(std::to_string(material->getAmbientMap()->getID())).append("] ").append(material->getAmbientMap()->getName());
+    // Attributes
+    Material::alpha            = material->getAlpha();
+    Material::sharpness        = material->getSharpness();
+    Material::shininess        = material->getShininess();
+    Material::roughness        = material->getRoughness();
+    Material::metalness        = material->getMetalness();
+    Material::refractive_index = material->getRefractiveIndex();
 
-	// Diffuse texture
-	diffuse_path = material->getDiffuseMap()->getPath();
-	diffuse_label.append("[").append(std::to_string(material->getDiffuseMap()->getID())).append("] ").append(material->getDiffuseMap()->getName());
+    // Textures
+    Material::ambient_map      = nullptr;
+    Material::diffuse_map      = nullptr;
+    Material::specular_map     = nullptr;
+    Material::shininess_map    = nullptr;
+    Material::alpha_map        = nullptr;
+    Material::bump_map         = nullptr;
+    Material::displacement_map = nullptr;
+    Material::stencil_map      = nullptr;
 
-
-	// Specular texture
-	specular_path = material->getSpecularMap()->getPath();
-	specular_label.append("[").append(std::to_string(material->getSpecularMap()->getID())).append("] ").append(material->getSpecularMap()->getName());
-
-
-	// Shininess texture
-	shininess_path = material->getShininessMap()->getPath();
-	shininess_label.append("[").append(std::to_string(material->getShininessMap()->getID())).append("] ").append(material->getShininessMap()->getName());
-
-
-	// Alpha texture
-	alpha_path = material->getAlphaMap()->getPath();
-	alpha_label.append("[").append(std::to_string(material->getAlphaMap()->getID())).append("] ").append(material->getAlphaMap()->getName());
-
-
-	// Bump texture
-	bump_path = material->getBumpMap()->getPath();
-	bump_label.append("[").append(std::to_string(material->getBumpMap()->getID())).append("] ").append(material->getBumpMap()->getName());
-
-
-	// Displacement texture
-	displacement_path = material->getDisplacementMap()->getPath();
-	displacement_label.append("[").append(std::to_string(material->getDisplacementMap()->getID())).append("] ").append(material->getDisplacementMap()->getName());
-
-
-	// Stencil texture
-	stencil_path = material->getStencilMap()->getPath();
-	stencil_label.append("[").append(std::to_string(material->getStencilMap()->getID())).append("] ").append(material->getStencilMap()->getName());
-
+    // Scene textures
+    ambient_map      = new SceneTexture(material->getAmbientMap());
+    diffuse_map      = new SceneTexture(material->getDiffuseMap());
+    specular_map     = new SceneTexture(material->getSpecularMap());
+    shininess_map    = new SceneTexture(material->getShininessMap());
+    alpha_map        = new SceneTexture(material->getAlphaMap());
+    bump_map         = new SceneTexture(material->getBumpMap());
+    displacement_map = new SceneTexture(material->getDisplacementMap());
+    stencil_map      = new SceneTexture(material->getStencilMap());
 }
 
-// Reload the material
-void SceneMaterial::reloadTextures() {
-	if (material->getAmbientMap()->getPath() != ambient_path) {
-		delete material->getAmbientMap();
-		material->setAmbientMap(ambient_path);
+// Bind material
+void SceneMaterial::bind(GLSLProgram *const program) {
+    // Check program
+    if (!program->isValid()) return;
 
-		ambient_label.clear();
-		ambient_label.append("[").append(std::to_string(material->getAmbientMap()->getID())).append("] ") .append(material->getAmbientMap()->getName());
-	}
+    // Use GLSL program
+    program->use();
 
-	if (material->getDiffuseMap()->getPath() != diffuse_path) {
-		delete material->getDiffuseMap();
-		material->setDiffuseMap(diffuse_path);
+    // Set uniforms
+    program->setUniform("material.ambient_color",      Material::ambient_color);
+    program->setUniform("material.diffuse_color",      Material::diffuse_color);
+    program->setUniform("material.specular_color",     Material::specular_color);
+    program->setUniform("material.transmission_color", Material::transmission_color);
+    program->setUniform("material.alpha",              Material::alpha);
+    program->setUniform("material.sharpness",          Material::sharpness);
+    program->setUniform("material.shininess",          Material::shininess);
+    program->setUniform("material.roughness",          Material::roughness * roughness);
+    program->setUniform("material.metalness",          Material::metalness);
+    program->setUniform("material.refractive_index",   Material::refractive_index);
 
-		diffuse_label.clear();
-		diffuse_label.append("[").append(std::to_string(material->getDiffuseMap()->getID())).append("] ").append(material->getDiffuseMap()->getName());
-	}
+    // Set texture uniforms
+    program->setUniform("material.ambient_map",      0);
+    program->setUniform("material.diffuse_map",      1);
+    program->setUniform("material.specular_map",     2);
+    program->setUniform("material.shininess_map",    3);
+    program->setUniform("material.alpha_map",        4);
+    program->setUniform("material.bump_map",         5);
+    program->setUniform("material.displacement_map", 6);
+    program->setUniform("material.stencil_map",      7);
 
-	if (material->getSpecularMap()->getPath() != specular_path) {
-		delete material->getSpecularMap();
-		material->setSpecularMap(specular_path);
-
-		specular_label.clear();
-		specular_label.append("[").append(std::to_string(material->getSpecularMap()->getID())).append("] ").append(material->getSpecularMap()->getName());
-	}
-
-	if (material->getShininessMap()->getPath() != shininess_path) {
-		delete material->getShininessMap();
-		material->setShininessMap(shininess_path);
-
-		shininess_label.clear();
-		shininess_label.append("[").append(std::to_string(material->getShininessMap()->getID())).append("] ").append(material->getShininessMap()->getName());
-	}
-
-	if (material->getAlphaMap()->getPath() != alpha_path) {
-		delete material->getAlphaMap();
-		material->setAlphaMap(alpha_path);
-
-		alpha_label.clear();
-		alpha_label.append("[").append(std::to_string(material->getAlphaMap()->getID())).append("] ").append(material->getAlphaMap()->getName());
-	}
-
-	if (material->getBumpMap()->getPath() != bump_path) {
-		delete material->getBumpMap();
-		material->setBumpMap(bump_path);
-
-		bump_label.clear();
-		bump_label.append("[").append(std::to_string(material->getBumpMap()->getID())).append("] ").append(material->getBumpMap()->getName());
-	}
-
-	if (material->getDisplacementMap()->getPath() != displacement_path) {
-		delete material->getDisplacementMap();
-		material->setDisplacementMap(displacement_path);
-
-		displacement_label.clear();
-		displacement_label.append("[").append(std::to_string(material->getDisplacementMap()->getID())).append("] ").append(material->getDisplacementMap()->getName());
-	}
-
-	if (material->getStencilMap()->getPath() != stencil_path) {
-		delete material->getStencilMap();
-		material->setStencilMap(stencil_path);
-
-		stencil_label.clear();
-		stencil_label.append("[").append(std::to_string(material->getStencilMap()->getID())).append("] ").append(material->getStencilMap()->getName());
-	}
+    // Bind textures
+    ambient_map     ->bind(0);
+    diffuse_map     ->bind(1);
+    specular_map    ->bind(2);
+    shininess_map   ->bind(3);
+    alpha_map       ->bind(4);
+    bump_map        ->bind(5);
+    displacement_map->bind(6);
+    stencil_map     ->bind(7);
 }
 
 
@@ -133,88 +99,45 @@ std::string &SceneMaterial::getLabel() {
 }
 
 
-// Get the ambient path
-std::string &SceneMaterial::getAmbientPath() {
-	return ambient_path;
+// Get the ambient map
+SceneTexture *SceneMaterial::getAmbientMap() const {
+    return ambient_map;
 }
 
-// Get the diffuse path
-std::string &SceneMaterial::getDiffusePath() {
-	return diffuse_path;
+// Get the diffuse map
+SceneTexture *SceneMaterial::getDiffuseMap() const {
+    return diffuse_map;
 }
 
-// Get the specular path
-std::string &SceneMaterial::getSpecularPath() {
-	return specular_path;
+// Get the specular map
+SceneTexture *SceneMaterial::getSpecularMap() const {
+    return specular_map;
 }
 
-// Get the shininess path
-std::string &SceneMaterial::getShininessPath() {
-	return shininess_path;
+// Get the shininess map
+SceneTexture *SceneMaterial::getShininessMap() const {
+    return shininess_map;
 }
 
-// Get the alpha path
-std::string &SceneMaterial::getAlphaPath() {
-	return alpha_path;
+// Get the alpha map
+SceneTexture *SceneMaterial::getAlphaMap() const {
+    return alpha_map;
 }
 
-// Get the bump path
-std::string &SceneMaterial::getBumpPath() {
-	return bump_path;
+// Get the bump map
+SceneTexture *SceneMaterial::getBumpMap() const {
+    return bump_map;
 }
 
-// Get the displacement path
-std::string &SceneMaterial::getDisplacementPath() {
-	return displacement_path;
+// Get the displacement map
+SceneTexture *SceneMaterial::getDisplacementMap() const {
+    return displacement_map;
 }
 
-// Get the stencil path
-std::string &SceneMaterial::getStencilPath() {
-	return stencil_path;
+// Get the stencil map
+SceneTexture *SceneMaterial::getStencilMap() const {
+    return stencil_map;
 }
-
-
-// Get the ambient label
-std::string &SceneMaterial::getAmbientLabel() {
-	return ambient_label;
-}
-
-// Get the diffuse label
-std::string &SceneMaterial::getDiffuseLabel() {
-	return diffuse_label;
-}
-
-// Get the specular label
-std::string &SceneMaterial::getSpecularLabel() {
-	return specular_label;
-}
-
-// Get the shininess label
-std::string &SceneMaterial::getShininessLabel() {
-	return shininess_label;
-}
-
-// Get the alpha label
-std::string &SceneMaterial::getAlphaLabel() {
-	return alpha_label;
-}
-
-// Get the bump label
-std::string &SceneMaterial::getBumpLabel() {
-	return bump_label;
-}
-
-// Get the displacement label
-std::string &SceneMaterial::getDisplacementLabel() {
-	return displacement_label;
-}
-
-// Get the stencil label
-std::string &SceneMaterial::getStencilLabel() {
-	return stencil_label;
-}
-
-
 
 
 // Set the new label
@@ -222,84 +145,15 @@ void SceneMaterial::setLabel(const std::string &new_label) {
     label = new_label;
 }
 
-// Set the ambient path
-void SceneMaterial::setAmbientPath(const std::string &path) {
-	ambient_path = path;
-}
 
-// Set the diffuse path
-void SceneMaterial::setDiffusePath(const std::string &path) {
-	diffuse_path = path;
-}
-
-// Set the specular path
-void SceneMaterial::setSpecularPath(const std::string &path) {
-	specular_path = path;
-}
-
-// Set the shininess path
-void SceneMaterial::setShininessPath(const std::string &path) {
-	shininess_path = path;
-}
-
-// Set the alpha path
-void SceneMaterial::setAlphaPath(const std::string &path) {
-	alpha_path = path;
-}
-
-// Set the bump path
-void SceneMaterial::setBumpPath(const std::string &path) {
-	bump_path = path;
-}
-
-// Set the displacement path
-void SceneMaterial::setDisplacementPath(const std::string &path) {
-	displacement_path = path;
-}
-
-// Set the stencil path
-void SceneMaterial::setStencilPath(const std::string &path) {
-	stencil_path = path;
-}
-
-
-
-// Set the ambient label
-void SceneMaterial::setAmbientLabel(const std::string &label) {
-	ambient_label = label;
-}
-
-// Set the diffuse label
-void SceneMaterial::setDiffuseLabel(const std::string &label) {
-	diffuse_label = label;
-}
-
-// Set the specular label
-void SceneMaterial::setSpecularLabel(const std::string &label) {
-	specular_label = label;
-}
-
-// Set the shininess label
-void SceneMaterial::setShininessLabel(const std::string &label) {
-	shininess_label = label;
-}
-
-// Set the alpha label
-void SceneMaterial::setAlphaLabel(const std::string &label) {
-	alpha_label = label;
-}
-
-// Set the bump label
-void SceneMaterial::setBumpLabel(const std::string &label) {
-	bump_label = label;
-}
-
-// Set the displacement label
-void SceneMaterial::setDisplacementLabel(const std::string &label) {
-	displacement_label = label;
-}
-
-// Set the stencil label
-void SceneMaterial::setStencilLabel(const std::string &label) {
-	stencil_label = label;
+// Scene mateirla destructor
+SceneMaterial::~SceneMaterial() {
+    delete ambient_map;
+    delete diffuse_map;
+    delete specular_map;
+    delete shininess_map;
+    delete alpha_map;
+    delete bump_map;
+    delete displacement_map;
+    delete stencil_map;
 }

@@ -13,6 +13,7 @@ class GLSLProgram {
     private:
 
         // Disable copy and assignation
+        GLSLProgram() = delete;
         GLSLProgram(const GLSLProgram &) = delete;
         GLSLProgram &operator = (const GLSLProgram &) = delete;
         

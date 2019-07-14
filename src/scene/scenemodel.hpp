@@ -42,12 +42,12 @@ class SceneModel : public Model {
 
 		// Static attributes
 		static std::uint32_t count;
-		static SceneProgram *default_program;
 
 	public:
 		SceneModel(const std::string &file_path, SceneProgram *model_program = nullptr);
 
 		void reload();
+        void reloadMaterial();
 
 		bool isEnabled() const;
 		bool showingNormals() const;
@@ -64,13 +64,9 @@ class SceneModel : public Model {
 		void showNormals(const bool &status);
 		void showBoundingBox(const bool &status);
 
+        void setLabel(const std::string &new_label);
+
 		void setProgram(SceneProgram *model_program);
-
-
-
-		static SceneProgram *const getDefaultProgram();
-
-		static void setDefaultProgram(SceneProgram *default_program);
 };
 
 #endif // __SCENE_MODEL_HPP_

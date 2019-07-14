@@ -126,7 +126,7 @@ void Scene::drawSettingsWindow() {
 
             // Calculate GLSL programs statistics
             unsigned int shaders = 0;
-            unsigned int default_shaders = SceneModel::getDefaultProgram()->getShaders() + SceneLight::getProgram()->getShaders();
+            unsigned int default_shaders = SceneProgram::getDefault()->getShaders() + SceneLight::getProgram()->getShaders();
             for (SceneProgram *const program : program_stock)
                 shaders += program->getShaders();
 
@@ -250,7 +250,7 @@ void Scene::draw() const {
 		if (model->isEnabled()) {
 			// Get the correct program
 			GLSLProgram *program = model->getProgram();
-			program = ((program != nullptr) && program->isValid() ? program : SceneModel::getDefaultProgram());
+			program = ((program != nullptr) && program->isValid() ? program : SceneProgram::getDefault());
 
 			// Use camera
 			camera->use(program);
@@ -261,7 +261,7 @@ void Scene::draw() const {
 
 			// Update lights
 			for (SceneLight *const light : light_stock)
-				light->use(program, true);
+				light->use(program);
 
 			// Draw model
 			model->draw(program);

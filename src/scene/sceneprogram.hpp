@@ -37,6 +37,7 @@ class SceneProgram : public GLSLProgram {
 
         // Static attributes
         static std::uint32_t count;
+        static SceneProgram *default_program;
 		
 		// Static attributes
 		static constexpr const char *const ARROW = "->";
@@ -57,7 +58,10 @@ class SceneProgram : public GLSLProgram {
 		std::string &getShaderPath(const GLenum &type);
 
         void setLabel(const std::string &new_label);
-		void setShaderPath(const std::string &path, const GLenum &type);
+
+
+        static SceneProgram *const getDefault();
+        static void setDefault(SceneProgram *default_program);
 
 		~SceneProgram();
 };

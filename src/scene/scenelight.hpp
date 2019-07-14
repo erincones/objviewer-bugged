@@ -46,7 +46,7 @@ class SceneLight : public Light {
 	public:
 		SceneLight(const Light::Type &light_type);
 
-		void use(GLSLProgram *const glslprogram, const bool &as_array);
+		void use(GLSLProgram *const glslprogram, const bool &as_array = true);
 		void draw() const;
 
 
