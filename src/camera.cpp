@@ -20,12 +20,26 @@ void Camera::updateViewMatrix() {
 
 // Update projection matrix
 void Camera::updateProjectionMatrix() {
-    projection_matrix = glm::perspective(fov, (float)width / (float)height, z_near, z_far);
+    // Auxiliar values
+    const float aspect = (float)width / (float)height;
+    const float ratio = glm::atan(fov / 2.0F);
+    const float distance = glm::length(position);
+
+    // Orthogonal limits
+    const float x = ratio * distance * aspect;
+    const float y = ratio * distance;
+
+    // Projection matrices
+    orthogonal_matrix = glm::ortho(-x, x, -y, y, z_near, z_far);
+    perspective_matrix = glm::perspective(fov, aspect, z_near, z_far);
 }
 
 
 // Build a new camera with default values
-Camera::Camera(const int &width_res, const int &height_res) {
+Camera::Camera(const int &width_res, const int &height_res, const bool ortho) {
+    // Set proyection type
+    orthogonal = ortho;
+
     // Set resolution
     width = (width_res == 0 ? 1 : width_res);
     height = (height_res == 0 ? 1 : height_res);
@@ -62,6 +76,7 @@ void Camera::reset() {
 void Camera::setPosition(const glm::vec3 &pos) {
     position = pos;
     updateViewMatrix();
+    updateProjectionMatrix();
 }
 
 // Set the look angles
@@ -107,6 +122,12 @@ void Camera::setUp(const glm::vec3 &dir) {
     updateViewMatrix();
 }
 
+
+// Get the ortogonal projection status
+void Camera::setOrthogonal(const bool &status) {
+    orthogonal = status;
+}
+
 // Set the field of view
 void Camera::setFOV(const float &degrees) {
     fov = glm::radians(degrees);
@@ -130,7 +151,7 @@ void Camera::setResolution(const int &width_res, const int &height_res) {
 
 // Apply zoom
 void Camera::zoom(const double &level) {
-    level != 0 ? fov /= Camera::zoom_factor : fov *= Camera::zoom_factor;
+    level > 0 ? fov /= Camera::zoom_factor : fov *= Camera::zoom_factor;
     updateProjectionMatrix();
 }
 
@@ -149,8 +170,9 @@ void Camera::move(const Movement &dir, const double &time) {
         case DOWN:     position -= world_up * distance; break;
     }
 
-    // Update view matrix
+    // Update matrices
     updateViewMatrix();
+    updateProjectionMatrix();
 }
 
 // Rotate camera
@@ -192,9 +214,14 @@ void Camera::use(GLSLProgram *const program) const {
     program->setUniform("view_dir", look);
     program->setUniform("view_pos", position);
     program->setUniform("view_mat", view_matrix);
-    program->setUniform("projection_mat", projection_matrix);
+    program->setUniform("projection_mat", orthogonal ? orthogonal_matrix : perspective_matrix);
 }
 
+
+// Get the orthogonal projection status
+bool Camera::isOrthogonal() const {
+    return orthogonal;
+}
 
 // Get the camera position
 glm::vec3 Camera::getPosition() const {
@@ -244,7 +271,7 @@ glm::mat4 Camera::getViewMatrix() const {
 
 // Get the projection matrix
 glm::mat4 Camera::getProjectionMatrix() const {
-    return projection_matrix;
+    return orthogonal ? orthogonal_matrix : perspective_matrix;
 }
 
 

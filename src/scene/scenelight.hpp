@@ -3,7 +3,7 @@
 
 #include "../light.hpp"
 
-#include "../camera.hpp"
+#include "scenecamera.hpp"
 #include "sceneprogram.hpp"
 #include "scenemodel.hpp"
 
@@ -35,7 +35,7 @@ class SceneLight : public Light {
         static std::uint32_t count;
         static std::unordered_set<std::uint32_t> stock;
 
-		static const Camera *const *camera;
+		static const SceneCamera *const *camera;
 		static SceneProgram *program;
 		static SceneModel *model;
 
@@ -70,12 +70,12 @@ class SceneLight : public Light {
 
 
 
-		static void setCamera(const Camera *const *const camera);
+		static void setCamera(const SceneCamera *const *const camera);
 		static void setProgram(SceneProgram *const program);
 		static void setModel(SceneModel *const model);
 
         static std::size_t getNumberOfLights();
-		static const Camera *const getCamera();
+		static const SceneCamera *const getCamera();
 		static SceneProgram *const getProgram();
 		static const SceneModel *const getModel();
 

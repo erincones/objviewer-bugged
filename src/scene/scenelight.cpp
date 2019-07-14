@@ -11,7 +11,7 @@ constexpr const glm::vec3 SceneLight::BLACK;
 std::uint32_t SceneLight::count = 0U;
 std::unordered_set<std::uint32_t> SceneLight::stock;
 
-const Camera *const *SceneLight::camera = nullptr;
+const SceneCamera *const *SceneLight::camera = nullptr;
 SceneProgram *SceneLight::program = nullptr;
 SceneModel *SceneLight::model = nullptr;
 
@@ -191,7 +191,7 @@ std::string &SceneLight::getLabel() {
 
 
 // Set the new camera 
-void SceneLight::setCamera(const Camera *const *const camera) {
+void SceneLight::setCamera(const SceneCamera *const *const camera) {
 	SceneLight::camera = camera;
 }
 
@@ -214,7 +214,7 @@ std::size_t SceneLight::getNumberOfLights() {
 }
 
 // Get the camera
-const Camera *const SceneLight::getCamera() {
+const SceneCamera *const SceneLight::getCamera() {
 	return *SceneLight::camera;
 }
 

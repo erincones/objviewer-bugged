@@ -14,6 +14,7 @@ class Camera {
         glm::vec3 look;
 
         // Projection attributes
+        bool orthogonal;
         float fov;
         float z_near;
         float z_far;
@@ -22,7 +23,8 @@ class Camera {
 
         // Matrices
         glm::mat4 view_matrix;
-        glm::mat4 projection_matrix;
+        glm::mat4 orthogonal_matrix;
+        glm::mat4 perspective_matrix;
 
         // Rotation
         float yaw;
@@ -50,7 +52,7 @@ class Camera {
             DOWN
         };
 
-        Camera(const int &width_res, const int &height_res);
+        Camera(const int &width_res, const int &height_res, const bool ortho = false);
 
         void reset();
 
@@ -59,6 +61,7 @@ class Camera {
         void setLookDirection(const glm::vec3 &dir);
         void setUp(const glm::vec3 &dir);
 
+        void setOrthogonal(const bool &status);
         void setFOV(const float &degrees);
         void setClipping(const float &near_clip, const float &far_clip);
         void setResolution(const int &width_res, const int &height_res);
@@ -72,6 +75,7 @@ class Camera {
 
         void use(GLSLProgram *const program) const;
 
+        bool isOrthogonal() const;
         glm::vec3 getPosition() const;
         glm::vec3 getLookAngles() const;
         glm::vec3 getLookDirection() const;

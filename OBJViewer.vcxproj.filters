@@ -123,6 +123,9 @@
     <ClInclude Include="src\scene\scenetexture.hpp">
       <Filter>Archivos de encabezado\scene</Filter>
     </ClInclude>
+    <ClInclude Include="src\scene\scenecamera.hpp">
+      <Filter>Archivos de encabezado\scene</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\imgui\imgui.cpp">
@@ -195,6 +198,9 @@
       <Filter>Archivos de origen\scene</Filter>
     </ClCompile>
     <ClCompile Include="src\scene\scenetexture.cpp">
+      <Filter>Archivos de origen\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\scenecamera.cpp">
       <Filter>Archivos de origen\scene</Filter>
     </ClCompile>
   </ItemGroup>

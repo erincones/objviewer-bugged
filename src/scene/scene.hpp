@@ -2,7 +2,7 @@
 #define __SCENE_HPP_
 
 #include "../mouse.hpp"
-#include "../camera.hpp"
+#include "scenecamera.hpp"
 #include "scenemodel.hpp"
 #include "scenelight.hpp"
 #include "sceneprogram.hpp"
@@ -21,7 +21,7 @@ class Scene {
 
 		// Scene elements
 		Mouse *mouse;
-		Camera *camera;
+        SceneCamera *camera;
 
 		// Scene background
 		glm::vec3 background;
@@ -38,7 +38,7 @@ class Scene {
 
 
 		// Stocks
-		std::list<Camera *> camera_stock;
+		std::list<SceneCamera *> camera_stock;
 		std::list<SceneLight *> light_stock;
 		std::list<SceneModel *> model_stock;
 		std::list<SceneProgram *> program_stock;
@@ -50,6 +50,9 @@ class Scene {
         // Draw the about window
         void drawSettingsWindow();
         void drawAboutWindow();
+
+        // Draw camera widget
+        void drawCameraGUI(SceneCamera *const scene_cam, const bool select_button = true);
 
 		// Static attributes
         static ImGuiIO *io;
@@ -86,7 +89,7 @@ class Scene {
 
         void setTranslationPoint(const double &xpos, const double &ypos);
 
-		std::size_t pushCamera();
+		std::size_t pushCamera(const bool &ortho = false);
 		std::size_t pushLight(const Light::Type &type = Light::DIRECTIONAL);
 		std::size_t pushModel(const std::string &path = "", const std::size_t &program = -1);
 		std::size_t pushProgram(const std::string &vert_path, const std::string &frag_path);
@@ -111,13 +114,13 @@ class Scene {
 		glm::vec3 getBacground() const;
 
 		Mouse *getMouse() const;
-		Camera *getSelectedCamera();
-		Camera *getCamera(const std::size_t &index) const;
+        SceneCamera *getSelectedCamera();
+        SceneCamera *getCamera(const std::size_t &index) const;
 		SceneLight *getLight(const std::size_t &index) const;
 		SceneModel *getModel(const std::size_t &index) const;
 		SceneProgram *getProgram(const std::size_t &index); const
 
-		std::list<Camera *> getCameraStock() const;
+		std::list<SceneCamera *> getCameraStock() const;
 		std::list<SceneLight *> getLightStock() const;
 		std::list<SceneModel *> getModelStock() const;
 		std::list<SceneProgram *> getProgramStock() const;

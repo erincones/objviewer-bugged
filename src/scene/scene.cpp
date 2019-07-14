@@ -163,18 +163,16 @@ void Scene::drawSettingsWindow() {
 
     // Cameras
     if (ImGui::CollapsingHeader("Cameras")) {
-        // Print ID
-        ImGui::BulletText("Selected: %d", 1);
+        // Selected camera
+        ImGui::BulletText("Selected: %s", camera->getLabel().c_str());
+        Scene::drawCameraGUI(camera, false);
 
-        // Position
-        glm::vec3 position = camera->getPosition();
-        if (ImGui::DragFloat3("Position", &position.x, 0.01F, 0.0F, 0.0F, "%.4f"))
-            camera->setPosition(position);
-
-        // Direction
-        glm::vec3 direction = camera->getLookDirection();
-        if (ImGui::DragFloat3("Direction", &direction.x, 0.01F, 0.0F, 0.0F, "%.4f"))
-            camera->setLookDirection(direction);
+        // Tree node for each camera
+        for (SceneCamera *scene_cam : camera_stock)
+            if (ImGui::TreeNode(scene_cam->getLabel().c_str())) {
+                Scene::drawCameraGUI(scene_cam);
+                ImGui::TreePop();
+            }
     }
 
 
@@ -204,15 +202,62 @@ void Scene::drawAboutWindow() {
     ImGui::Spacing();
 
     // Repository
-    ImGui::Text("GitHub repository:");
+    ImGui::Text("GitHub repository:"); Scene::HelpMarker("Click to select all and press\nCTRL+V to copy to clipboard");
 
-    ImGui::PushItemWidth(-1);
+    ImGui::PushItemWidth(-1.0F);
     ImGui::InputText("###github", Scene::URL, 39U, ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_ReadOnly);
     ImGui::PopItemWidth();
 
     // End window
     ImGui::End();
 }
+
+
+// Draw
+void Scene::drawCameraGUI(SceneCamera *const scene_cam, const bool select_button) {
+    // Label
+    ImGui::InputText("Name", &scene_cam->getLabel());
+
+    // Select button
+    if (select_button) {
+        bool selected = (scene_cam == camera);
+        if (ImGui::Checkbox("Selected", &selected))
+            camera = scene_cam;
+    }
+
+    // Projection
+    bool orthogonal = scene_cam->isOrthogonal();
+    if (ImGui::RadioButton("Perspective", !orthogonal))
+        scene_cam->setOrthogonal(false);
+
+    ImGui::SameLine();
+    if (ImGui::RadioButton("Orthogonal", orthogonal))
+        scene_cam->setOrthogonal(true);
+
+    ImGui::SameLine(0.0F, 108.0F);
+    ImGui::Text("Projection");
+
+    // Position
+    glm::vec3 position = scene_cam->getPosition();
+    if (ImGui::DragFloat3("Position", &position.x, 0.01F, 0.0F, 0.0F, "%.4F"))
+        scene_cam->setPosition(position);
+
+    // Direction
+    glm::vec3 direction = scene_cam->getLookDirection();
+    if (ImGui::DragFloat3("Direction", &direction.x, 0.01F, 0.0F, 0.0F, "%.4F"))
+        scene_cam->setLookDirection(direction);
+
+    // Clipping planes
+    glm::vec2 clipping = scene_cam->getClipping();
+    if (ImGui::DragFloat2("Clipping", &clipping.x, 0.01F, 0.0F, 0.0F, "%.4F"))
+        scene_cam->setClipping(clipping.x, clipping.y);
+
+    // Field of view
+    float fov = scene_cam->getFOV();
+    if (ImGui::DragFloat("FOV", &fov, 0.01F, 0.0F, 0.0F, "%.4F"))
+        scene_cam->setFOV(fov);
+}
+
 
 // Scene constructor
 Scene::Scene(const int &width_res, const int &height_res) {
@@ -222,7 +267,7 @@ Scene::Scene(const int &width_res, const int &height_res) {
 
 	// Mouse and camera
 	mouse = new Mouse(width, height);
-	camera = new Camera(width, height);
+	camera = new SceneCamera(width, height);
 	camera_stock.push_back(camera);
 	SceneLight::setCamera(&camera);
 
@@ -385,14 +430,14 @@ void Scene::setTranslationPoint(const double &xpos, const double &ypos) {
 
 
 // Push a new camera
-std::size_t Scene::pushCamera() {
+std::size_t Scene::pushCamera(const bool &ortho) {
 	// Store the camera
-	Camera *const new_camera = new Camera(width, height);
+    SceneCamera *const new_camera = new SceneCamera(width, height, ortho);
 	camera_stock.push_back(new_camera);
 
 	// Select new camera if is the only one
 	const std::size_t index = camera_stock.size() - 1;
-	if (index == 0)
+	if (camera_stock.size() == 0)
 		camera = new_camera;
 
 	return index;
@@ -439,7 +484,7 @@ std::size_t Scene::pushProgram(const std::string &vert_path, const std::string &
 // Pop camera
 void Scene::popCamera(const std::size_t &index) {
 	// Get camera
-	std::list<Camera *>::const_iterator old_camera = std::next(camera_stock.begin(), index);
+	std::list<SceneCamera *>::const_iterator old_camera = std::next(camera_stock.begin(), index);
 
 	// Set the selected camera as null if is the only one
 	if (camera_stock.size() == 1)
@@ -547,12 +592,12 @@ Mouse *Scene::getMouse() const {
 }
 
 // Get the selected camera
-Camera *Scene::getSelectedCamera() {
+SceneCamera *Scene::getSelectedCamera() {
 	return camera;
 }
 
 // Get camera by index
-Camera *Scene::getCamera(const std::size_t &index) const {
+SceneCamera *Scene::getCamera(const std::size_t &index) const {
 	return *std::next(camera_stock.begin(), index);
 }
 
@@ -573,7 +618,7 @@ SceneProgram *Scene::getProgram(const std::size_t &index) {
 
 
 // Get the camera stock
-const std::list<Camera *> Scene::getCameraStock() const {
+const std::list<SceneCamera *> Scene::getCameraStock() const {
 	return camera_stock;
 }
 

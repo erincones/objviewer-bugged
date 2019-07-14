@@ -1,8 +1,8 @@
+#include "scene/scenecamera.hpp"
 #include "scene/scenelight.hpp"
 #include "scene/scenemodel.hpp"
 #include "scene/scenetexture.hpp"
 #include "scene/scene.hpp"
-#include "camera.hpp"
 
 #include "dirseparator.hpp"
 
@@ -320,6 +320,12 @@ void setup_scene(const std::string &bin_path) {
 	scene->setBackground(glm::vec3(0.45F, 0.55F, 0.60F));
 	scene->getSelectedCamera()->setPosition(glm::vec3(0.0F, 0.0F, 2.0F));
 
+    // Add a second camera
+    const std::size_t cam_id = scene->pushCamera(true);
+    SceneCamera *second_cam = scene->getCamera(cam_id);
+    second_cam->setOrthogonal(true);
+    second_cam->setPosition(glm::vec3(-1.170F, 0.975F, 1.700F));
+    second_cam->setLookDirection(glm::vec3(0.4855F, -0.4140F, -0.7700F));
 
 	// Default program
 	const std::string vertex = shader_path + "common.vert.glsl";
