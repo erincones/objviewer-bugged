@@ -59,7 +59,8 @@ void SceneModel::reload() {
     glDeleteVertexArrays(1, &vao);
 
 
-    // Reset model name and label
+    // Reset model path, name and label
+    Model::path = path;
     Model::name = path.substr(path.find_last_of(DIR_SEP) + 1);
     label = "[" + std::to_string(gui_id) + "] " + Model::name;
 

@@ -172,13 +172,16 @@ void Scene::drawSettingsWindow() {
         ImGui::Unindent();
         ImGui::Spacing();
 
+        // Camera ID tag
+        const std::string ID_TAG = Scene::GUI_ID_TAG + std::string("cam");
+
         // Camera indices
         std::size_t index = -1;
         std::size_t remove = -1;
 
         // Draw camera node
         for (SceneCamera *scene_cam : camera_stock) {
-            const std::string title = scene_cam->getLabel() + Scene::GUI_ID_TAG + std::to_string(scene_cam->getGUIID());
+            const std::string title = scene_cam->getLabel() + ID_TAG + std::to_string(scene_cam->getGUIID());
             index++;
 
             if (ImGui::TreeNode(title.c_str())) {
@@ -193,20 +196,26 @@ void Scene::drawSettingsWindow() {
             popCamera(remove);
 
         // Add button
+        ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.24F, 0.60F, 0.44F, 1.00F));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.16F, 0.80F, 0.52F, 1.00F));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.21F, 0.70F, 0.49F, 1.00F));
         if (ImGui::Button("Add camera", ImVec2(454.0F, 19.0F)))
             pushCamera();
+        ImGui::PopStyleColor(3);
     }
 
     // Models
     if (ImGui::CollapsingHeader("Models")) {
+        // Model ID tag
+        const std::string ID_TAG = Scene::GUI_ID_TAG + std::string("model");
+
         // Model indices
         std::size_t index = -1;
         std::size_t remove = -1;
 
         // Draw model node
         for (SceneModel *model : model_stock) {
-
-            const std::string title = model->getLabel() + Scene::GUI_ID_TAG + std::to_string(model->getGUIID());
+            const std::string title = model->getLabel() + ID_TAG + std::to_string(model->getGUIID());
             index++;
 
             if (ImGui::TreeNode(title.c_str())) {
@@ -221,8 +230,12 @@ void Scene::drawSettingsWindow() {
             popModel(remove);
 
         // Add button
+        ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.24F, 0.60F, 0.44F, 1.00F));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.16F, 0.80F, 0.52F, 1.00F));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.21F, 0.70F, 0.49F, 1.00F));
         if (ImGui::Button("Add model", ImVec2(454.0F, 19.0F)))
             pushModel();
+        ImGui::PopStyleColor(3);
     }
 
 
@@ -354,8 +367,10 @@ bool Scene::drawModelGUI(SceneModel *const model) {
 
     // Check open status
     if (!model->isOpen()) {
-        if (!model->Model::getPath().empty())
+        if (!model->Model::getPath().empty()) {
+            ImGui::SameLine();
             ImGui::TextColored(ImVec4(0.80F, 0.16F, 0.16F, 1.00F), "Could not open the model");
+        }
         return keep;
     }
 
@@ -364,6 +379,18 @@ bool Scene::drawModelGUI(SceneModel *const model) {
     bool enabled = model->isEnabled();
     if (ImGui::Checkbox("Enabled", &enabled))
         model->setEnabled(enabled);
+
+    // Show normals status
+    ImGui::SameLine();
+    bool show_normals = model->showingNormals();
+    if (ImGui::Checkbox("Show normals", &show_normals))
+        model->showNormals(show_normals);
+
+    // Show Bounding box status
+    ImGui::SameLine();
+    bool show_bounding_box = model->showingBoundingBox();
+    if (ImGui::Checkbox("Show bounding box", &show_bounding_box))
+        model->showBoundingBox(show_bounding_box);
     
 
     // Sumary
@@ -382,12 +409,16 @@ bool Scene::drawModelGUI(SceneModel *const model) {
     ImGui::Spacing();
     const char *const program_title = (model->getProgram() != nullptr ? model->getProgram()->getLabel().c_str() : "null");
     if (ImGui::BeginCombo("GLSL program", program_title)) {
+        // Get program
+        SceneProgram *current_program = model->getProgram();
+        
         // Default shader
-        bool selected = (model->getProgram() == SceneProgram::getDefault());
+        bool selected = (current_program == SceneProgram::getDefault());
 
         // Add item and mark the selected
         if (ImGui::Selectable(SceneProgram::getDefault()->getLabel().c_str(), selected)) {
-            model->getProgram()->removeAllRelated();
+            if (current_program != nullptr)
+                current_program->removeAllRelated();
             SceneProgram::getDefault()->addRelated(model);
         }
 
@@ -398,11 +429,12 @@ bool Scene::drawModelGUI(SceneModel *const model) {
         // The programs in stock
         for (SceneProgram *const program : program_stock) {
             // Compare GLSL program with the current
-            selected = (model->getProgram() == program);
+            selected = (current_program == program);
 
             // Add items and mark the selected
             if (ImGui::Selectable(program->getLabel().c_str(), selected)) {
-                model->getProgram()->removeAllRelated();
+                if (current_program != nullptr)
+                    current_program->removeAllRelated();
                 program->addRelated(model);
             }
 
@@ -676,7 +708,8 @@ void Scene::popModel(const std::size_t &index) {
 	std::list<SceneModel *>::const_iterator model = std::next(model_stock.begin(), index);
 
 	// Update program
-	(*model)->getProgram()->removeRelated(*model);
+    if ((*model)->getProgram() != nullptr)
+	    (*model)->getProgram()->removeRelated(*model);
 
 	// Delete model and remove from list
 	delete *model;
