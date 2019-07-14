@@ -165,14 +165,19 @@ void Scene::drawSettingsWindow() {
     if (ImGui::CollapsingHeader("Cameras")) {
         // Selected camera
         ImGui::BulletText("Selected: %s", camera->getLabel().c_str());
+        ImGui::Indent();
         Scene::drawCameraGUI(camera, false);
+        ImGui::Unindent();
+        ImGui::Spacing();
 
         // Tree node for each camera
-        for (SceneCamera *scene_cam : camera_stock)
-            if (ImGui::TreeNode(scene_cam->getLabel().c_str())) {
+        for (SceneCamera *scene_cam : camera_stock) {
+            const std::string title = scene_cam->getLabel() + Scene::GUI_ID_TAG + std::to_string(scene_cam->getGUIID());
+            if (ImGui::TreeNode(title.c_str())) {
                 Scene::drawCameraGUI(scene_cam);
                 ImGui::TreePop();
             }
+        }
     }
 
 
@@ -190,7 +195,6 @@ void Scene::drawAboutWindow() {
         ImGui::End();
         return;
     }
-
 
     // Title
     ImGui::Text("OBJViewer - Another OBJ models viewer");
@@ -224,6 +228,7 @@ void Scene::drawCameraGUI(SceneCamera *const scene_cam, const bool select_button
         if (ImGui::Checkbox("Selected", &selected))
             camera = scene_cam;
     }
+    ImGui::Spacing();
 
     // Projection
     bool orthogonal = scene_cam->isOrthogonal();
