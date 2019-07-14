@@ -27,6 +27,7 @@ class SceneModel : public Model {
 
 		// GUI flags
 		bool enabled;
+        bool lock_scale;
 		bool show_normals;
 		bool show_boundingbox;
 
@@ -51,6 +52,7 @@ class SceneModel : public Model {
         void reloadMaterial();
 
 		bool isEnabled() const;
+        bool isScaleLocked() const;
 		bool showingNormals() const;
 		bool showingBoundingBox() const;
 
@@ -62,8 +64,11 @@ class SceneModel : public Model {
 		std::list<SceneMaterial *> getMaterialStock() const;
 
 		void setEnabled(const bool &status);
+        void setScaleLocked(const bool &status);
 		void showNormals(const bool &status);
 		void showBoundingBox(const bool &status);
+
+        void setScale(const glm::vec3 &value);
 
         void setLabel(const std::string &new_label);
 

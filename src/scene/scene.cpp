@@ -395,13 +395,13 @@ bool Scene::drawModelGUI(SceneModel *const model) {
 
     // Sumary
     if (ImGui::TreeNodeEx("Sumary", ImGuiTreeNodeFlags_DefaultOpen)) {
-        ImGui::Text("Polygons: %u", model->getPolygons());
+        ImGui::Text("Polygons: %u", model->Model::getPolygons());
         ImGui::SameLine(210.0F);
-        ImGui::Text("Materials: %u", model->getMaterials());
-        ImGui::Text("Vertices: %u", model->getVertices()); Scene::HelpMarker("Unique vertices");
+        ImGui::Text("Materials: %u", model->Model::getMaterials());
+        ImGui::Text("Vertices: %u", model->Model::getVertices()); Scene::HelpMarker("Unique vertices");
         ImGui::SameLine(210.0F);
-        ImGui::Text("Textures: %u", model->getTextures());
-        ImGui::Text("Elements: %u", model->getElements()); Scene::HelpMarker("Total of vertices");
+        ImGui::Text("Textures: %u", model->Model::getTextures());
+        ImGui::Text("Elements: %u", model->Model::getElements()); Scene::HelpMarker("Total of vertices");
         ImGui::TreePop();
     }
 
@@ -446,6 +446,33 @@ bool Scene::drawModelGUI(SceneModel *const model) {
         // Finish GLSL program combo
         ImGui::EndCombo();
     }
+
+    // Geometry
+    if (ImGui::TreeNodeEx("Geometry", ImGuiTreeNodeFlags_DefaultOpen)) {
+        // Position
+        glm::vec3 position = model->Model::getPosition();
+        if (ImGui::DragFloat3("Position", &position.x, 0.01F, 0.0F, 0.0F, "%.4F"))
+            model->Model::setPosition(position);
+
+        // Rotation
+        glm::vec3 rotation = model->Model::getRotationAngles();
+        if (ImGui::DragFloat3("Rotation", &rotation.x, 0.50F, 0.0F, 0.0F, "%.4F"))
+            model->Model::setRotation(rotation);
+        Scene::HelpMarker("Angles in degrees");
+
+        // Scale
+        glm::vec3 scale = model->Model::getScale();
+        if (ImGui::DragFloat3("Scale", &scale.x, 0.01F, 0.0F, 0.0F, "%.4F"))
+            model->setScale(scale);
+
+        // Lock scale
+        bool lock_scale = model->isScaleLocked();
+        if (ImGui::Checkbox("Lock aspect", &lock_scale))
+            model->setScaleLocked(lock_scale);
+
+        ImGui::TreePop();
+    }
+
 
     // Return keep status
     return keep;

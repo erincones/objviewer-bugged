@@ -23,6 +23,7 @@ SceneModel::SceneModel(const std::string &file_path, SceneProgram *model_program
 
 	// GUI flags
 	enabled = Model::open;
+    lock_scale = true;
 	show_normals = false;
 	show_boundingbox = false;
 
@@ -138,6 +139,11 @@ bool SceneModel::isEnabled() const {
 	return enabled;
 }
 
+// Get the scale locked status
+bool SceneModel::isScaleLocked() const {
+    return lock_scale;
+}
+
 // Get the show normals status
 bool SceneModel::showingNormals() const {
 	return show_normals;
@@ -181,6 +187,11 @@ void SceneModel::setEnabled(const bool &status) {
 	enabled = status;
 }
 
+// Set the scale locked status
+void SceneModel::setScaleLocked(const bool &status) {
+    lock_scale = status;
+}
+
 // Set the enabled status
 void SceneModel::showNormals(const bool &status) {
 	show_normals = status;
@@ -189,6 +200,21 @@ void SceneModel::showNormals(const bool &status) {
 // Set the enabled status
 void SceneModel::showBoundingBox(const bool &status) {
 	show_boundingbox = status;
+}
+
+
+// Set the scale
+void SceneModel::setScale(const glm::vec3 &value) {
+    // Scale all axis
+    if (lock_scale) {
+        const glm::vec3 scale = Model::getScale();
+        const glm::vec3 delta = value - scale;
+        Model::setScale(scale + glm::vec3(delta.x != 0.0F ? delta.x : (delta.y != 0.0F ? delta.y : delta.z)));
+    }
+
+    // Set the new scale
+    else
+        Model::setScale(value);
 }
 
 
