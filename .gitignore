@@ -3,8 +3,9 @@ bin*/
 build*/
 
 
-# Visual studio
+# Visual studio and visual studio code
 .vs/*
+.vscode/*
 
 
 # All models

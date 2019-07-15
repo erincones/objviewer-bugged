@@ -70,7 +70,7 @@ class Model {
 		bool material_open;
 
 		// Model and material stock
-		std::list<model_data> model_stock;
+		std::list<Model::model_data> model_stock;
 		std::list<Material *> material_stock;
 
 		// Limits

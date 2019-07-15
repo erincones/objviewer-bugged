@@ -30,9 +30,12 @@ SceneModel::SceneModel(const std::string &file_path, SceneProgram *model_program
 	// GLSLProgram
 	program = model_program;
 
+    // Set the global material
+    global_material = new SceneMaterial(new Material("Global"));
+
 	// Fill the scene material stock
-	for (Material *const material : Model::material_stock)
-		scenematerial_stock.push_back(new SceneMaterial(material));
+    for (Material *const &material : Model::material_stock)
+        scenematerial_stock.push_back(new SceneMaterial(material));
 }
 
 
@@ -73,7 +76,6 @@ void SceneModel::reload() {
     Model::textures = 0U;
     Model::min = glm::vec3(std::numeric_limits<float>::max());
     Model::max = glm::vec3(std::numeric_limits<float>::min());
-    Model::material_stock.push_back(new Material("default"));
 
     // Default status
     enabled = true;
@@ -91,25 +93,30 @@ void SceneModel::reload() {
         }
     }
 
-    // Fill the scene material stock
-    for (Material *const material : Model::material_stock)
-        scenematerial_stock.push_back(new SceneMaterial(material));
-
     // Initialize matrices
     Model::reset();
+
+    // Reset global material to defaults
+    global_material->reset();
+
+    // Fill the scene material stock
+    for (Material *const &material : Model::material_stock)
+        scenematerial_stock.push_back(new SceneMaterial(material));
 }
 
 // Reload the materials
 void SceneModel::reloadMaterial() {
-    // Store material names
-    std::list<std::string> material_name;
-    for (const Model::model_data model : Model::model_stock)
-        material_name.push_back(model.material->getName());
+    // Store material names and remove references
+    std::map<Model::model_data *, std::string> model_material;
+    for (Model::model_data &model : Model::model_stock) {
+        model_material[&model] = model.material->getName();
+        model.material = nullptr;
+    }
 
     // Clear material stocks
     std::list<Material *>::const_iterator material = Model::material_stock.begin();
     std::list<SceneMaterial *>::const_iterator scene_material = scenematerial_stock.begin();
-    while ((material != Model::material_stock.end())) {
+    while (material != Model::material_stock.end()) {
         delete *material;
         delete *scene_material;
 
@@ -118,19 +125,34 @@ void SceneModel::reloadMaterial() {
     }
 
     // Reload materials
-    readMTL();
+    Model::material_open = false;
+    try {
+        readMTL();
+        Model::material_open = true;
+    } catch (std::exception &exception) {
+        std::cerr << exception.what() << std::endl;
+    }
 
+    // Reset global material to defaults
+    global_material->reset();
 
-    // Reasign materials to each model in stock
-    std::list<Model::model_data>::iterator model = Model::model_stock.begin();
-    material = Model::material_stock.begin();
-    for (Model::model_data model : Model::model_stock)
-        model.material = *(material++);
+    // Check for default material
+    if (model_material.begin()->second == "Default") {
+        Material *default_material = new Material("Default");
+        Model::material_stock.push_back(default_material);
+		Model::model_stock.back().material = default_material;
+    }
 
     // Fill the scene material stock
-    Model::material_stock.push_front(new Material("default"));
-    for (Material *const material : Model::material_stock)
+    for (Material *const &material : Model::material_stock) {
         scenematerial_stock.push_back(new SceneMaterial(material));
+
+        // Reasign materials to models
+        for (std::pair<Model::model_data *const, std::string> &model : model_material) {
+            if (model.second == material->getName())
+                model.first->material = material;
+        }
+    }
 }
 
 
@@ -174,6 +196,11 @@ std::string &SceneModel::getLabel() {
 // Get the GLSL program
 SceneProgram *SceneModel::getProgram() const {
 	return program;
+}
+
+// Get the global material
+SceneMaterial *SceneModel::getGlobalMaterial() const {
+    return global_material;
 }
 
 // Get the scene material stock
@@ -227,4 +254,12 @@ void SceneModel::setLabel(const std::string &new_label) {
 // Set the model program
 void SceneModel::setProgram(SceneProgram *model_program) {
 	program = model_program;
+}
+
+
+// Scene model destructor
+SceneModel::~SceneModel() {
+    // Delete scene materials
+    for (SceneMaterial *const &material : scenematerial_stock)
+        delete material;
 }

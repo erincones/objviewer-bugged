@@ -3,26 +3,38 @@
 
 #include "../material.hpp"
 
-#include "scenetexture.hpp"
-
 #include <string>
+#include <cstdint>
 
 
-class SceneMaterial : Material {
+class SceneMaterial {
 	private:
         // GUI ID and label
-        ::uint32_t gui_id;   
+        std::uint32_t gui_id;   
         std::string label;
 
-        // Scene textures
-        SceneTexture *ambient_map;
-        SceneTexture *diffuse_map;
-        SceneTexture *specular_map;
-        SceneTexture *shininess_map;
-        SceneTexture *alpha_map;
-        SceneTexture *bump_map;
-        SceneTexture *displacement_map;
-        SceneTexture *stencil_map;
+        // Paths
+        std::string ambient_path;
+        std::string diffuse_path;
+        std::string specular_path;
+        std::string shininess_path;
+        std::string alpha_path;
+        std::string bump_path;
+        std::string displacement_path;
+        std::string stencil_path;
+
+        // Labels
+        std::string ambient_label;
+        std::string diffuse_label;
+        std::string specular_label;
+        std::string shininess_label;
+        std::string alpha_label;
+        std::string bump_label;
+        std::string displacement_label;
+        std::string stencil_label;
+
+        // Material
+        Material *material;
 
 		// Disable default constructor, copy and assignation
         SceneMaterial() = delete;
@@ -33,25 +45,33 @@ class SceneMaterial : Material {
         static std::uint32_t count;
 
 	public:
-		SceneMaterial(Material *const material);
+        enum Texture : std::uint8_t {
+            AMBIENT      = 0x01,
+            DIFFUSE      = 0x02,
+            SPECULAR     = 0x04,
+            SHININESS    = 0x08,
+            ALPHA        = 0x10,
+            BUMP         = 0x20,
+            DISPLACEMENT = 0x40,
+            STENCIL      = 0x80,
+            ALL          = 0xFF
+        };
 
-        void bind(GLSLProgram *const program);
+		SceneMaterial(Material *const source);
+
+        void reload(const SceneMaterial::Texture &texture);
+        void reset();
 
         std::uint32_t getGUIID() const;
         std::string &getLabel();
 
-        SceneTexture *getAmbientMap() const;
-        SceneTexture *getDiffuseMap() const;
-        SceneTexture *getSpecularMap() const;
-        SceneTexture *getShininessMap() const;
-        SceneTexture *getAlphaMap() const;
-        SceneTexture *getBumpMap() const;
-        SceneTexture *getDisplacementMap() const;
-        SceneTexture *getStencilMap() const;
+        std::string &getTexturePath(const SceneMaterial::Texture &texture);
+        std::string &getTextureLabel(const SceneMaterial::Texture &texture);
+
+        Material *getMaterial() const;
+
 
         void setLabel(const std::string &new_label);
-
-        ~SceneMaterial();
 };
 
 #endif // __SCENE_MATERIAL_HPP_

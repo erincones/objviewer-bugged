@@ -38,9 +38,6 @@ class Material {
 		Texture *displacement_map;
 		Texture *stencil_map;
 
-        // Protected constructor
-        Material();
-
     public:
         Material(const std::string &material_name);
 

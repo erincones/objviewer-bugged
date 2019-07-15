@@ -116,7 +116,7 @@ void Scene::drawSettingsWindow() {
             std::size_t elements = 0U;
             std::size_t materials = 0U;
             std::size_t textures  = 0U;
-            for (SceneModel *const model : model_stock) {
+            for (SceneModel *const &model : model_stock) {
                 polygons += model->Model::getPolygons();
                 vertices += model->Model::getVertices();
                 elements += model->Model::getElements();
@@ -180,7 +180,7 @@ void Scene::drawSettingsWindow() {
         std::size_t remove = -1;
 
         // Draw camera node
-        for (SceneCamera *scene_cam : camera_stock) {
+        for (SceneCamera *&scene_cam : camera_stock) {
             const std::string title = scene_cam->getLabel() + ID_TAG + std::to_string(scene_cam->getGUIID());
             index++;
 
@@ -214,7 +214,7 @@ void Scene::drawSettingsWindow() {
         std::size_t remove = -1;
 
         // Draw model node
-        for (SceneModel *model : model_stock) {
+        for (SceneModel *&model : model_stock) {
             const std::string title = model->getLabel() + ID_TAG + std::to_string(model->getGUIID());
             index++;
 
@@ -316,14 +316,14 @@ bool Scene::drawCameraGUI(SceneCamera *const scene_cam, const bool select_button
     ImGui::Text("Projection");
 
     // Position
-    glm::vec3 position = scene_cam->getPosition();
-    if (ImGui::DragFloat3("Position", &position.x, 0.01F, 0.0F, 0.0F, "%.4F"))
-        scene_cam->setPosition(position);
+    glm::vec3 value = scene_cam->getPosition();
+    if (ImGui::DragFloat3("Position", &value.x, 0.01F, 0.0F, 0.0F, "%.4F"))
+        scene_cam->setPosition(value);
 
     // Direction
-    glm::vec3 direction = scene_cam->getLookDirection();
-    if (ImGui::DragFloat3("Direction", &direction.x, 0.01F, 0.0F, 0.0F, "%.4F"))
-        scene_cam->setLookDirection(direction);
+    value = scene_cam->getLookDirection();
+    if (ImGui::DragFloat3("Direction", &value.x, 0.01F, 0.0F, 0.0F, "%.4F"))
+        scene_cam->setLookDirection(value);
 
     // Clipping planes
     glm::vec2 clipping = scene_cam->getClipping();
@@ -418,7 +418,7 @@ bool Scene::drawModelGUI(SceneModel *const model) {
         // Add item and mark the selected
         if (ImGui::Selectable(SceneProgram::getDefault()->getLabel().c_str(), selected)) {
             if (current_program != nullptr)
-                current_program->removeAllRelated();
+                current_program->removeRelated(model);
             SceneProgram::getDefault()->addRelated(model);
         }
 
@@ -427,14 +427,14 @@ bool Scene::drawModelGUI(SceneModel *const model) {
             ImGui::SetItemDefaultFocus();
         
         // The programs in stock
-        for (SceneProgram *const program : program_stock) {
+        for (SceneProgram *const &program : program_stock) {
             // Compare GLSL program with the current
             selected = (current_program == program);
 
             // Add items and mark the selected
             if (ImGui::Selectable(program->getLabel().c_str(), selected)) {
                 if (current_program != nullptr)
-                    current_program->removeAllRelated();
+                    current_program->removeRelated(model);
                 program->addRelated(model);
             }
 
@@ -450,26 +450,159 @@ bool Scene::drawModelGUI(SceneModel *const model) {
     // Geometry
     if (ImGui::TreeNodeEx("Geometry", ImGuiTreeNodeFlags_DefaultOpen)) {
         // Position
-        glm::vec3 position = model->Model::getPosition();
-        if (ImGui::DragFloat3("Position", &position.x, 0.01F, 0.0F, 0.0F, "%.4F"))
-            model->Model::setPosition(position);
+        glm::vec3 value = model->Model::getPosition();
+        if (ImGui::DragFloat3("Position", &value.x, 0.01F, 0.0F, 0.0F, "%.4F"))
+            model->Model::setPosition(value);
 
         // Rotation
-        glm::vec3 rotation = model->Model::getRotationAngles();
-        if (ImGui::DragFloat3("Rotation", &rotation.x, 0.50F, 0.0F, 0.0F, "%.4F"))
-            model->Model::setRotation(rotation);
+        value = model->Model::getRotationAngles();
+        if (ImGui::DragFloat3("Rotation", &value.x, 0.50F, 0.0F, 0.0F, "%.4F"))
+            model->Model::setRotation(value);
         Scene::HelpMarker("Angles in degrees");
 
         // Scale
-        glm::vec3 scale = model->Model::getScale();
-        if (ImGui::DragFloat3("Scale", &scale.x, 0.01F, 0.0F, 0.0F, "%.4F"))
-            model->setScale(scale);
+        value = model->Model::getScale();
+        if (ImGui::DragFloat3("Scale", &value.x, 0.01F, 0.0F, 0.0F, "%.4F"))
+            model->setScale(value);
 
         // Lock scale
         bool lock_scale = model->isScaleLocked();
         if (ImGui::Checkbox("Lock aspect", &lock_scale))
             model->setScaleLocked(lock_scale);
 
+        // Pop geometry node
+        ImGui::TreePop();
+    }
+
+    // Materials
+    if (ImGui::TreeNode("Materials")) {
+        // Material path
+        ImGui::InputText("Path", &model->getMaterialPath(), ImGuiInputTextFlags_ReadOnly); Scene::HelpMarker("Read only");
+
+        // Material file name
+        ImGui::InputText("Name", &model->getMaterialName(), ImGuiInputTextFlags_ReadOnly); Scene::HelpMarker("Read only");
+
+        // Reload
+        if (ImGui::Button("Reload material"))
+            model->reloadMaterial();
+
+        // Check material status
+        if (!model->isMaterialOpen()) {
+            ImGui::SameLine();
+            ImGui::TextColored(ImVec4(0.80F, 0.16F, 0.16F, 1.00F), "Could not open the material file");
+        }
+
+        // Global material
+        ImGui::Spacing();
+        ImGui::BulletText("Global"); Scene::HelpMarker("The chagues will be applied\nto all materials");
+        ImGui::Indent();
+
+        Material *global = model->getGlobalMaterial()->getMaterial();
+
+        // Ambient component
+        glm::vec3 color = global->getAmbientColor();
+        if (ImGui::ColorEdit3("Ambient", &color.x)) {
+            for (SceneMaterial *&material : model->getMaterialStock())
+                material->getMaterial()->setAmbientColor(color);
+            global->setAmbientColor(color);
+        }
+
+        // Difusse component
+        color = global->getDiffuseColor();
+        if (ImGui::ColorEdit3("Diffuse", &color.x)) {
+            for (SceneMaterial *&material : model->getMaterialStock())
+                material->getMaterial()->setDiffuseColor(color);
+            global->setDiffuseColor(color);
+        }
+
+        // Specular component
+        color = global->getSpecularColor();
+        if (ImGui::ColorEdit3("Specular", &color.x)) {
+            for (SceneMaterial *&material : model->getMaterialStock())
+                material->getMaterial()->setSpecularColor(color);
+            global->setSpecularColor(color);
+        }
+
+        // Alpha
+        float value = global->getAlpha();
+        if (ImGui::DragFloat("Alpha", &value, 0.001F, 0.0F, 1.0F, "%.4F")) {
+            for (SceneMaterial *&material : model->getMaterialStock())
+                material->getMaterial()->setAlpha(value);
+            global->setAlpha(value);
+        }
+
+        // Shininess
+        value = global->getShininess();
+        if (ImGui::DragFloat("Shininess", &value, 0.025F, 0.0F, FLT_MAX, "%.4F")) {
+            for (SceneMaterial *&material : model->getMaterialStock())
+                material->getMaterial()->setShininess(value);
+            global->setShininess(value);
+        }
+
+        // Roughness
+        value = global->getRoughness();
+        if (ImGui::DragFloat("Roughness", &value, 0.001F, 0.0F, 1.0F, "%.4F")) {
+            for (SceneMaterial *&material : model->getMaterialStock())
+                material->getMaterial()->setRoughness(value);
+            global->setRoughness(value);
+        }
+
+        // Metalness
+        value = global->getMetalness();
+        if (ImGui::DragFloat("Metalness", &value, 0.001F, 0.0F, 1.0F, "%.4F")) {
+            for (SceneMaterial *&material : model->getMaterialStock())
+                material->getMaterial()->setMetalness(value);
+            global->setMetalness(value);
+        }
+        ImGui::Unindent();
+
+        // Material stock
+        for (SceneMaterial *&scene_material : model->getMaterialStock()) {
+            if (ImGui::TreeNode(scene_material->getLabel().c_str())) {
+                // Get the material
+                Material *material = scene_material->getMaterial();
+
+                // Ambient component
+                glm::vec3 color = material->getAmbientColor();
+                if (ImGui::ColorEdit3("Ambient", &color.x))
+                    material->setAmbientColor(color);
+
+                // Difusse component
+                color = material->getDiffuseColor();
+                if (ImGui::ColorEdit3("Diffuse", &color.x))
+                    material->setDiffuseColor(color);
+
+                // Specular component
+                color = material->getSpecularColor();
+                if (ImGui::ColorEdit3("Specular", &color.x))
+                    material->setSpecularColor(color);
+
+                // Alpha
+                float value = material->getAlpha();
+                if (ImGui::DragFloat("Alpha", &value, 0.001F, 0.0F, 1.0F, "%.4F"))
+                    material->setAlpha(value);
+
+                // Shininess
+                value = material->getShininess();
+                if (ImGui::DragFloat("Shininess", &value, 0.025F, 0.0F, FLT_MAX, "%.4F"))
+                    material->setShininess(value);
+
+                // Roughness
+                value = material->getRoughness();
+                if (ImGui::DragFloat("Roughness", &value, 0.001F, 0.0F, 1.0F, "%.4F"))
+                    material->setRoughness(value);
+
+                // Metalness
+                value = material->getMetalness();
+                if (ImGui::DragFloat("Metalness", &value, 0.001F, 0.0F, 1.0F, "%.4F"))
+                    material->setMetalness(value);
+
+                // Pop material node
+                ImGui::TreePop();
+            }
+        }
+
+        // Pop materials node
         ImGui::TreePop();
     }
 
@@ -511,7 +644,7 @@ void Scene::draw() const {
 	if (camera == nullptr) return;
 
 	// Draw models
-	for (const SceneModel *const model : model_stock) {
+	for (const SceneModel *const &model : model_stock) {
 		// Check program and enabled status
 		if (model->isEnabled()) {
 			// Get the correct program
@@ -526,7 +659,7 @@ void Scene::draw() const {
 			program->setUniform("light_size", SceneLight::getNumberOfLights());
 
 			// Update lights
-			for (SceneLight *const light : light_stock)
+			for (SceneLight *const &light : light_stock)
 				light->use(program);
 
 			// Draw model
@@ -536,7 +669,7 @@ void Scene::draw() const {
 
 
 	// Draw lights models
-	for (const SceneLight *const light : light_stock)
+	for (const SceneLight *const &light : light_stock)
 		light->draw();
 }
 
@@ -618,7 +751,7 @@ void Scene::link(const std::size_t &model, const std::size_t &program) {
 
 // Reload all scene program
 void Scene::reloadPrograms() {
-	for (SceneProgram *const program : program_stock)
+	for (SceneProgram *const &program : program_stock)
 		program->reload();
 }
 
@@ -764,7 +897,7 @@ void Scene::setResolution(const int &width_res, const int &height_res) {
 	mouse->setResolution(width, height);
 
 	// Set resolution to all cameras
-	for (Camera *const cam : camera_stock)
+	for (Camera *const &cam : camera_stock)
 		cam->setResolution(width, height);
 }
 
@@ -870,18 +1003,18 @@ Scene::~Scene() {
 	delete mouse;
 
 	// Delete all cameras and clear camera stock
-	for (const Camera *const cam : camera_stock)
+	for (const Camera *const &cam : camera_stock)
 		delete cam;
 	
 	// Delete all lights and clear camera stock
-	for (const SceneLight *const light : light_stock)
+	for (const SceneLight *const &light : light_stock)
 		delete light;
 
 	// Delete all models and clear camera stock
-	for (const SceneModel *const model : model_stock)
+	for (const SceneModel *const &model : model_stock)
 		delete model;
 
 	// Delete all programs and clear camera stock
-	for (const SceneProgram *const program : program_stock)
+	for (const SceneProgram *const &program : program_stock)
 		delete program;
 }

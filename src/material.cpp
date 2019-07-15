@@ -1,37 +1,6 @@
 #include "material.hpp"
 
 
-// Empty material
-Material::Material() {
-    // Black color
-    const glm::vec3 black(0.0F);
-
-	// Colors
-	ambient_color      = black;
-	diffuse_color      = black;
-	specular_color     = black;
-	transmission_color = black;
-
-	// Attributes
-	alpha     = 0.0F;
-	sharpness = 0.0F;
-	shininess = 0.0F;
-	roughness = 0.0F;
-	metalness = 0.0F;
-	refractive_index = 0.00F;
-
-	// Texture maps
-	ambient_map      = nullptr;
-	diffuse_map      = nullptr;
-	specular_map     = nullptr;
-	shininess_map    = nullptr;
-	alpha_map        = nullptr;
-	bump_map         = nullptr;
-	displacement_map = nullptr;
-	stencil_map      = nullptr;
-}
-
-
 // Material empty constructor
 Material::Material(const std::string &material_name) {
 	name = material_name;

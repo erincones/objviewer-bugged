@@ -35,6 +35,7 @@ class SceneModel : public Model {
 		SceneProgram *program;
 
 		// Scene material stock
+		SceneMaterial *global_material;
 		std::list<SceneMaterial *> scenematerial_stock;
 
 		// Disable copy and assignation
@@ -61,6 +62,7 @@ class SceneModel : public Model {
 		std::string &getLabel();
 
 		SceneProgram *getProgram() const;
+		SceneMaterial *getGlobalMaterial() const;
 		std::list<SceneMaterial *> getMaterialStock() const;
 
 		void setEnabled(const bool &status);
@@ -73,6 +75,9 @@ class SceneModel : public Model {
         void setLabel(const std::string &new_label);
 
 		void setProgram(SceneProgram *model_program);
+
+
+		~SceneModel();
 };
 
 #endif // __SCENE_MODEL_HPP_

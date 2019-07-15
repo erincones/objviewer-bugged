@@ -64,7 +64,7 @@ void Model::readOBJ() {
 
             // Open material
             material_path = path.substr(0, path.find_last_of(DIR_SEP) + 1) + token;
-			material_name = path.substr(material_path.find_last_of(DIR_SEP) + 1);
+			material_name = material_path.substr(material_path.find_last_of(DIR_SEP) + 1);
 
 			try {
 				readMTL();
@@ -88,11 +88,11 @@ void Model::readOBJ() {
 
 			// Search material
 			Material *material = nullptr;
-			std::list<Material *>::const_iterator it = material_stock.begin();
-			while ((material == nullptr) && (++it != material_stock.end())) {
-				if ((*it)->getName() == token)
-					material = *it;
-			};
+            for (Material *const &material_it : material_stock)
+                if (material_it->getName() == token) {
+                    material = material_it;
+                    break;
+                }
 
 			// Add the new material
             model_stock.push_back(Model::model_data{0, sizeof(std::uint32_t) * count, material});
@@ -150,8 +150,11 @@ void Model::readOBJ() {
         model_stock.back().count = (GLsizei)(index.size() - count);
 
     // Associate all geometry to the default material
-	else
-		model_stock.insert(model_stock.begin(), Model::model_data{(GLsizei)index.size(), 0, material_stock.front()});
+	else {
+        Material *material = new Material("Default");
+        material_stock.push_back(material);
+		model_stock.push_back(Model::model_data{(GLsizei)index.size(), 0U, material});
+    }
 
     // Close file
     file.close();
@@ -179,7 +182,7 @@ void Model::readMTL() {
 	std::string dir_path = path.substr(0, path.find_last_of(DIR_SEP) + 1);
 
 	// Material description read variables
-    Material *material = material_stock.front();
+    Material *material = nullptr;
 	std::string token;
 	std::string line;
 	glm::vec3 data;
@@ -427,7 +430,6 @@ Model::Model(const std::string &file_path) {
     textures  = 0U;
     min = glm::vec3(std::numeric_limits<float>::max());
     max = glm::vec3(std::numeric_limits<float>::min());
-    material_stock.push_back(new Material("default"));
 
 	// Default status
 	open = false;
@@ -647,7 +649,7 @@ std::list<Material *> Model::getMaterialStock() const {
 // Delete model
 Model::~Model() {
 	// Delete all materials
-	for (const Material *const material : material_stock)
+	for (const Material *const &material : material_stock)
 		delete material;
 
     // Delete buffers

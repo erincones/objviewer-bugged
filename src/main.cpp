@@ -1,7 +1,6 @@
 #include "scene/scenecamera.hpp"
 #include "scene/scenelight.hpp"
 #include "scene/scenemodel.hpp"
-#include "scene/scenetexture.hpp"
 #include "scene/scene.hpp"
 
 #include "dirseparator.hpp"
@@ -330,9 +329,6 @@ void setup_scene(const std::string &bin_path) {
 	const std::string vertex = shader_path + "common.vert.glsl";
 	SceneProgram::setDefault(new SceneProgram(vertex, shader_path + "normals.frag.glsl"));
 
-    // Default texture
-    SceneTexture::setDefault(Texture::white());
-
     // Add programs
 	const std::size_t blinn_phong_id   = scene->pushProgram(vertex, shader_path + "blinn_phong.frag.glsl");
 	const std::size_t oren_nayar_id    = scene->pushProgram(vertex, shader_path + "oren_nayar.frag.glsl");
@@ -432,9 +428,6 @@ void clean_up() {
 
 	// Delete default scene model program
 	delete SceneProgram::getDefault();
-
-    // Delete default texture
-    delete SceneTexture::getDefault();
 
 	// Delete scene light static attributes
 	delete SceneLight::getModel();
