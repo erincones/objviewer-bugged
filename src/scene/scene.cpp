@@ -562,7 +562,8 @@ bool Scene::drawModelGUI(SceneModel *const model) {
         // Material stock
         for (SceneMaterial *&scene_material : model->getMaterialStock()) {
             // Get tittle
-            const std::string material_title = scene_material->getLabel() + Scene::MATERIAL_ID_TAG + std::to_string(scene_material->getGUIID());
+            const std::string material_id = std::to_string(scene_material->getGUIID());
+            const std::string material_title = scene_material->getLabel() + Scene::MATERIAL_ID_TAG + material_id;
             
             // Material node
             if (ImGui::TreeNode(material_title.c_str())) {
@@ -615,11 +616,10 @@ bool Scene::drawModelGUI(SceneModel *const model) {
                     for (std::uint8_t i = Texture::AMBIENT; i != 0U; i <<= 1U) {
                         // Get texture
                         const Texture::Type type = (Texture::Type)i;
-                        Texture *texture = material->getTexture(type);
-                        GLuint id = texture->getID();
 
                         // Texture title
-                        const std::string texture_title = Texture::to_string(type) + ": " + scene_material->getTextureLabel(type) + Scene::TEXTURE_ID_TAG + std::to_string(id);
+                        const std::string type_str = Texture::to_string(type);
+                        const std::string texture_title = type_str + ": " + scene_material->getTextureLabel(type) + Scene::TEXTURE_ID_TAG + material_id + type_str;
 
                         if (ImGui::TreeNode(texture_title.c_str())) {
                             // Texture path
@@ -634,7 +634,7 @@ bool Scene::drawModelGUI(SceneModel *const model) {
                                 scene_material->reload(type);
 
                             // Draw texture
-                            ImGui::Image((void *)(intptr_t)id, ImVec2(300.0F, 300.0F));
+                            ImGui::Image((void *)(intptr_t)(material->getTexture(type)->getID()), ImVec2(300.0F, 300.0F), ImVec2(0.0F, 1.0F), ImVec2(1.0F, 0.0F));
 
                             // Pop texture node
                             ImGui::TreePop();

@@ -204,14 +204,14 @@ void Material::setRefractiveIndex(const float &value) {
 // Set a new texture map
 void Material::setTexture(const std::string &path, const Texture::Type &texture) {
     switch (texture) {
-        case Texture::AMBIENT:      delete ambient_map;      ambient_map      = new Texture(path); return;
-        case Texture::DIFFUSE:      delete diffuse_map;      diffuse_map      = new Texture(path); return;
-        case Texture::SPECULAR:     delete specular_map;     specular_map     = new Texture(path); return;
-        case Texture::SHININESS:    delete shininess_map;    shininess_map    = new Texture(path); return;
-        case Texture::ALPHA:        delete alpha_map;        alpha_map        = new Texture(path); return;
-        case Texture::BUMP:         delete bump_map;         bump_map         = new Texture(path); return;
-        case Texture::DISPLACEMENT: delete displacement_map; displacement_map = new Texture(path); return;
-        case Texture::STENCIL:      delete stencil_map;      stencil_map      = new Texture(path); return;
+        case Texture::AMBIENT:      delete ambient_map;      ambient_map      = new Texture(path, Texture::AMBIENT);      return;
+        case Texture::DIFFUSE:      delete diffuse_map;      diffuse_map      = new Texture(path, Texture::DIFFUSE);      return;
+        case Texture::SPECULAR:     delete specular_map;     specular_map     = new Texture(path, Texture::SPECULAR);     return;
+        case Texture::SHININESS:    delete shininess_map;    shininess_map    = new Texture(path, Texture::SHININESS);    return;
+        case Texture::ALPHA:        delete alpha_map;        alpha_map        = new Texture(path, Texture::ALPHA);        return;
+        case Texture::BUMP:         delete bump_map;         bump_map         = new Texture(path, Texture::BUMP);         return;
+        case Texture::DISPLACEMENT: delete displacement_map; displacement_map = new Texture(path, Texture::DISPLACEMENT); return;
+        case Texture::STENCIL:      delete stencil_map;      stencil_map      = new Texture(path, Texture::STENCIL);      return;
         default: throw std::runtime_error("error: unknown texture map `" + std::to_string(texture) + "'");
     }
 }

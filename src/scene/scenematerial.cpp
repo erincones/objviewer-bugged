@@ -38,43 +38,43 @@ SceneMaterial::SceneMaterial(Material *const source) {
 
 // Reload texture
 void SceneMaterial::reload(const Texture::Type &texture) {
-    if (texture | Texture::AMBIENT) {
+    if (texture & Texture::AMBIENT) {
         material->setTexture(ambient_path, Texture::AMBIENT);
         ambient_label = material->getTexture(Texture::AMBIENT)->getName();
     }
 
-    if (texture | Texture::DIFFUSE) {
-        material->setTexture(ambient_path, Texture::DIFFUSE);
+    if (texture & Texture::DIFFUSE) {
+        material->setTexture(diffuse_path, Texture::DIFFUSE);
         diffuse_label = material->getTexture(Texture::DIFFUSE)->getName();
     }
 
-    if (texture | Texture::SPECULAR) {
-        material->setTexture(ambient_path, Texture::SPECULAR);
+    if (texture & Texture::SPECULAR) {
+        material->setTexture(specular_path, Texture::SPECULAR);
         specular_label = material->getTexture(Texture::SPECULAR)->getName();
     }
 
-    if (texture | Texture::SHININESS) {
-        material->setTexture(ambient_path, Texture::SHININESS);
+    if (texture & Texture::SHININESS) {
+        material->setTexture(shininess_path, Texture::SHININESS);
         shininess_label = material->getTexture(Texture::SHININESS)->getName();
     }
 
-    if (texture | Texture::ALPHA) {
-        material->setTexture(ambient_path, Texture::ALPHA);
+    if (texture & Texture::ALPHA) {
+        material->setTexture(alpha_path, Texture::ALPHA);
         alpha_label = material->getTexture(Texture::ALPHA)->getName();
     }
 
-    if (texture | Texture::BUMP) {
-        material->setTexture(ambient_path, Texture::BUMP);
+    if (texture & Texture::BUMP) {
+        material->setTexture(bump_path, Texture::BUMP);
         bump_label = material->getTexture(Texture::BUMP)->getName();
     }
 
-    if (texture | Texture::DISPLACEMENT) {
-        material->setTexture(ambient_path, Texture::DISPLACEMENT);
+    if (texture & Texture::DISPLACEMENT) {
+        material->setTexture(displacement_path, Texture::DISPLACEMENT);
         displacement_label = material->getTexture(Texture::DISPLACEMENT)->getName();
     }
 
-    if (texture | Texture::STENCIL) {
-        material->setTexture(ambient_path, Texture::STENCIL);
+    if (texture & Texture::STENCIL) {
+        material->setTexture(stencil_path, Texture::STENCIL);
         stencil_label = material->getTexture(Texture::STENCIL)->getName();
     }
 }
@@ -99,7 +99,7 @@ void SceneMaterial::reset() {
 
 // Get the GUI ID
 std::uint32_t SceneMaterial::getGUIID() const {
-    return std::uint32_t();
+    return gui_id;
 }
 
 // Get label
