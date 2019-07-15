@@ -274,7 +274,7 @@ void Model::readMTL() {
 		else if (token == "map_ka") {
 			stream >> std::ws;
 			std::getline(stream, token);
-			material->setAmbientMap(dir_path + token);
+			material->setTexture(dir_path + token, Texture::AMBIENT);
             textures++;
 		}
 
@@ -282,7 +282,7 @@ void Model::readMTL() {
 		else if (token == "map_kd") {
 			stream >> std::ws;
 			std::getline(stream, token);
-			material->setDiffuseMap(dir_path + token);
+			material->setTexture(dir_path + token, Texture::DIFFUSE);
             textures++;
 		}
 
@@ -290,7 +290,7 @@ void Model::readMTL() {
 		else if (token == "map_ks") {
 			stream >> std::ws;
 			std::getline(stream, token);
-			material->setSpecularMap(dir_path + token);
+			material->setTexture(dir_path + token, Texture::SPECULAR);
             textures++;
 		}
 
@@ -298,7 +298,7 @@ void Model::readMTL() {
 		else if (token == "map_ns") {
 			stream >> std::ws;
 			std::getline(stream, token);
-			material->setShininessMap(dir_path + token);
+			material->setTexture(dir_path + token, Texture::SHININESS);
             textures++;
 		}
 
@@ -306,7 +306,7 @@ void Model::readMTL() {
 		else if (token == "map_d") {
 			stream >> std::ws;
 			std::getline(stream, token);
-			material->setAlphaMap(dir_path + token);
+			material->setTexture(dir_path + token, Texture::ALPHA);
             textures++;
 		}
 
@@ -314,7 +314,7 @@ void Model::readMTL() {
 		else if (token == "map_bump" || token == "bump") {
 			stream >> std::ws;
 			std::getline(stream, token);
-			material->setBumpMap(dir_path + token);
+			material->setTexture(dir_path + token, Texture::BUMP);
             textures++;
 		}
 
@@ -322,7 +322,7 @@ void Model::readMTL() {
 		else if (token == "disp") {
 			stream >> std::ws;
 			std::getline(stream, token);
-			material->setDisplacementMap(dir_path + token);
+			material->setTexture(dir_path + token, Texture::DISPLACEMENT);
             textures++;
 		}
 
@@ -330,7 +330,7 @@ void Model::readMTL() {
 		else if (token == "stencil") {
 			stream >> std::ws;
 			std::getline(stream, token);
-			material->setStencilMap(dir_path + token);
+			material->setTexture(dir_path + token, Texture::STENCIL);
             textures++;
 		}
 	}

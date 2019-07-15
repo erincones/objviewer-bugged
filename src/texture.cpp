@@ -12,6 +12,17 @@
 GLuint Texture::default_id = GL_FALSE;
 unsigned int Texture::default_count = 0;
 
+// Static constants
+const std::string Texture::ambient_str      = "Ambient";
+const std::string Texture::diffuse_str      = "Diffuse";
+const std::string Texture::specular_str     = "Specular";
+const std::string Texture::shininess_str    = "Shininess";
+const std::string Texture::alpha_str        = "Alpha";
+const std::string Texture::bump_str         = "Bump";
+const std::string Texture::displacement_str = "Displacement";
+const std::string Texture::stencil_str      = "Stencil";
+const std::string Texture::any_str          = "Any";
+
 
 // Default constructor
 Texture::Texture(const bool &load_default) {
@@ -99,9 +110,10 @@ void Texture::destroy() {
 
 
 // Texture constructor
-Texture::Texture(const std::string &file_path) {
-    // Initialize texture
+Texture::Texture(const std::string &file_path, const Texture::Type &value) {
+    // Initialize texture and type
     id = GL_FALSE;
+    type = value;
     
     // Set path and name
     path = file_path;
@@ -132,6 +144,11 @@ GLuint Texture::getID() const {
 	return id;
 }
 
+// Get the texture type
+Texture::Type Texture::getType() const {
+    return type;
+}
+
 // Get path
 std::string Texture::getPath() const {
     return path;
@@ -146,6 +163,22 @@ std::string Texture::getName() const {
 // Create a white texture
 Texture *Texture::white() {
 	return new Texture(true);
+}
+
+// Type to string
+const std::string &Texture::to_string(const Texture::Type &value) {
+    switch (value) {
+        case Texture::AMBIENT:      return Texture::ambient_str;
+        case Texture::DIFFUSE:      return Texture::diffuse_str;
+        case Texture::SPECULAR:     return Texture::specular_str;
+        case Texture::SHININESS:    return Texture::shininess_str;
+        case Texture::ALPHA:        return Texture::alpha_str;
+        case Texture::BUMP:         return Texture::bump_str;
+        case Texture::DISPLACEMENT: return Texture::displacement_str;
+        case Texture::STENCIL:      return Texture::stencil_str;
+        case Texture::ANY:          return Texture::any_str;
+        default: throw std::runtime_error("error: unknown texture");
+    }
 }
 
 

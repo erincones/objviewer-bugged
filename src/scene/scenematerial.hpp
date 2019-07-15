@@ -45,28 +45,16 @@ class SceneMaterial {
         static std::uint32_t count;
 
 	public:
-        enum Texture : std::uint8_t {
-            AMBIENT      = 0x01,
-            DIFFUSE      = 0x02,
-            SPECULAR     = 0x04,
-            SHININESS    = 0x08,
-            ALPHA        = 0x10,
-            BUMP         = 0x20,
-            DISPLACEMENT = 0x40,
-            STENCIL      = 0x80,
-            ALL          = 0xFF
-        };
-
 		SceneMaterial(Material *const source);
 
-        void reload(const SceneMaterial::Texture &texture);
+        void reload(const Texture::Type &texture);
         void reset();
 
         std::uint32_t getGUIID() const;
         std::string &getLabel();
 
-        std::string &getTexturePath(const SceneMaterial::Texture &texture);
-        std::string &getTextureLabel(const SceneMaterial::Texture &texture);
+        std::string &getTexturePath(const Texture::Type &texture);
+        std::string &getTextureLabel(const Texture::Type &texture);
 
         Material *getMaterial() const;
 

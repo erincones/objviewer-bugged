@@ -11,10 +11,15 @@
 
 // Static definitions
 ImGuiIO *Scene::io = nullptr;
+char Scene::URL[] = "https://github.com/Rebaya17/objviewer/";
 
 // Static const definitions
-char Scene::URL[] = "https://github.com/Rebaya17/objviewer/";
-constexpr const char *const Scene::GUI_ID_TAG;
+const std::string Scene::CAMERA_ID_TAG   = "###camera";
+const std::string Scene::MODEL_ID_TAG    = "###model";
+const std::string Scene::MATERIAL_ID_TAG = "###material";
+const std::string Scene::TEXTURE_ID_TAG  = "###texture";
+const std::string Scene::LIGHT_ID_TAG    = "###light";
+const std::string Scene::PROGRAM_ID_TAG  = "###program";
 constexpr const ImGuiWindowFlags Scene::GUI_FLAGS;
 
 
@@ -172,16 +177,13 @@ void Scene::drawSettingsWindow() {
         ImGui::Unindent();
         ImGui::Spacing();
 
-        // Camera ID tag
-        const std::string ID_TAG = Scene::GUI_ID_TAG + std::string("cam");
-
         // Camera indices
         std::size_t index = -1;
         std::size_t remove = -1;
 
         // Draw camera node
         for (SceneCamera *&scene_cam : camera_stock) {
-            const std::string title = scene_cam->getLabel() + ID_TAG + std::to_string(scene_cam->getGUIID());
+            const std::string title = scene_cam->getLabel() + Scene::CAMERA_ID_TAG + std::to_string(scene_cam->getGUIID());
             index++;
 
             if (ImGui::TreeNode(title.c_str())) {
@@ -206,16 +208,13 @@ void Scene::drawSettingsWindow() {
 
     // Models
     if (ImGui::CollapsingHeader("Models")) {
-        // Model ID tag
-        const std::string ID_TAG = Scene::GUI_ID_TAG + std::string("model");
-
         // Model indices
         std::size_t index = -1;
         std::size_t remove = -1;
 
         // Draw model node
         for (SceneModel *&model : model_stock) {
-            const std::string title = model->getLabel() + ID_TAG + std::to_string(model->getGUIID());
+            const std::string title = model->getLabel() + Scene::MODEL_ID_TAG + std::to_string(model->getGUIID());
             index++;
 
             if (ImGui::TreeNode(title.c_str())) {
@@ -470,12 +469,15 @@ bool Scene::drawModelGUI(SceneModel *const model) {
         if (ImGui::Checkbox("Lock aspect", &lock_scale))
             model->setScaleLocked(lock_scale);
 
+
         // Pop geometry node
         ImGui::TreePop();
+        ImGui::Spacing();
     }
 
     // Materials
-    if (ImGui::TreeNode("Materials")) {
+    const std::string material_title = "Materials (" + std::to_string(model->Model::getMaterials()) + ")";
+    if (ImGui::TreeNode(material_title.c_str())) {
         // Material path
         ImGui::InputText("Path", &model->getMaterialPath(), ImGuiInputTextFlags_ReadOnly); Scene::HelpMarker("Read only");
 
@@ -556,11 +558,20 @@ bool Scene::drawModelGUI(SceneModel *const model) {
         }
         ImGui::Unindent();
 
+
         // Material stock
         for (SceneMaterial *&scene_material : model->getMaterialStock()) {
-            if (ImGui::TreeNode(scene_material->getLabel().c_str())) {
+            // Get tittle
+            const std::string material_title = scene_material->getLabel() + Scene::MATERIAL_ID_TAG + std::to_string(scene_material->getGUIID());
+            
+            // Material node
+            if (ImGui::TreeNode(material_title.c_str())) {
                 // Get the material
                 Material *material = scene_material->getMaterial();
+
+                // Material name
+                ImGui::InputText("Name", &scene_material->getLabel());
+
 
                 // Ambient component
                 glm::vec3 color = material->getAmbientColor();
@@ -596,6 +607,43 @@ bool Scene::drawModelGUI(SceneModel *const model) {
                 value = material->getMetalness();
                 if (ImGui::DragFloat("Metalness", &value, 0.001F, 0.0F, 1.0F, "%.4F"))
                     material->setMetalness(value);
+
+
+                // Textures node
+                ImGui::Spacing();
+                if (ImGui::TreeNode("Textures")) {
+                    for (std::uint8_t i = Texture::AMBIENT; i != 0U; i <<= 1U) {
+                        // Get texture
+                        const Texture::Type type = (Texture::Type)i;
+                        Texture *texture = material->getTexture(type);
+                        GLuint id = texture->getID();
+
+                        // Texture title
+                        const std::string texture_title = Texture::to_string(type) + ": " + scene_material->getTextureLabel(type) + Scene::TEXTURE_ID_TAG + std::to_string(id);
+
+                        if (ImGui::TreeNode(texture_title.c_str())) {
+                            // Texture path
+                            if (ImGui::InputText("Path", &scene_material->getTexturePath(type), ImGuiInputTextFlags_EnterReturnsTrue))
+                                scene_material->reload(type);
+
+                            // Texture name
+                            ImGui::InputText("Name", &scene_material->getTextureLabel(type));
+
+                            // Reload buttons
+                            if (ImGui::Button("Reload texture"))
+                                scene_material->reload(type);
+
+                            // Draw texture
+                            ImGui::Image((void *)(intptr_t)id, ImVec2(300.0F, 300.0F));
+
+                            // Pop texture node
+                            ImGui::TreePop();
+                        }
+                    }
+
+                    // Pop textures node
+                    ImGui::TreePop();
+                }
 
                 // Pop material node
                 ImGui::TreePop();

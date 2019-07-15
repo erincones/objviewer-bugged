@@ -7,15 +7,28 @@
 #include <map>
 
 class Texture {
+    public:
+        enum Type : std::uint8_t {
+            AMBIENT      = 0x01,
+            DIFFUSE      = 0x02,
+            SPECULAR     = 0x04,
+            SHININESS    = 0x08,
+            ALPHA        = 0x10,
+            BUMP         = 0x20,
+            DISPLACEMENT = 0x40,
+            STENCIL      = 0x80,
+            ANY          = 0xFF
+        };
+
     private:
         // Disable copy and assignation
         Texture() = delete;
         Texture(const Texture &) = delete;
         Texture &operator = (const Texture &) = delete;
 
-    protected:
-        // Texture ID
+        // Texture ID and type
         GLuint id;
+        Texture::Type type;
 
         // Path and name
         std::string path;
@@ -35,18 +48,31 @@ class Texture {
 		static GLuint default_id;
 		static unsigned int default_count;
 
+        // Static const variables
+        static const std::string ambient_str;
+        static const std::string diffuse_str;
+        static const std::string specular_str;
+        static const std::string shininess_str;
+        static const std::string alpha_str;
+        static const std::string bump_str;
+        static const std::string displacement_str;
+        static const std::string stencil_str;
+        static const std::string any_str;
+
     public:
-        Texture(const std::string &file_path);
+        Texture(const std::string &file_path, const Texture::Type &value = Texture::ANY);
 
         void bind(const GLenum &unit) const;
 
         bool isOpen() const;
 		GLuint getID() const;
+        Texture::Type getType() const;
         std::string getPath() const;
         std::string getName() const;
 
 
 		static Texture *white();
+        static const std::string &to_string(const Texture::Type &value);
 
         ~Texture();
 };

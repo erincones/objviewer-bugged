@@ -13,77 +13,69 @@ SceneMaterial::SceneMaterial(Material *const source) {
     label = "[" + std::to_string(gui_id) + "] " + source->getName();
 
     // Paths
-    ambient_path      = source->getAmbientMap()->getPath();
-    diffuse_path      = source->getDiffuseMap()->getPath();
-    specular_path     = source->getSpecularMap()->getPath();
-    shininess_path    = source->getShininessMap()->getPath();
-    alpha_path        = source->getAlphaMap()->getPath();
-    bump_path         = source->getBumpMap()->getPath();
-    displacement_path = source->getDisplacementMap()->getPath();
-    stencil_path      = source->getStencilMap()->getPath();
+    ambient_path      = source->getTexture(Texture::AMBIENT)->getPath();
+    diffuse_path      = source->getTexture(Texture::DIFFUSE)->getPath();
+    specular_path     = source->getTexture(Texture::SPECULAR)->getPath();
+    shininess_path    = source->getTexture(Texture::SHININESS)->getPath();
+    alpha_path        = source->getTexture(Texture::ALPHA)->getPath();
+    bump_path         = source->getTexture(Texture::BUMP)->getPath();
+    displacement_path = source->getTexture(Texture::DISPLACEMENT)->getPath();
+    stencil_path      = source->getTexture(Texture::STENCIL)->getPath();
 
     // Labels
-    ambient_label      = source->getAmbientMap()->getName();
-    diffuse_label      = source->getDiffuseMap()->getName();
-    specular_label     = source->getSpecularMap()->getName();
-    shininess_label    = source->getShininessMap()->getName();
-    alpha_label        = source->getAlphaMap()->getName();
-    bump_label         = source->getBumpMap()->getName();
-    displacement_label = source->getDisplacementMap()->getName();
-    stencil_label      = source->getStencilMap()->getName();
+    ambient_label      = source->getTexture(Texture::AMBIENT)->getName();
+    diffuse_label      = source->getTexture(Texture::DIFFUSE)->getName();
+    specular_label     = source->getTexture(Texture::SPECULAR)->getName();
+    shininess_label    = source->getTexture(Texture::SHININESS)->getName();
+    alpha_label        = source->getTexture(Texture::ALPHA)->getName();
+    bump_label         = source->getTexture(Texture::BUMP)->getName();
+    displacement_label = source->getTexture(Texture::DISPLACEMENT)->getName();
+    stencil_label      = source->getTexture(Texture::STENCIL)->getName();
 
     // Material
     material = source;
 }
 
 // Reload texture
-void SceneMaterial::reload(const SceneMaterial::Texture &texture) {
-    // Ambient
-    if (texture | SceneMaterial::AMBIENT) {
-        material->setAmbientMap(ambient_path);
-        ambient_label = material->getAmbientMap()->getName();
+void SceneMaterial::reload(const Texture::Type &texture) {
+    if (texture | Texture::AMBIENT) {
+        material->setTexture(ambient_path, Texture::AMBIENT);
+        ambient_label = material->getTexture(Texture::AMBIENT)->getName();
     }
 
-    // Difusse
-    if (texture | SceneMaterial::DIFFUSE) {
-        material->setDiffuseMap(diffuse_path);          
-        diffuse_label = material->getDiffuseMap()->getName();
+    if (texture | Texture::DIFFUSE) {
+        material->setTexture(ambient_path, Texture::DIFFUSE);
+        diffuse_label = material->getTexture(Texture::DIFFUSE)->getName();
     }
 
-    // Specular
-    if (texture | SceneMaterial::SPECULAR) {
-        material->setSpecularMap(specular_path);        
-        specular_label = material->getSpecularMap()->getName();
+    if (texture | Texture::SPECULAR) {
+        material->setTexture(ambient_path, Texture::SPECULAR);
+        specular_label = material->getTexture(Texture::SPECULAR)->getName();
     }
 
-    // Shininess
-    if (texture | SceneMaterial::SHININESS) {
-        material->setShininessMap(shininess_path);      
-        shininess_label = material->getShininessMap()->getName();
+    if (texture | Texture::SHININESS) {
+        material->setTexture(ambient_path, Texture::SHININESS);
+        shininess_label = material->getTexture(Texture::SHININESS)->getName();
     }
 
-    // Alpha
-    if (texture | SceneMaterial::ALPHA) {
-        material->setAlphaMap(alpha_path);              
-        alpha_label = material->getAlphaMap()->getName();
+    if (texture | Texture::ALPHA) {
+        material->setTexture(ambient_path, Texture::ALPHA);
+        alpha_label = material->getTexture(Texture::ALPHA)->getName();
     }
 
-    // Bump
-    if (texture | SceneMaterial::BUMP) {
-        material->setBumpMap(bump_path);                
-        bump_label = material->getBumpMap()->getName();
+    if (texture | Texture::BUMP) {
+        material->setTexture(ambient_path, Texture::BUMP);
+        bump_label = material->getTexture(Texture::BUMP)->getName();
     }
 
-    // Displacement
-    if (texture | SceneMaterial::DISPLACEMENT) {
-        material->setDisplacementMap(displacement_path);
-        displacement_label = material->getDisplacementMap()->getName();
+    if (texture | Texture::DISPLACEMENT) {
+        material->setTexture(ambient_path, Texture::DISPLACEMENT);
+        displacement_label = material->getTexture(Texture::DISPLACEMENT)->getName();
     }
 
-    // Stencil
-    if (texture | SceneMaterial::STENCIL) {
-        material->setStencilMap(stencil_path);          
-        stencil_label = material->getStencilMap()->getName();
+    if (texture | Texture::STENCIL) {
+        material->setTexture(ambient_path, Texture::STENCIL);
+        stencil_label = material->getTexture(Texture::STENCIL)->getName();
     }
 }
 
@@ -117,31 +109,31 @@ std::string &SceneMaterial::getLabel() {
 
 
 // Get the path for one texture
-std::string &SceneMaterial::getTexturePath(const SceneMaterial::Texture &texture) {
+std::string &SceneMaterial::getTexturePath(const Texture::Type &texture) {
     switch (texture) {
-        case SceneMaterial::AMBIENT:      return ambient_path;
-        case SceneMaterial::DIFFUSE:      return diffuse_path;
-        case SceneMaterial::SPECULAR:     return specular_path;
-        case SceneMaterial::SHININESS:    return shininess_path;
-        case SceneMaterial::ALPHA:        return alpha_path;
-        case SceneMaterial::BUMP:         return bump_path;
-        case SceneMaterial::DISPLACEMENT: return displacement_path;
-        case SceneMaterial::STENCIL:      return stencil_path;
+        case Texture::AMBIENT:      return ambient_path;
+        case Texture::DIFFUSE:      return diffuse_path;
+        case Texture::SPECULAR:     return specular_path;
+        case Texture::SHININESS:    return shininess_path;
+        case Texture::ALPHA:        return alpha_path;
+        case Texture::BUMP:         return bump_path;
+        case Texture::DISPLACEMENT: return displacement_path;
+        case Texture::STENCIL:      return stencil_path;
         default: throw std::runtime_error("error: unknown texture");
     }
 }
 
 // Get the label for one texture
-std::string &SceneMaterial::getTextureLabel(const SceneMaterial::Texture &texture) {
+std::string &SceneMaterial::getTextureLabel(const Texture::Type &texture) {
     switch (texture) {
-        case SceneMaterial::AMBIENT:      return ambient_label;
-        case SceneMaterial::DIFFUSE:      return diffuse_label;
-        case SceneMaterial::SPECULAR:     return specular_label;
-        case SceneMaterial::SHININESS:    return shininess_label;
-        case SceneMaterial::ALPHA:        return alpha_label;
-        case SceneMaterial::BUMP:         return bump_label;
-        case SceneMaterial::DISPLACEMENT: return displacement_label;
-        case SceneMaterial::STENCIL:      return stencil_label;
+        case Texture::AMBIENT:      return ambient_label;
+        case Texture::DIFFUSE:      return diffuse_label;
+        case Texture::SPECULAR:     return specular_label;
+        case Texture::SHININESS:    return shininess_label;
+        case Texture::ALPHA:        return alpha_label;
+        case Texture::BUMP:         return bump_label;
+        case Texture::DISPLACEMENT: return displacement_label;
+        case Texture::STENCIL:      return stencil_label;
         default: throw std::runtime_error("error: unknown texture");
     }
 }

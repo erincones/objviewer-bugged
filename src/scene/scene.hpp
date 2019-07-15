@@ -60,7 +60,12 @@ class Scene {
         static char URL[];
 
 		// Static const attributes
-		static constexpr const char *const GUI_ID_TAG = "###";
+		static const std::string CAMERA_ID_TAG;
+        static const std::string MODEL_ID_TAG;
+        static const std::string MATERIAL_ID_TAG;
+        static const std::string TEXTURE_ID_TAG;
+        static const std::string LIGHT_ID_TAG;
+        static const std::string PROGRAM_ID_TAG;
 		static constexpr const ImGuiWindowFlags GUI_FLAGS = ImGuiWindowFlags_NoResize |
 															ImGuiWindowFlags_NoMove |
 															ImGuiWindowFlags_NoBringToFrontOnFocus;

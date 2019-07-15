@@ -1,5 +1,6 @@
 #include "material.hpp"
 
+#include <stdexcept>
 
 // Material empty constructor
 Material::Material(const std::string &material_name) {
@@ -131,44 +132,19 @@ float Material::getRefractiveIndex() const {
 }
 
 
-// Get the ambient map
-Texture *Material::getAmbientMap() const {
-	return ambient_map;
-}
-
-// Get the diffuse map
-Texture *Material::getDiffuseMap() const {
-	return diffuse_map;
-}
-
-// Get the specular map
-Texture *Material::getSpecularMap() const {
-	return specular_map;
-}
-
-// Get the shininess map
-Texture *Material::getShininessMap() const {
-	return shininess_map;
-}
-
-// Get the alpha map
-Texture *Material::getAlphaMap() const {
-	return alpha_map;
-}
-
-// Get the bump map
-Texture *Material::getBumpMap() const {
-	return bump_map;
-}
-
-// Get the displacement map
-Texture *Material::getDisplacementMap() const {
-	return displacement_map;
-}
-
-// Get the stencil map
-Texture *Material::getStencilMap() const {
-	return stencil_map;
+// Get thxture map
+Texture *Material::getTexture(const Texture::Type &texture) const {
+    switch (texture) {
+        case Texture::AMBIENT:      return ambient_map;
+        case Texture::DIFFUSE:      return diffuse_map;
+        case Texture::SPECULAR:     return specular_map;
+        case Texture::SHININESS:    return shininess_map;
+        case Texture::ALPHA:        return alpha_map;
+        case Texture::BUMP:         return bump_map;
+        case Texture::DISPLACEMENT: return displacement_map;
+        case Texture::STENCIL:      return stencil_map;
+        default: throw std::runtime_error("error: unknown texture map `" + std::to_string(texture) + "'");
+    }
 }
 
 
@@ -225,53 +201,23 @@ void Material::setRefractiveIndex(const float &value) {
 }
 
 
-// Set the ambient map
-void Material::setAmbientMap(const std::string &path) {
-	delete ambient_map;
-	ambient_map = new Texture(path);
+// Set a new texture map
+void Material::setTexture(const std::string &path, const Texture::Type &texture) {
+    switch (texture) {
+        case Texture::AMBIENT:      delete ambient_map;      ambient_map      = new Texture(path); return;
+        case Texture::DIFFUSE:      delete diffuse_map;      diffuse_map      = new Texture(path); return;
+        case Texture::SPECULAR:     delete specular_map;     specular_map     = new Texture(path); return;
+        case Texture::SHININESS:    delete shininess_map;    shininess_map    = new Texture(path); return;
+        case Texture::ALPHA:        delete alpha_map;        alpha_map        = new Texture(path); return;
+        case Texture::BUMP:         delete bump_map;         bump_map         = new Texture(path); return;
+        case Texture::DISPLACEMENT: delete displacement_map; displacement_map = new Texture(path); return;
+        case Texture::STENCIL:      delete stencil_map;      stencil_map      = new Texture(path); return;
+        default: throw std::runtime_error("error: unknown texture map `" + std::to_string(texture) + "'");
+    }
 }
 
-// Set the diffuse map
-void Material::setDiffuseMap(const std::string &path) {
-	delete diffuse_map;
-	diffuse_map = new Texture(path);
-}
 
-// Set the specular map
-void Material::setSpecularMap(const std::string &path) {
-	delete specular_map;
-	specular_map = new Texture(path);
-}
 
-// Set the shininess map
-void Material::setShininessMap(const std::string &path) {
-	delete shininess_map;
-	shininess_map = new Texture(path);
-}
-
-// Set the alpha map
-void Material::setAlphaMap(const std::string &path) {
-	delete alpha_map;
-	alpha_map = new Texture(path);
-}
-
-// Set the bump map
-void Material::setBumpMap(const std::string &path) {
-	delete bump_map;
-	bump_map = new Texture(path);
-}
-
-// Set displacement map
-void Material::setDisplacementMap(const std::string &path) {
-	delete displacement_map;
-	displacement_map = new Texture(path);
-}
-
-// Set stencil map
-void Material::setStencilMap(const std::string &path) {
-	delete stencil_map;
-	stencil_map = new Texture(path);
-}
 
 
 // Delete material
