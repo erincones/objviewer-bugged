@@ -1,5 +1,13 @@
 #include "light.hpp"
 
+#include <stdexcept>
+
+// Static const definitions
+const std::string Light::DIRECTIONAL_STR = "Directional";
+const std::string Light::POINT_STR       = "Point";
+const std::string Light::SPOTLIGHT_STR   = "Spotlight";
+
+
 // Constructor
 Light::Light(const Light::Type &value) {
     // Set type
@@ -201,4 +209,15 @@ glm::vec3 Light::getAttenuation() const {
 // Get cutoff
 glm::vec2 Light::getCutoff() const {
     return glm::degrees(cutoff);
+}
+
+
+// Type to string
+const std::string &Light::to_string(const Light::Type &type) {
+    switch (type) {
+        case Light::DIRECTIONAL: return Light::DIRECTIONAL_STR;
+        case Light::POINT:       return Light::POINT_STR;
+        case Light::SPOTLIGHT:   return Light::SPOTLIGHT_STR;
+        default: throw std::runtime_error("error: unknown light `" + std::to_string(type) + "'");
+    }
 }

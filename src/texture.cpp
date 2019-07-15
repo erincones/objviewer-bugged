@@ -13,15 +13,15 @@ GLuint Texture::default_id = GL_FALSE;
 unsigned int Texture::default_count = 0;
 
 // Static constants
-const std::string Texture::ambient_str      = "Ambient";
-const std::string Texture::diffuse_str      = "Diffuse";
-const std::string Texture::specular_str     = "Specular";
-const std::string Texture::shininess_str    = "Shininess";
-const std::string Texture::alpha_str        = "Alpha";
-const std::string Texture::bump_str         = "Bump";
-const std::string Texture::displacement_str = "Displacement";
-const std::string Texture::stencil_str      = "Stencil";
-const std::string Texture::any_str          = "Any";
+const std::string Texture::AMBIENT_STR      = "Ambient";
+const std::string Texture::DIFFUSE_STR      = "Diffuse";
+const std::string Texture::SPECULAR_STR     = "Specular";
+const std::string Texture::SHININESS_STR    = "Shininess";
+const std::string Texture::ALPHA_STR        = "Alpha";
+const std::string Texture::BUMP_STR         = "Bump";
+const std::string Texture::DISPLACEMENT_STR = "Displacement";
+const std::string Texture::STENCIL_STR      = "Stencil";
+const std::string Texture::ANY_STR          = "Any";
 
 
 // Default constructor
@@ -168,15 +168,15 @@ Texture *Texture::white() {
 // Type to string
 const std::string &Texture::to_string(const Texture::Type &value) {
     switch (value) {
-        case Texture::AMBIENT:      return Texture::ambient_str;
-        case Texture::DIFFUSE:      return Texture::diffuse_str;
-        case Texture::SPECULAR:     return Texture::specular_str;
-        case Texture::SHININESS:    return Texture::shininess_str;
-        case Texture::ALPHA:        return Texture::alpha_str;
-        case Texture::BUMP:         return Texture::bump_str;
-        case Texture::DISPLACEMENT: return Texture::displacement_str;
-        case Texture::STENCIL:      return Texture::stencil_str;
-        case Texture::ANY:          return Texture::any_str;
+        case Texture::AMBIENT:      return Texture::AMBIENT_STR;
+        case Texture::DIFFUSE:      return Texture::DIFFUSE_STR;
+        case Texture::SPECULAR:     return Texture::SPECULAR_STR;
+        case Texture::SHININESS:    return Texture::SHININESS_STR;
+        case Texture::ALPHA:        return Texture::ALPHA_STR;
+        case Texture::BUMP:         return Texture::BUMP_STR;
+        case Texture::DISPLACEMENT: return Texture::DISPLACEMENT_STR;
+        case Texture::STENCIL:      return Texture::STENCIL_STR;
+        case Texture::ANY:          return Texture::ANY_STR;
         default: throw std::runtime_error("error: unknown texture");
     }
 }

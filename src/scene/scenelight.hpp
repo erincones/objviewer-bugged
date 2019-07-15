@@ -77,7 +77,7 @@ class SceneLight : public Light {
         static std::size_t getNumberOfLights();
 		static const SceneCamera *const getCamera();
 		static SceneProgram *const getProgram();
-		static const SceneModel *const getModel();
+		static SceneModel *const getModel();
 
 
         ~SceneLight();

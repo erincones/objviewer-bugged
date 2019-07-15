@@ -49,15 +49,15 @@ class Texture {
 		static unsigned int default_count;
 
         // Static const variables
-        static const std::string ambient_str;
-        static const std::string diffuse_str;
-        static const std::string specular_str;
-        static const std::string shininess_str;
-        static const std::string alpha_str;
-        static const std::string bump_str;
-        static const std::string displacement_str;
-        static const std::string stencil_str;
-        static const std::string any_str;
+        static const std::string AMBIENT_STR;
+        static const std::string DIFFUSE_STR;
+        static const std::string SPECULAR_STR;
+        static const std::string SHININESS_STR;
+        static const std::string ALPHA_STR;
+        static const std::string BUMP_STR;
+        static const std::string DISPLACEMENT_STR;
+        static const std::string STENCIL_STR;
+        static const std::string ANY_STR;
 
     public:
         Texture(const std::string &file_path, const Texture::Type &value = Texture::ANY);

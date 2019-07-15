@@ -54,6 +54,8 @@ class Scene {
         // Draw camera widget
         bool drawCameraGUI(SceneCamera *const scene_cam, const bool select_button = true);
         bool drawModelGUI(SceneModel *const model);
+        bool drawLightGUI(SceneLight *const light);
+        bool drawProgramGUI(SceneProgram *const program);
 
 		// Static attributes
         static ImGuiIO *io;
@@ -66,6 +68,7 @@ class Scene {
         static const std::string TEXTURE_ID_TAG;
         static const std::string LIGHT_ID_TAG;
         static const std::string PROGRAM_ID_TAG;
+        static constexpr const std::size_t LIGHTS = 5;
 		static constexpr const ImGuiWindowFlags GUI_FLAGS = ImGuiWindowFlags_NoResize |
 															ImGuiWindowFlags_NoMove |
 															ImGuiWindowFlags_NoBringToFrontOnFocus;

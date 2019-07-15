@@ -224,7 +224,7 @@ SceneProgram *const SceneLight::getProgram() {
 }
 
 // Get the model
-const SceneModel *const SceneLight::getModel() {
+SceneModel *const SceneLight::getModel() {
 	return SceneLight::model;
 }
 

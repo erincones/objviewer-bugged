@@ -2,11 +2,11 @@
 
 #include "../glad/glad.h"
 
-
 #include "../imgui/imgui_stdlib.h"
 #include "../imgui/imgui_impl_glfw.h"
 #include "../imgui/imgui_impl_opengl3.h"
 
+#include <iostream>
 
 
 // Static definitions
@@ -20,8 +20,9 @@ const std::string Scene::MATERIAL_ID_TAG = "###material";
 const std::string Scene::TEXTURE_ID_TAG  = "###texture";
 const std::string Scene::LIGHT_ID_TAG    = "###light";
 const std::string Scene::PROGRAM_ID_TAG  = "###program";
-constexpr const ImGuiWindowFlags Scene::GUI_FLAGS;
 
+constexpr const std::size_t Scene::LIGHTS;
+constexpr const ImGuiWindowFlags Scene::GUI_FLAGS;
 
 
 // Display a little (?) mark which shows a tooltip when hovered.
@@ -237,6 +238,78 @@ void Scene::drawSettingsWindow() {
         ImGui::PopStyleColor(3);
     }
 
+    // Lights
+    if (ImGui::CollapsingHeader("Lights")) {
+        // Global settings
+        ImGui::BulletText("Settings");
+        ImGui::Indent();
+
+        // Model path
+        SceneModel *model = SceneLight::getModel();
+        if (ImGui::InputText("Path", &model->getPath(), ImGuiInputTextFlags_EnterReturnsTrue))
+            SceneLight::getModel()->reload();
+
+        // Model name
+        ImGui::InputText("Name", &model->getLabel());
+
+        // Reload buttons
+        if (ImGui::Button("Reload model"))
+            model->reload();
+
+        // Check open status
+        if (!model->isOpen()) {
+            ImGui::SameLine();
+            ImGui::TextColored(ImVec4(0.80F, 0.16F, 0.16F, 1.00F), "Could not open the model");
+        }
+        ImGui::Spacing();
+
+        // Light program
+        SceneProgram *program = SceneLight::getProgram();
+
+        // Program name
+        ImGui::InputText("Name", &program->getLabel());
+
+        // Shaders
+        if (ImGui::InputText("Vertex",           &program->getShaderPath(GL_VERTEX_SHADER),          ImGuiInputTextFlags_EnterReturnsTrue)) program->reload();
+        if (ImGui::InputText("Tess. Control",    &program->getShaderPath(GL_TESS_CONTROL_SHADER),    ImGuiInputTextFlags_EnterReturnsTrue)) program->reload();
+        if (ImGui::InputText("Tess. Evaluation", &program->getShaderPath(GL_TESS_EVALUATION_SHADER), ImGuiInputTextFlags_EnterReturnsTrue)) program->reload();
+        if (ImGui::InputText("Geometry",         &program->getShaderPath(GL_GEOMETRY_SHADER),        ImGuiInputTextFlags_EnterReturnsTrue)) program->reload();
+        if (ImGui::InputText("Fragment",         &program->getShaderPath(GL_FRAGMENT_SHADER),        ImGuiInputTextFlags_EnterReturnsTrue)) program->reload();
+        
+        ImGui::Unindent();
+        ImGui::Separator();
+
+        // Model indices
+        std::size_t index = -1;
+        std::size_t remove = -1;
+
+        // Draw model node
+        for (SceneLight *&light : light_stock) {
+            const std::string title = light->getLabel() + Scene::LIGHT_ID_TAG + std::to_string(light->getGUIID());
+            index++;
+
+            if (ImGui::TreeNode(title.c_str())) {
+                if (!Scene::drawLightGUI(light))
+                    remove = index;
+                ImGui::TreePop();
+            }
+        }
+
+        // Remove camera
+        if (remove != -1)
+            popLight(remove);
+
+        // Add button if the stock is not full
+        if (light_stock.size() < Scene::LIGHTS) {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.24F, 0.60F, 0.44F, 1.00F));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.16F, 0.80F, 0.52F, 1.00F));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.21F, 0.70F, 0.49F, 1.00F));
+            if (ImGui::Button("Add model", ImVec2(454.0F, 19.0F)))
+                pushModel();
+            ImGui::PopStyleColor(3);
+        }
+    }
+
 
     // End main window
     ImGui::End();
@@ -334,6 +407,9 @@ bool Scene::drawCameraGUI(SceneCamera *const scene_cam, const bool select_button
     if (ImGui::DragFloat("FOV", &fov, 0.01F, 0.0F, 0.0F, "%.4F"))
         scene_cam->setFOV(fov);
 
+    // Separator when the node is open
+    ImGui::Separator();
+
     // Return keep status
     return keep;
 }
@@ -355,8 +431,8 @@ bool Scene::drawModelGUI(SceneModel *const model) {
         model->reload();
 
     // Remove button if there are more than one camera
-    ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.60F, 0.24F, 0.24F, 1.00F));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.80F, 0.16F, 0.16F, 1.00F));
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.60F, 0.24F, 0.24F, 1.00F));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.80F, 0.16F, 0.16F, 1.00F));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.70F, 0.21F, 0.21F, 1.00F));
     ImGui::SameLine();
     if (ImGui::Button("Remove"))
@@ -390,7 +466,7 @@ bool Scene::drawModelGUI(SceneModel *const model) {
     bool show_bounding_box = model->showingBoundingBox();
     if (ImGui::Checkbox("Show bounding box", &show_bounding_box))
         model->showBoundingBox(show_bounding_box);
-    
+
 
     // Sumary
     if (ImGui::TreeNodeEx("Sumary", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -406,11 +482,11 @@ bool Scene::drawModelGUI(SceneModel *const model) {
 
     // Scene programs
     ImGui::Spacing();
-    const char *const program_title = (model->getProgram() != nullptr ? model->getProgram()->getLabel().c_str() : "null");
-    if (ImGui::BeginCombo("GLSL program", program_title)) {
+    const std::string program_title = (model->getProgram() != nullptr ? model->getProgram()->getLabel() : "null");
+    if (ImGui::BeginCombo("GLSL program", program_title.c_str())) {
         // Get program
         SceneProgram *current_program = model->getProgram();
-        
+
         // Default shader
         bool selected = (current_program == SceneProgram::getDefault());
 
@@ -424,7 +500,7 @@ bool Scene::drawModelGUI(SceneModel *const model) {
         // Set default focus to selected
         if (selected)
             ImGui::SetItemDefaultFocus();
-        
+
         // The programs in stock
         for (SceneProgram *const &program : program_stock) {
             // Compare GLSL program with the current
@@ -564,7 +640,7 @@ bool Scene::drawModelGUI(SceneModel *const model) {
             // Get tittle
             const std::string material_id = std::to_string(scene_material->getGUIID());
             const std::string material_title = scene_material->getLabel() + Scene::MATERIAL_ID_TAG + material_id;
-            
+
             // Material node
             if (ImGui::TreeNode(material_title.c_str())) {
                 // Get the material
@@ -652,11 +728,141 @@ bool Scene::drawModelGUI(SceneModel *const model) {
 
         // Pop materials node
         ImGui::TreePop();
+        ImGui::Separator();
+    }
+
+    // Separator when the node is open
+    ImGui::Separator();
+
+    // Return keep status
+    return keep;
+}
+
+// Draw light data and return false if have to remove
+bool Scene::drawLightGUI(SceneLight *const light) {
+    // Keep flag
+    bool keep = true;
+
+    // Light name
+    ImGui::InputText("Name", &light->getLabel());
+
+    // Light type
+    Light::Type type = light->getType();
+    if (ImGui::BeginCombo("Type", Light::to_string(type).c_str())) {
+        for (std::uint32_t i = Light::DIRECTIONAL; i <= Light::SPOTLIGHT; i++) {
+            const Light::Type new_type = (Light::Type)i;
+
+            // Compare type with the current
+            bool selected = (type == new_type);
+
+            // Add items and mark the selected
+            if (ImGui::Selectable(Light::to_string(new_type).c_str(), selected))
+                light->setType(new_type);
+
+            if (selected)
+                ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndCombo();
+    }
+
+    // Enabled status
+    bool status = light->isEnabled();
+    if (ImGui::Checkbox("Enabled", &status))
+        light->setEnabled(status);
+
+    // Draw light status
+    status = light->drawingModel();
+    ImGui::SameLine();
+    if (ImGui::Checkbox("Draw arrow", &status))
+        light->drawModel(status);
+
+
+    // Grab for spotlights
+    if (type == Light::SPOTLIGHT) {
+        status = light->isGrabbed();
+        ImGui::SameLine();
+        if (ImGui::Checkbox("Grabbed", &status))
+            light->setGrabbed(status);
+    }
+    ImGui::Spacing();
+
+
+    // Position
+    glm::vec3 value = light->getPosition();
+    if (ImGui::DragFloat3("Position", &value.x, 0.01F, 0.0F, 0.0F, "%.4F"))
+        light->setPosition(value);
+
+    // Direction
+    value = light->getDirection();
+    if (ImGui::DragFloat3("Direction", &value.x, 0.01F, 0.0F, 0.0F, "%.4F"))
+        light->setDirection(value);
+    ImGui::Spacing();
+
+
+    // Ambient color
+    value = light->getAmbient();
+    if (ImGui::ColorEdit3("Ambient", &value.r))
+        light->setAmbient(value);
+
+    // Ambient color
+    value = light->getDiffuse();
+    if (ImGui::ColorEdit3("Diffuse", &value.r))
+        light->setDiffuse(value);
+
+    // Ambient color
+    value = light->getSpecular();
+    if (ImGui::ColorEdit3("Specular", &value.r))
+        light->setSpecular(value);
+    ImGui::Spacing();
+
+
+    // Ambient level
+    float level = light->getAmbientLevel();
+    if (ImGui::DragFloat("Ambient level", &level, 0.01F, 0.0F, 1.0F, "%.4F"))
+        light->setAmbientLevel(level);
+
+    // Specular level
+    float level = light->getSpecularLevel();
+    if (ImGui::DragFloat("Specular level", &level, 0.01F, 0.0F, 1.0F, "%.4F"))
+        light->setSpecularLevel(level);
+
+    // Shininess level
+    float level = light->getShininess();
+    if (ImGui::DragFloat("Shininess level", &level, 0.01F, 0.0F, 1.0F, "%.4F"))
+        light->setShininess(level);
+
+
+    // Attenuation for other than directional light
+    bool spaced = false;
+    if (type != Light::DIRECTIONAL) {
+        ImGui::Spacing();
+        spaced = true;
+
+        value = light->getAttenuation();
+        if (ImGui::DragFloat3("Attenuation", &value.x, 0.01F, 0.0F, FLT_MAX, "%.4F"))
+            light->setAttenuation(value);
+    }
+
+    // Cutoff for spotlight lights
+    if (type == Light::SPOTLIGHT) {
+        if (!spaced)
+            ImGui::Spacing();
+
+        glm::vec2 cutoff = light->getCutoff();
+        if (ImGui::DragFloat2("Cutoff", &cutoff.x, 0.01F, 0.0F, FLT_MAX, "%.4F"))
+            light->setCutoff(cutoff);
+
+        Scene::HelpMarker("X: Inner | Y: Outter");
     }
 
 
     // Return keep status
     return keep;
+}
+
+// Draw program data and return false if have to remove
+bool Scene::drawProgramGUI(SceneProgram *const program) {
+    return false;
 }
 
 
@@ -846,7 +1052,14 @@ std::size_t Scene::pushCamera(const bool &ortho) {
 
 // Push a new light
 std::size_t Scene::pushLight(const Light::Type &type) {
-	light_stock.push_back(new SceneLight(type));
+    // Add light if the stock is not full
+    if (light_stock.size() < Scene::LIGHTS)
+        light_stock.push_back(new SceneLight(type));
+
+    // If the stock is full
+    else
+        std::cerr << "error: the light stock is full" << std::endl;
+
 	return light_stock.size() - 1;
 }
 

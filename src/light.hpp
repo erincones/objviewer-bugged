@@ -14,6 +14,12 @@ class Light {
             SPOTLIGHT
         };
 
+    private:
+        // Static const attributes
+        static const std::string DIRECTIONAL_STR;
+        static const std::string POINT_STR;
+        static const std::string SPOTLIGHT_STR;
+
     protected:
         // Type
         Light::Type type;
@@ -80,6 +86,8 @@ class Light {
         glm::vec3 getPosition() const;
         glm::vec3 getAttenuation() const;
         glm::vec2 getCutoff() const;
+
+        static const std::string &to_string(const Light::Type &type);
 };
 
 #endif // __LIGHT_HPP_
