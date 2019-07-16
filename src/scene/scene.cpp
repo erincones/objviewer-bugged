@@ -882,13 +882,19 @@ bool Scene::drawProgramGUI(SceneProgram *const program, const bool &removable) {
 
     // Remove program button
     if (removable) {
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.60F, 0.24F, 0.24F, 1.00F));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.80F, 0.16F, 0.16F, 1.00F));
+        ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.60F, 0.24F, 0.24F, 1.00F));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.80F, 0.16F, 0.16F, 1.00F));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.70F, 0.21F, 0.21F, 1.00F));
         ImGui::SameLine();
         if (ImGui::Button("Remove"))
             keep = false;
         ImGui::PopStyleColor(3);
+    }
+
+    // Check valid status
+    if (!program->isValid()) {
+        ImGui::SameLine();
+        ImGui::TextColored(ImVec4(0.80F, 0.16F, 0.16F, 1.00F), "Invalid GLSL program");
     }
 
     // Shaders path
