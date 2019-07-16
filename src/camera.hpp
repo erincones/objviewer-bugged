@@ -14,6 +14,7 @@ class Camera {
         glm::vec3 look;
 
         // Projection attributes
+        bool orthogonal;
         float fov;
         float z_near;
         float z_far;
@@ -22,7 +23,8 @@ class Camera {
 
         // Matrices
         glm::mat4 view_matrix;
-        glm::mat4 projection_matrix;
+        glm::mat4 orthogonal_matrix;
+        glm::mat4 perspective_matrix;
 
         // Rotation
         float yaw;
@@ -33,9 +35,12 @@ class Camera {
         void updateProjectionMatrix();
 
         // Static attributes
-        static constexpr float SPEED = 0.5F;
-        static constexpr float SENSIBILITY = 15.0F;
-        static constexpr float ZOOM_FACTOR = 1.0625F;
+        static bool boost;
+
+        static float speed;
+		static float speed_boost;
+        static float sensibility;
+        static float zoom_factor;
     
     public:
         enum Movement : unsigned int {
@@ -47,7 +52,7 @@ class Camera {
             DOWN
         };
 
-        Camera(const int &width_res, const int &height_res);
+        Camera(const int &width_res, const int &height_res, const bool ortho = false);
 
         void reset();
 
@@ -56,6 +61,7 @@ class Camera {
         void setLookDirection(const glm::vec3 &dir);
         void setUp(const glm::vec3 &dir);
 
+        void setOrthogonal(const bool &status);
         void setFOV(const float &degrees);
         void setClipping(const float &near_clip, const float &far_clip);
         void setResolution(const int &width_res, const int &height_res);
@@ -69,6 +75,7 @@ class Camera {
 
         void use(GLSLProgram *const program) const;
 
+        bool isOrthogonal() const;
         glm::vec3 getPosition() const;
         glm::vec3 getLookAngles() const;
         glm::vec3 getLookDirection() const;
@@ -80,6 +87,19 @@ class Camera {
 
         glm::mat4 getViewMatrix() const;
         glm::mat4 getProjectionMatrix() const;
+
+
+        static void setBoosted(const bool &status);
+		static void setSpeed(const float &value);
+		static void setSpeedBoost(const float &value);
+		static void setSensibility(const float &value);
+		static void setZoomFactor(const float &value);
+
+        static bool isBoosted();
+		static float getSpeed();
+		static float getSpeedBoost();
+		static float getSensibility();
+		static float getZoomFactor();
 };
 
 #endif // __CAMERA_HPP_

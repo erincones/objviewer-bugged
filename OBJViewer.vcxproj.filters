@@ -31,6 +31,12 @@
     <Filter Include="Archivos de encabezado\stb">
       <UniqueIdentifier>{3586bee5-9e10-4221-9c80-f568aff6375c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Archivos de encabezado\scene">
+      <UniqueIdentifier>{c5fb8a3f-f0ab-4aee-8fbc-a0cd3c942eba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de origen\scene">
+      <UniqueIdentifier>{aa75e0ad-f23d-451d-9ecd-a3dc90a29ebf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\imgui\imconfig.h">
@@ -75,9 +81,6 @@
     <ClInclude Include="src\dirseparator.hpp">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\fnv.hpp">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
     <ClInclude Include="src\glslexception.hpp">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
@@ -102,8 +105,23 @@
     <ClInclude Include="src\texture.hpp">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="src\scene.hpp">
-      <Filter>Archivos de encabezado</Filter>
+    <ClInclude Include="src\scene\scene.hpp">
+      <Filter>Archivos de encabezado\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\scenelight.hpp">
+      <Filter>Archivos de encabezado\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\scenemodel.hpp">
+      <Filter>Archivos de encabezado\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\sceneprogram.hpp">
+      <Filter>Archivos de encabezado\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\scenematerial.hpp">
+      <Filter>Archivos de encabezado\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scene\scenecamera.hpp">
+      <Filter>Archivos de encabezado\scene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -134,9 +152,6 @@
     <ClCompile Include="src\camera.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="src\fnv.cpp">
-      <Filter>Archivos de origen</Filter>
-    </ClCompile>
     <ClCompile Include="src\glslexception.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
@@ -164,8 +179,23 @@
     <ClCompile Include="src\texture.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-    <ClCompile Include="src\scene.cpp">
-      <Filter>Archivos de origen</Filter>
+    <ClCompile Include="src\scene\scene.cpp">
+      <Filter>Archivos de origen\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\scenelight.cpp">
+      <Filter>Archivos de origen\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\scenemodel.cpp">
+      <Filter>Archivos de origen\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\sceneprogram.cpp">
+      <Filter>Archivos de origen\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\scenematerial.cpp">
+      <Filter>Archivos de origen\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene\scenecamera.cpp">
+      <Filter>Archivos de origen\scene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

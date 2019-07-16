@@ -5,8 +5,6 @@
 
 #include <glm/glm.hpp>
 
-#include <set>
-#include <cstdint>
 
 class Light {
     public:
@@ -17,15 +15,18 @@ class Light {
         };
 
     private:
-        // Type and ID
+        // Static const attributes
+        static const std::string DIRECTIONAL_STR;
+        static const std::string POINT_STR;
+        static const std::string SPOTLIGHT_STR;
+
+    protected:
+        // Type
         Light::Type type;
-		std::uint32_t id;
 
-        // Enabled flag
-        bool enabled;
-
-        // General attributes
+        // Spacial attributes
         glm::vec3 direction;
+        glm::vec3 position;
 
         // Colors
         glm::vec3 ambient;
@@ -37,25 +38,18 @@ class Light {
         float specular_level;
         float shininess;
 
-        // Point and spotlight attributes
-        glm::vec3 position;
+        // Non directional attributes
         glm::vec3 attenuation;
-
-        // Sporlight attributes
         glm::vec2 cutoff;
-
-        // Counters by type
-        static std::uint32_t count;
-
-        // Sets by type
-        static std::set<std::uint32_t> stock;
 
 
     public:
         Light(const Light::Type &value = Light::Type::DIRECTIONAL);
 
+        void use(GLSLProgram *const program) const;
+
+
         void setType(const Light::Type &value);
-        void setEnabled(const bool &status);
 
         void setPosition(const glm::vec3 &value);
         void setDirection(const glm::vec3 &value);
@@ -77,12 +71,6 @@ class Light {
         void setInnerCutoff(const float &value);
         void setOuterCutoff(const float &value);
 
-
-        void use(GLSLProgram *const program, const bool &as_array = false) const;
-
-        bool isEnabled() const;
-
-		std::uint32_t getID() const;
         Type getType() const;
 
         glm::vec3 getDirection() const;
@@ -99,9 +87,7 @@ class Light {
         glm::vec3 getAttenuation() const;
         glm::vec2 getCutoff() const;
 
-        static std::size_t getNumberOfLights();
-
-        ~Light();
+        static const std::string &to_string(const Light::Type &type);
 };
 
 #endif // __LIGHT_HPP_

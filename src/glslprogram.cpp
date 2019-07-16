@@ -5,7 +5,24 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
-#include <cstdlib>
+
+
+// Empty GLSL program constructor
+GLSLProgram::GLSLProgram() {
+    // Initialize program ID
+    program = GL_FALSE;
+
+    // Empty shaders
+    vert = nullptr;
+    tesc = nullptr;
+    tese = nullptr;
+    geom = nullptr;
+    frag = nullptr;
+
+    // Number of shaders
+    shaders = 0;
+}
+
 
 // Create, compile, attach and delete shader
 void GLSLProgram::link() {
@@ -23,7 +40,13 @@ void GLSLProgram::link() {
 
     // Link the program
     glLinkProgram(program);
-	destroyShaders();
+
+	// Delete shaders
+	if (vert != nullptr) glDeleteShader(vert->getID());
+	if (tesc != nullptr) glDeleteShader(tesc->getID());
+	if (tese != nullptr) glDeleteShader(tese->getID());
+	if (geom != nullptr) glDeleteShader(geom->getID());
+	if (frag != nullptr) glDeleteShader(frag->getID());
 
     // Check the program status
     int status;
@@ -40,15 +63,16 @@ void GLSLProgram::link() {
         glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
 
         // Print the log info
-		GLchar *log = (GLchar *)std::malloc(length * sizeof(GLchar));
-        if (log != NULL) {
+        if (length > 0) {
+			GLchar *log = new GLchar[length];
             glGetProgramInfoLog(program, length, 0, log);
             msg.append(". Log output:\n").append(log);
-            std::free(log);
+			delete[] log;
         }
 
         // Destroy program
-        destroy();
+		glDeleteProgram(program);
+		program = GL_FALSE;
 
         // Throw exception
         throw GLSLException(msg);
@@ -73,31 +97,6 @@ GLint GLSLProgram::getUniformLocation(const char *name) {
     return new_location;
 }
 
-// Destroy program
-void GLSLProgram::destroy() {
-    // Delete not empty program
-	if (program == GL_FALSE) return;
-
-	// Destroy shaders
-	destroyShaders();
-
-	// Destroy program
-    glDeleteProgram(program);
-    program = GL_FALSE;
-
-	// Clear uniform locations
-	location.clear();
-}
-
-// Destroy shaders
-void GLSLProgram::destroyShaders() {
-	if (vert != nullptr) vert->destroy();
-	if (tesc != nullptr) tesc->destroy();
-	if (tese != nullptr) tese->destroy();
-	if (geom != nullptr) geom->destroy();
-	if (frag != nullptr) frag->destroy();
-}
-
 // GLSL program constructor
 GLSLProgram::GLSLProgram(const std::string &vert_path, const std::string &frag_path) {
 	// Initialize program ID
@@ -111,6 +110,9 @@ GLSLProgram::GLSLProgram(const std::string &vert_path, const std::string &frag_p
 	tesc = nullptr;
 	tese = nullptr;
 	geom = nullptr;
+
+    // Count the number of shaders
+    shaders = (vert != nullptr) + (frag != nullptr);
 
 	// Link program
 	try {
@@ -134,6 +136,9 @@ GLSLProgram::GLSLProgram(const std::string &vert_path, const std::string &geom_p
 	tesc = nullptr;
 	tese = nullptr;
 
+    // Count the number of shaders
+    shaders = (vert != nullptr) + (geom != nullptr) + (frag != nullptr);
+
 	// Link program
 	try {
 		link();
@@ -154,25 +159,8 @@ GLSLProgram::GLSLProgram(const std::string &vert_path, const std::string &tesc_p
 	geom = (!geom_path.empty() ? new Shader(geom_path, GL_GEOMETRY_SHADER)        : nullptr);
 	frag = (!frag_path.empty() ? new Shader(frag_path, GL_FRAGMENT_SHADER)        : nullptr);
 
-    // Link program
-    try {
-        link();
-    } catch (GLSLException &exception) {
-        std::cerr << exception.what() << std::endl;
-    }
-}
-
-// Reload program
-void GLSLProgram::reload() {
-    // Destroy program
-    destroy();
-
-    // Reload shaders
-	if (vert != nullptr) vert->reload();
-	if (tesc != nullptr) tesc->reload();
-	if (tese != nullptr) tese->reload();
-	if (geom != nullptr) geom->reload();
-	if (frag != nullptr) frag->reload();
+    // Count the number of shaders
+    shaders = (vert != nullptr) + (tesc != nullptr) + (tese != nullptr) + (geom != nullptr) + (frag != nullptr);
 
     // Link program
     try {
@@ -190,45 +178,6 @@ void GLSLProgram::use() const {
 // Check the program status
 bool GLSLProgram::isValid() const {
     return program != GL_FALSE;
-}
-
-// Get shader ID
-bool GLSLProgram::isValidShader(const GLenum &type) const {
-	switch (type) {
-		case GL_VERTEX_SHADER:          return vert != nullptr ? vert->hasCompiled() : false;
-		case GL_TESS_CONTROL_SHADER:    return tesc != nullptr ? tesc->hasCompiled() : true;
-		case GL_TESS_EVALUATION_SHADER: return tese != nullptr ? tese->hasCompiled() : true;
-		case GL_GEOMETRY_SHADER:        return geom != nullptr ? geom->hasCompiled() : true;
-		case GL_FRAGMENT_SHADER:        return frag != nullptr ? frag->hasCompiled() : false;
-		default:                        throw std::runtime_error("error: unknown shader type (" + std::to_string(type) + ")");
-	}
-}
-
-// Set new shaders paths and compile
-void GLSLProgram::setShaders(const std::string &vert_path, const std::string &tesc_path, const std::string &tese_path, const std::string &geom_path, const std::string &frag_path) {
-	// Destroy program
-	destroy();
-
-	// Delete previous shaders
-	if (vert != nullptr) delete vert;
-	if (tesc != nullptr) delete tesc;
-	if (tese != nullptr) delete tese;
-	if (geom != nullptr) delete geom;
-	if (frag != nullptr) delete frag;
-
-	// Load the new shaders
-	vert = (!vert_path.empty() ? new Shader(vert_path, GL_VERTEX_SHADER)          : nullptr);
-	tesc = (!tesc_path.empty() ? new Shader(tesc_path, GL_TESS_CONTROL_SHADER)    : nullptr);
-	tese = (!tese_path.empty() ? new Shader(tese_path, GL_TESS_EVALUATION_SHADER) : nullptr);
-	geom = (!geom_path.empty() ? new Shader(geom_path, GL_GEOMETRY_SHADER)        : nullptr);
-	frag = (!frag_path.empty() ? new Shader(frag_path, GL_FRAGMENT_SHADER)        : nullptr);
-
-	// Link program
-	try {
-		link();
-	} catch (GLSLException &exception) {
-		std::cerr << exception.what() << std::endl;
-	}
 }
 
 
@@ -296,44 +245,22 @@ const Shader *GLSLProgram::getShader(const GLenum &type) const {
 	}
 }
 
-// Get the shaders pipeline as std::string
-std::string GLSLProgram::getShadersPipeline() const {
-	// The pipeline string
-	std::string pipeline;
-
-	// Append vertex name
-	if (vert != nullptr) pipeline.append(vert->getName());
-
-	// Append tessellation control name
-	if (tesc != nullptr) {
-		if (!pipeline.empty()) pipeline.append(" -> ");
-		pipeline.append(tesc->getName());
-	}
-
-	// Append tessellation evaluation name
-	if (tese != nullptr) {
-		if (!pipeline.empty()) pipeline.append(" -> ");
-		pipeline.append(tese->getName());
-	}
-
-	// Append geometry name
-	if (geom != nullptr) {
-		if (!pipeline.empty()) pipeline.append(" -> ");
-		pipeline.append(geom->getName());
-	}
-
-	// Append fragment name
-	if (frag != nullptr) {
-		if (!pipeline.empty()) pipeline.append(" -> ");
-		pipeline.append(frag->getName());
-	}
-
-	// Return pipeline
-	return pipeline;
+// Get the number of shaders
+unsigned int GLSLProgram::getShaders() const {
+    return shaders;
 }
 
 
 // Delete program
 GLSLProgram::~GLSLProgram() {
-    destroy();
+	// Destroy program
+	glDeleteProgram(program);
+	program = GL_FALSE;
+
+    // Delete shaders
+    if (vert != nullptr) delete vert;
+    if (tesc != nullptr) delete tesc;
+    if (tese != nullptr) delete tese;
+    if (geom != nullptr) delete geom;
+    if (frag != nullptr) delete frag;
 }

@@ -1,18 +1,17 @@
 #include "light.hpp"
 
-// Static definition
-std::uint32_t Light::count = 0U;
-std::set<std::uint32_t> Light::stock;
+#include <stdexcept>
+
+// Static const definitions
+const std::string Light::DIRECTIONAL_STR = "Directional";
+const std::string Light::POINT_STR       = "Point";
+const std::string Light::SPOTLIGHT_STR   = "Spotlight";
+
 
 // Constructor
 Light::Light(const Light::Type &value) {
-    // Set type and enable
+    // Set type
     type = value;
-    enabled = true;
-
-    // Set ID and insert to set
-    id = Light::count++;
-    Light::stock.insert(id);
 
     // Set default values
     glm::vec3 vec_ones = glm::vec3(1.0F);
@@ -32,17 +31,46 @@ Light::Light(const Light::Type &value) {
     cutoff      = glm::vec2(glm::radians(20.0F), glm::radians(25.0F));
 }
 
+// Use light
+void Light::use(GLSLProgram *const program) const {
+    // Check program
+    if (!program->isValid()) return;
+
+    // Use GLSL program
+    program->use();
+
+    // Uniform name
+    std::string uniform = "light.";
+
+    // Persistent values
+    program->setUniform(uniform + "type", type);
+    program->setUniform(uniform + "direction", -direction);
+
+    program->setUniform(uniform + "ambient_level", ambient_level);
+    program->setUniform(uniform + "specular_level", specular_level);
+    program->setUniform(uniform + "shininess", shininess);
+
+    // Non directional lights attributes
+    if (type != Light::DIRECTIONAL) {
+        program->setUniform(uniform + "position", position);
+        program->setUniform(uniform + "attenuation", attenuation);
+
+        // Spotlights attributes
+        if (type == Light::SPOTLIGHT)
+            program->setUniform(uniform + "cutoff", glm::cos(cutoff));
+    }
+
+    // Light components
+    program->setUniform(uniform + "ambient", ambient);
+    program->setUniform(uniform + "diffuse", diffuse);
+    program->setUniform(uniform + "specular", specular);
+}
+
 
 // Set type
 void Light::setType(const Light::Type &value) {
     type = value;
 }
-
-// Set the enabled status
-void Light::setEnabled(const bool &status) {
-    enabled = status;
-}
-
 
 // Set position
 void Light::setPosition(const glm::vec3 &value) {
@@ -124,71 +152,6 @@ void Light::setOuterCutoff(const float &value) {
 }
 
 
-// Use light
-void Light::use(GLSLProgram *const program, const bool &as_array) const {
-    // Check program
-    if (!program->isValid()) return;
-
-    // Use GLSL program
-    program->use();
-
-    // Uniform name
-    std::string uniform = "light";
-
-    // Array index
-    if (as_array)
-        uniform.append("[").append(std::to_string(std::distance(Light::stock.begin(), Light::stock.find(id)))).append("]");
-
-    // Uniform dot
-    uniform.append(".");
-
-    // Persistent values
-    program->setUniform(uniform + "type", type);
-    program->setUniform(uniform + "direction", -direction);
-
-    program->setUniform(uniform + "ambient_level",  ambient_level);
-    program->setUniform(uniform + "specular_level", specular_level);
-    program->setUniform(uniform + "shininess",      shininess);
-
-    // Non directional lights attributes
-    if (type != Light::DIRECTIONAL) {
-        program->setUniform(uniform + "position",    position);
-        program->setUniform(uniform + "attenuation", attenuation);
-
-        // Spotlights attributes
-        if (type == Light::SPOTLIGHT)
-            program->setUniform(uniform + "cutoff", glm::cos(cutoff));
-    }
-
-    // Lights on
-    if (enabled) {
-        program->setUniform(uniform + "ambient",  ambient);
-        program->setUniform(uniform + "diffuse",  diffuse);
-        program->setUniform(uniform + "specular", specular);
-    }
-
-    // Lights off
-    else {
-        glm::vec3 black = glm::vec3(0.0F, 0.0F, 0.0F);
-        program->setUniform(uniform + "ambient",  black);
-        program->setUniform(uniform + "diffuse",  black);
-        program->setUniform(uniform + "specular", black);
-    }
-    
-}
-
-
-// Get the grabbed spotlight status
-bool Light::isEnabled() const {
-    return enabled;
-}
-
-
-// Get ID
-std::uint32_t Light::getID() const {
-    return id;
-}
-
 // Get type
 Light::Type Light::getType() const {
     return type;
@@ -249,13 +212,12 @@ glm::vec2 Light::getCutoff() const {
 }
 
 
-// Get the directional lights
-std::size_t Light::getNumberOfLights() {
-    return Light::stock.size();
-}
-
-
-// Light destructor
-Light::~Light() {
-    Light::stock.erase(id);
+// Type to string
+const std::string &Light::to_string(const Light::Type &type) {
+    switch (type) {
+        case Light::DIRECTIONAL: return Light::DIRECTIONAL_STR;
+        case Light::POINT:       return Light::POINT_STR;
+        case Light::SPOTLIGHT:   return Light::SPOTLIGHT_STR;
+        default: throw std::runtime_error("error: unknown light `" + std::to_string(type) + "'");
+    }
 }

@@ -12,6 +12,8 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <list>
+#include <map>
 
 class Model {
     private:
@@ -20,27 +22,6 @@ class Model {
             glm::vec2 uv_coord;
             glm::vec3 normal;
         };
-
-        struct model_data {
-            GLsizei count;
-            std::size_t offset;
-            Material *material;
-        };
-
-        // Open status
-        bool open;
-		bool material_open;
-
-		// Enabled status
-        bool enabled;
-
-        // File paths
-        std::string path;
-		std::string material_path;
-
-		// File names
-        std::string name;
-		std::string material_name;
 
         // Raw model data
         std::vector<glm::vec3> vertex_position;
@@ -52,52 +33,74 @@ class Model {
         std::vector<std::uint32_t> index;
         std::vector<Model::vertex_data> vertex;
 
-        // Objects model data
-        std::vector<model_data> model_stock;
-		std::vector<Material *> material_stock;
-
-        // Buffers
-        GLuint vao;
-        GLuint vbo;
-        GLuint ebo;
-
         // Geometry attributes
         glm::mat4 origin_mat;
         glm::vec3 position;
         glm::quat rotation;
         glm::vec3 scale;
-        glm::vec3 max;
-        glm::vec3 min;
-
-        // Statistics
-        std::size_t indices;
-        std::size_t vertices;
-        std::size_t materials;
 
         // Disable copy and assignation
+        Model() = delete;
         Model(const Model &) = delete;
         Model &operator = (const Model &) = delete;
-
-        // File reading
-        void readOBJ();
-		void readMTL();
 
 		// Store vertex
         void storeVertex(const std::string &vertex_data);
 
-        // Load data to GPU
-        void loadData();
-
         // Static methods
         static void rtrim(std::string &str);
 
-    public:
-        Model(const std::string &file_path);
+	protected:
+        struct model_data {
+            GLsizei count;
+            std::size_t offset;
+            Material *material;
+        };
 
-        void reload();
+		// File path and name
+		std::string path;
+		std::string name;
+
+        // Material file path and name
+        std::string material_path;
+        std::string material_name;
+
+		// Open status
+		bool open;
+		bool material_open;
+
+		// Model and material stock
+		std::list<Model::model_data> model_stock;
+		std::list<Material *> material_stock;
+
+		// Limits
+		glm::vec3 max;
+		glm::vec3 min;
+
+		// Buffers
+		GLuint vao;
+		GLuint vbo;
+		GLuint ebo;
+
+		// Statistics
+        std::size_t polygons;
+		std::size_t vertices;
+        std::size_t elements;
+		std::size_t materials;
+        std::size_t textures;
+
+		// File reading
+		void readOBJ();
+		void readMTL();
+
+		// Load data to GPU
+		void loadData();
+		
+
+    public:
+        Model(const std::string &file_path = "");
 
         void draw(GLSLProgram *const program) const;
-        void setEnabled(const bool &status);
 
         void reset();
         
@@ -113,12 +116,8 @@ class Model {
 
         void setMatrix(const glm::mat4 &matrix);
 
-		void setPath(const std::string &model_path);
-
         bool isOpen() const;
 		bool isMaterialOpen() const;
-
-        bool isEnabled() const;
 
         std::string getPath() const;
 		std::string getMaterialPath() const;
@@ -134,11 +133,13 @@ class Model {
         glm::quat getRotationQuaternion() const;
         glm::vec3 getScale() const;
 
-        std::size_t getTriangles() const;
+        std::size_t getPolygons() const;
         std::size_t getVertices() const;
+        std::size_t getElements() const;
         std::size_t getMaterials() const;
+        std::size_t getTextures() const;
 
-		std::vector<Material *> getMaterialStock() const;
+		std::list<Material *> getMaterialStock() const;
 
         ~Model();
 };

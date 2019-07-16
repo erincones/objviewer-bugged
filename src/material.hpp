@@ -6,11 +6,12 @@
 
 #include <glm/glm.hpp>
 
+#include <cstdint>
 #include <string>
 #include <map>
 
 class Material {
-	private:
+	protected:
 		// Material name
 		std::string name;
 
@@ -39,7 +40,6 @@ class Material {
 		Texture *stencil_map;
 
     public:
-
         Material(const std::string &material_name);
 
         void use(GLSLProgram *const program) const;
@@ -59,14 +59,7 @@ class Material {
 		float getMetalness() const;
 		float getRefractiveIndex() const;
 
-		Texture *getAmbientMap() const;
-		Texture *getDiffuseMap() const;
-		Texture *getSpecularMap() const;
-		Texture *getShininessMap() const;
-		Texture *getAlphaMap() const;
-		Texture *getBumpMap() const;
-		Texture *getDisplacementMap() const;
-		Texture *getStencilMap() const;
+        Texture *getTexture(const Texture::Type &texture) const;
 
 
 		void setAmbientColor(const glm::vec3 &color);
@@ -81,14 +74,7 @@ class Material {
 		void setMetalness(const float &value);
 		void setRefractiveIndex(const float &value);
 
-		void setAmbientMap(const std::string &path);
-		void setDiffuseMap(const std::string &path);
-		void setSpecularMap(const std::string &path);
-		void setShininessMap(const std::string &path);
-		void setAlphaMap(const std::string &path);
-		void setBumpMap(const std::string &path);
-		void setDisplacementMap(const std::string &path);
-		void setStencilMap(const std::string &path);
+        void setTexture(const std::string &path, const Texture::Type &texture);
 
 
         ~Material();

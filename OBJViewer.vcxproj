@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -158,7 +158,6 @@
   <ItemGroup>
     <ClInclude Include="src\camera.hpp" />
     <ClInclude Include="src\dirseparator.hpp" />
-    <ClInclude Include="src\fnv.hpp" />
     <ClInclude Include="src\glad\glad.h" />
     <ClInclude Include="src\glad\khrplatform.h" />
     <ClInclude Include="src\glslexception.hpp" />
@@ -176,14 +175,18 @@
     <ClInclude Include="src\material.hpp" />
     <ClInclude Include="src\model.hpp" />
     <ClInclude Include="src\mouse.hpp" />
-    <ClInclude Include="src\scene.hpp" />
+    <ClInclude Include="src\scene\scene.hpp" />
+    <ClInclude Include="src\scene\scenecamera.hpp" />
+    <ClInclude Include="src\scene\scenelight.hpp" />
+    <ClInclude Include="src\scene\scenematerial.hpp" />
+    <ClInclude Include="src\scene\scenemodel.hpp" />
+    <ClInclude Include="src\scene\sceneprogram.hpp" />
     <ClInclude Include="src\shader.hpp" />
     <ClInclude Include="src\stb\stb_image.h" />
     <ClInclude Include="src\texture.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\camera.cpp" />
-    <ClCompile Include="src\fnv.cpp" />
     <ClCompile Include="src\glad\glad.c" />
     <ClCompile Include="src\glslexception.cpp" />
     <ClCompile Include="src\glslprogram.cpp" />
@@ -199,7 +202,12 @@
     <ClCompile Include="src\material.cpp" />
     <ClCompile Include="src\model.cpp" />
     <ClCompile Include="src\mouse.cpp" />
-    <ClCompile Include="src\scene.cpp" />
+    <ClCompile Include="src\scene\scene.cpp" />
+    <ClCompile Include="src\scene\scenecamera.cpp" />
+    <ClCompile Include="src\scene\scenelight.cpp" />
+    <ClCompile Include="src\scene\scenematerial.cpp" />
+    <ClCompile Include="src\scene\scenemodel.cpp" />
+    <ClCompile Include="src\scene\sceneprogram.cpp" />
     <ClCompile Include="src\shader.cpp" />
     <ClCompile Include="src\texture.cpp" />
   </ItemGroup>

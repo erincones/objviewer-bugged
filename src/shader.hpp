@@ -19,10 +19,8 @@ class Shader {
         // Type
         GLenum stage;
 
-		// Compiled status
-		bool compiled;
-
         // Disable copy and assignation
+        Shader() = delete;
         Shader(const Shader &) = delete;
         Shader &operator = (const Shader &) = delete;
 
@@ -32,11 +30,7 @@ class Shader {
     public:
         Shader(const std::string &file_path, const GLenum &type);
 
-		void reload();
-		void destroy();
-
         bool isValid() const;
-		bool hasCompiled() const;
         std::string getPath() const;
         std::string getName() const;
 

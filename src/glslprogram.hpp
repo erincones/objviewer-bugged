@@ -11,43 +11,44 @@
 
 class GLSLProgram {
     private:
-        // Paths
-        Shader *vert;
-        Shader *tesc;
-        Shader *tese;
-        Shader *geom;
-        Shader *frag;
-
-        // Program attributes
-        GLuint program;
-        std::map<std::string, GLint> location;
-
         // Disable copy and assignation
         GLSLProgram(const GLSLProgram &) = delete;
         GLSLProgram &operator = (const GLSLProgram &) = delete;
-
-        // Link program
-        void link();
-
-        // Destroy program and shaders
-        void destroy();
-		void destroyShaders();
         
-        // Program setup
+        // Get uniform location
         GLint getUniformLocation(const char *name);
+
+	protected:
+		// Program ID
+		GLuint program;
+
+		// Shaders
+		Shader *vert;
+		Shader *tesc;
+		Shader *tese;
+		Shader *geom;
+		Shader *frag;
+
+        // Number of shaders
+        unsigned int shaders;
+
+		// Uniform locations
+		std::map<std::string, GLint> location;
+
+        // Empty GLSL program constructor
+        GLSLProgram();
+
+		// Link program
+		void link();
+		
 
     public:
 		GLSLProgram(const std::string &vert_path, const std::string &frag_path);
 		GLSLProgram(const std::string &vert_path, const std::string &geom_path, const std::string &frag_path);
         GLSLProgram(const std::string &vert_path, const std::string &tesc_path, const std::string &tese_path, const std::string &geom_path, const std::string &frag_path);
         
-        void reload();
-
         void use() const;
         bool isValid() const;
-		bool isValidShader(const GLenum &type) const;
-
-		void setShaders(const std::string &vert_path, const std::string &tesc_path, const std::string &tese_path, const std::string &geom_path, const std::string &frag_path);
 
         void setUniform(const std::string &name, const GLint &scalar);
         void setUniform(const std::string &name, const GLuint &scalar);
@@ -65,7 +66,7 @@ class GLSLProgram {
         GLuint getID() const;
 
 		const Shader *getShader(const GLenum &type) const;
-		std::string getShadersPipeline() const;
+        unsigned int getShaders() const;
 
         ~GLSLProgram();
 };

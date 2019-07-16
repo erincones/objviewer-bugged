@@ -3,7 +3,7 @@
 #include <glm/gtx/transform.hpp>
 
 // Static constants declaration
-constexpr float Mouse::ROTATION_ANGLE;
+constexpr const float Mouse::ROTATION_ANGLE;
 
 // Mouse constructor
 Mouse::Mouse(const int &width_res, const int &height_res) {

@@ -1,5 +1,4 @@
 #include "texture.hpp"
-#include "fnv.hpp"
 #include "dirseparator.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -9,11 +8,31 @@
 #include <stdexcept>
 #include <iostream>
 
-// Static variables declaration
-std::map<std::uint64_t, GLuint> Texture::dictionary;
-std::map<GLuint, std::size_t> Texture::stock;
+// Static definition
 GLuint Texture::default_id = GL_FALSE;
 unsigned int Texture::default_count = 0;
+
+// Static constants
+const std::string Texture::AMBIENT_STR      = "Ambient";
+const std::string Texture::DIFFUSE_STR      = "Diffuse";
+const std::string Texture::SPECULAR_STR     = "Specular";
+const std::string Texture::SHININESS_STR    = "Shininess";
+const std::string Texture::ALPHA_STR        = "Alpha";
+const std::string Texture::BUMP_STR         = "Bump";
+const std::string Texture::DISPLACEMENT_STR = "Displacement";
+const std::string Texture::STENCIL_STR      = "Stencil";
+const std::string Texture::ANY_STR          = "Any";
+
+
+// Default constructor
+Texture::Texture(const bool &load_default) {
+	// Set the dafault name
+	name = "Default";
+
+	// Load the default texture
+    if (load_default)
+	    loadDefault();
+}
 
 // Read and load texture
 void Texture::load() {
@@ -29,17 +48,6 @@ void Texture::load() {
     // Check data
     if (data == NULL)
         throw std::runtime_error("error: could not open the texture `" + path + "'");
-
-    // Search image hash
-    hash = FNV::hash(data, std::uint64_t(width) * std::uint64_t(height));
-    std::map<std::uint64_t, GLuint>::iterator result = dictionary.find(hash);
-
-    // Get ID and increment stock for stored texture
-    if (result != dictionary.end()) {
-        id = result->second;
-        stock[result->second]++;
-        return;
-    }
 
     // Generate new texture
     glGenTextures(1, &id);
@@ -57,52 +65,55 @@ void Texture::load() {
 
     // Free memory
     stbi_image_free(data);
-
-    // Store texture
-    if (id != GL_FALSE) {
-        dictionary[hash] = id;
-        stock[id] = 1;
-    }
 }
 
 // Create default texture;
-void Texture::createDefault() {
-    // Count default and check if already exists
-    Texture::default_count++;
-    if (Texture::default_id != GL_FALSE) return;
+void Texture::loadDefault() {
+	if (Texture::default_id == GL_FALSE) {
+		// White color
+		float white_float[] = {1.0F, 1.0F, 1.0F, 1.0F};
+		unsigned char white_char[] = {0xFF, 0xFF, 0xFF, 0xFF};
 
-    // White color
-    float white_float[] = {1.0F, 1.0F, 1.0F, 1.0F};
-    unsigned char white_char[] = {0xFF, 0xFF, 0xFF};
+		// Generate new texture
+		glGenTextures(1, &Texture::default_id);
+		glBindTexture(GL_TEXTURE_2D, Texture::default_id);
 
-    // Generate new texture
-    glGenTextures(1, &Texture::default_id);
-    glBindTexture(GL_TEXTURE_2D, Texture::default_id);
+		// Texture parameters
+		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &white_float[0]);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    // Texture parameters
-    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &white_float[0]);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		// Load texture and generate mipmap
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, &white_char[0]);
+	}
 
-    // Load texture and generate mipmap
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, &white_char[0]);
+	// Assign the ID of the default texture and count
+	id = Texture::default_id;
+	Texture::default_count++;
 }
 
-// Empty texture
-Texture::Texture() {
-    id = GL_FALSE;
-    hash = 0;
 
-    // Create default texture
-    Texture::createDefault();
+// Destroy texture
+void Texture::destroy() {
+    // Non default texture
+    if (id != Texture::default_id)
+        glDeleteTextures(1, &id);
+
+    // Default texture
+    else if (--Texture::default_count == 0U) {
+        glDeleteTextures(1, &id);
+        Texture::default_id = GL_FALSE;
+    }
 }
+
 
 // Texture constructor
-Texture::Texture(const std::string &file_path) {
-    // Initialize texture
+Texture::Texture(const std::string &file_path, const Texture::Type &value) {
+    // Initialize texture and type
     id = GL_FALSE;
+    type = value;
     
     // Set path and name
     path = file_path;
@@ -113,19 +124,29 @@ Texture::Texture(const std::string &file_path) {
         load();
     } catch (std::exception &exception) {
         std::cerr << exception.what() << std::endl;
-        Texture::createDefault();
+        loadDefault();
     }
 }
 
 // Bind texture
 void Texture::bind(const GLenum &unit) const {
     glActiveTexture(GL_TEXTURE0 + unit);
-    glBindTexture(GL_TEXTURE_2D, id != GL_FALSE ? id : Texture::default_id);
+    glBindTexture(GL_TEXTURE_2D, id);
 }
 
 // Get open status
 bool Texture::isOpen() const {
     return id != GL_FALSE;
+}
+
+// Get the ID
+GLuint Texture::getID() const {
+	return id;
+}
+
+// Get the texture type
+Texture::Type Texture::getType() const {
+    return type;
 }
 
 // Get path
@@ -138,19 +159,30 @@ std::string Texture::getName() const {
     return name;
 }
 
+
+// Create a white texture
+Texture *Texture::white() {
+	return new Texture(true);
+}
+
+// Type to string
+const std::string &Texture::to_string(const Texture::Type &value) {
+    switch (value) {
+        case Texture::AMBIENT:      return Texture::AMBIENT_STR;
+        case Texture::DIFFUSE:      return Texture::DIFFUSE_STR;
+        case Texture::SPECULAR:     return Texture::SPECULAR_STR;
+        case Texture::SHININESS:    return Texture::SHININESS_STR;
+        case Texture::ALPHA:        return Texture::ALPHA_STR;
+        case Texture::BUMP:         return Texture::BUMP_STR;
+        case Texture::DISPLACEMENT: return Texture::DISPLACEMENT_STR;
+        case Texture::STENCIL:      return Texture::STENCIL_STR;
+        case Texture::ANY:          return Texture::ANY_STR;
+        default: throw std::runtime_error("error: unknown texture");
+    }
+}
+
+
 // Delete texture
 Texture::~Texture() {
-    // Default texture
-    if ((id == GL_FALSE) && (--Texture::default_count == 0)) {
-        glDeleteTextures(1, &Texture::default_id);
-        Texture::default_id = 0;
-    }
-
-    // Decrement stock and delete texture if is empty
-    else if (--stock[id] == 0) {
-        dictionary.erase(hash);
-        stock.erase(id);
-
-        glDeleteTextures(1, &id);
-    }
+    destroy();
 }

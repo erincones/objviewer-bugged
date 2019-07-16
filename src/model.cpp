@@ -64,7 +64,7 @@ void Model::readOBJ() {
 
             // Open material
             material_path = path.substr(0, path.find_last_of(DIR_SEP) + 1) + token;
-			material_name = path.substr(material_path.find_last_of(DIR_SEP) + 1);
+			material_name = material_path.substr(material_path.find_last_of(DIR_SEP) + 1);
 
 			try {
 				readMTL();
@@ -88,10 +88,11 @@ void Model::readOBJ() {
 
 			// Search material
 			Material *material = nullptr;
-			for (std::vector<Material *>::const_iterator it = ++material_stock.begin(); (material == nullptr) && (it != material_stock.end()); it++) {
-				if ((*it)->getName() == token)
-					material = *it;
-			}
+            for (Material *const &material_it : material_stock)
+                if (material_it->getName() == token) {
+                    material = material_it;
+                    break;
+                }
 
 			// Add the new material
             model_stock.push_back(Model::model_data{0, sizeof(std::uint32_t) * count, material});
@@ -149,15 +150,19 @@ void Model::readOBJ() {
         model_stock.back().count = (GLsizei)(index.size() - count);
 
     // Associate all geometry to the default material
-	else
-		model_stock.insert(model_stock.begin(), Model::model_data{(GLsizei)index.size(), 0, material_stock[0]});
+	else {
+        Material *material = new Material("Default");
+        material_stock.push_back(material);
+		model_stock.push_back(Model::model_data{(GLsizei)index.size(), 0U, material});
+    }
 
     // Close file
     file.close();
 
     // Save statistics
-    indices = index.size();
+    polygons = index.size() / 3U;
     vertices = vertex_position.size();
+    elements = vertex.size();
 	materials = material_stock.size();
 
     // Free memory
@@ -177,6 +182,7 @@ void Model::readMTL() {
 	std::string dir_path = path.substr(0, path.find_last_of(DIR_SEP) + 1);
 
 	// Material description read variables
+    Material *material = nullptr;
 	std::string token;
 	std::string line;
 	glm::vec3 data;
@@ -205,117 +211,127 @@ void Model::readMTL() {
 		if (token == "newmtl") {
 			stream >> std::ws;
 			std::getline(stream, token);
-			material_stock.push_back(new Material(token));
+
+            material = new Material(token);
+			material_stock.push_back(material);
 		}
 
 		// Ambient color
 		else if (token == "ka") {
 			stream >> data.x >> data.y >> data.z;
-			material_stock.back()->setAmbientColor(data);
+			material->setAmbientColor(data);
 		}
 
 		// Diffuse color
 		else if (token == "kd") {
 			stream >> data.x >> data.y >> data.z;
-			material_stock.back()->setDiffuseColor(data);
+			material->setDiffuseColor(data);
 		}
 
 		// Specular reflection
 		else if (token == "ks") {
 			stream >> data.x >> data.y >> data.z;
-			material_stock.back()->setSpecularColor(data);
+			material->setSpecularColor(data);
 		}
 
 		// Transmision filter
 		else if (token == "tf") {
 			stream >> data.x >> data.y >> data.z;
-			material_stock.back()->setTransmissionColor(data);
+			material->setTransmissionColor(data);
 		}
 
 		// Disolve
 		else if (token == "d") {
 			stream >> value;
-			material_stock.back()->setAlpha(value);
+			material->setAlpha(value);
 		}
 
 		// Transparency
 		else if (token == "tr") {
 			stream >> value;
-			material_stock.back()->setAlpha(1.0F - value);
+			material->setAlpha(1.0F - value);
 		}
 
 		// Sharpness
 		else if (token == "sharpness") {
 			stream >> value;
-			material_stock.back()->setSharpness(value);
+			material->setSharpness(value);
 		}
 
 		// Shininess
 		else if (token == "ns") {
 			stream >> value;
-			material_stock.back()->setShininess(value);
+			material->setShininess(value);
 		}
 
 		// Refractive index
 		else if (token == "ni") {
 			stream >> value;
-			material_stock.back()->setRefractiveIndex(value);
+			material->setRefractiveIndex(value);
 		}
 
 		// Ambient map
 		else if (token == "map_ka") {
 			stream >> std::ws;
 			std::getline(stream, token);
-			material_stock.back()->setAmbientMap(dir_path + token);
+			material->setTexture(dir_path + token, Texture::AMBIENT);
+            textures++;
 		}
 
 		// Diffuse map
 		else if (token == "map_kd") {
 			stream >> std::ws;
 			std::getline(stream, token);
-			material_stock.back()->setDiffuseMap(dir_path + token);
+			material->setTexture(dir_path + token, Texture::DIFFUSE);
+            textures++;
 		}
 
 		// Specular map
 		else if (token == "map_ks") {
 			stream >> std::ws;
 			std::getline(stream, token);
-			material_stock.back()->setSpecularMap(dir_path + token);
+			material->setTexture(dir_path + token, Texture::SPECULAR);
+            textures++;
 		}
 
 		// Shininess map
 		else if (token == "map_ns") {
 			stream >> std::ws;
 			std::getline(stream, token);
-			material_stock.back()->setShininessMap(dir_path + token);
+			material->setTexture(dir_path + token, Texture::SHININESS);
+            textures++;
 		}
 
 		// Alpha map
 		else if (token == "map_d") {
 			stream >> std::ws;
 			std::getline(stream, token);
-			material_stock.back()->setAlphaMap(dir_path + token);
+			material->setTexture(dir_path + token, Texture::ALPHA);
+            textures++;
 		}
 
 		// Bump map
 		else if (token == "map_bump" || token == "bump") {
 			stream >> std::ws;
 			std::getline(stream, token);
-			material_stock.back()->setBumpMap(dir_path + token);
+			material->setTexture(dir_path + token, Texture::BUMP);
+            textures++;
 		}
 
 		// Displacement map
 		else if (token == "disp") {
 			stream >> std::ws;
 			std::getline(stream, token);
-			material_stock.back()->setDisplacementMap(dir_path + token);
+			material->setTexture(dir_path + token, Texture::DISPLACEMENT);
+            textures++;
 		}
 
 		// Stencil map
 		else if (token == "stencil") {
 			stream >> std::ws;
 			std::getline(stream, token);
-			material_stock.back()->setStencilMap(dir_path + token);
+			material->setTexture(dir_path + token, Texture::STENCIL);
+            textures++;
 		}
 	}
 
@@ -407,79 +423,35 @@ Model::Model(const std::string &file_path) {
     name = path.substr(path.find_last_of(DIR_SEP) + 1);
 
     // Initialize attributes
-	material_stock.push_back(new Material("default"));
+    polygons = 0U;
+    vertices = 0U;
+    elements = 0U;
+    materials = 0U;
+    textures  = 0U;
     min = glm::vec3(std::numeric_limits<float>::max());
     max = glm::vec3(std::numeric_limits<float>::min());
 
 	// Default status
 	open = false;
-	enabled = false;
 	material_open = false;
 
-    // Read file and load data to GPU
-	try {
-		readOBJ();
-		open = true;
-
-		loadData();
-		enabled = true;
-	} catch (std::exception &exception) {
-		std::cerr << exception.what() << std::endl;
-	}
+    if (!file_path.empty()) {
+	    try {
+            // Read file and load data to GPU
+                readOBJ();
+                loadData();
+                open = true;
+	    } catch (std::exception &exception) {
+		    std::cerr << exception.what() << std::endl;
+	    }
+    }
 
     // Initialize matrices
     reset();
 }
 
-// Reload model
-void Model::reload() {
-	// Clear the model stock
-	model_stock.clear();
-	
-    // Delete all materials
-	for (const Material *const material : material_stock)
-		delete material;
-
-	// Clear and set the default material
-	material_stock.clear();
-	material_stock.push_back(new Material("default"));
-
-	// Delete buffers
-	glDeleteBuffers(1, &vbo);
-	glDeleteBuffers(1, &ebo);
-
-	// Delete vertex array object
-	glDeleteVertexArrays(1, &vao);
-
-    // Reset limits
-    min = glm::vec3(std::numeric_limits<float>::max());
-    max = glm::vec3(std::numeric_limits<float>::min());
-
-	// Default status
-	open = false;
-	enabled = false;
-	material_open = false;
-
-	// Reload data to GPU
-	try {
-		readOBJ();
-		open = true;
-
-		loadData();
-		enabled = true;
-	} catch (std::exception &exception) {
-		std::cerr << exception.what() << std::endl;
-	}
-
-    // Reset matrices
-    reset();
-}
-
 // Draw model
 void Model::draw(GLSLProgram *const program) const {
-    // Draw if is enabled
-    if (!enabled) return;
-
     // Check program
     if (!program->isValid()) return;
 
@@ -577,16 +549,6 @@ void Model::setMatrix(const glm::mat4 &matrix) {
     glm::decompose(matrix, scale, rotation, position, dummy_skew, dummy_perspective);
 }
 
-// Set a new path and load model
-void Model::setPath(const std::string &file_path) {
-	// Set the new path and name
-	path = file_path;
-	name = path.substr(path.find_last_of(DIR_SEP) + 1);
-
-	// load model
-	reload();
-}
-
 
 
 // Get open status
@@ -599,16 +561,6 @@ bool Model::isMaterialOpen() const {
 }
 
 
-// Set enabled status
-void Model::setEnabled(const bool &status) {
-	enabled = status;
-}
-
-
-// Get enabled status
-bool Model::isEnabled() const {
-    return open && enabled;
-}
 
 // Get model path
 std::string Model::getPath() const {
@@ -662,30 +614,42 @@ glm::vec3 Model::getScale() const {
     return scale;
 }
 
-// Get indices
-std::size_t Model::getTriangles() const {
-    return indices / 3U;
+
+// Get the total of polygons
+std::size_t Model::getPolygons() const {
+    return polygons;
 }
 
-// Get unique vertices
+// Get number of vertices
 std::size_t Model::getVertices() const {
     return vertices;
 }
 
-// Get materials
+// Get the total of vertices
+std::size_t Model::getElements() const {
+    return elements;
+}
+
+// Get the number of materials
 std::size_t Model::getMaterials() const {
     return materials;
 }
 
+// Get the number of textures
+std::size_t Model::getTextures() const {
+    return textures;
+}
+
+
 // Material
-std::vector<Material *> Model::getMaterialStock() const {
+std::list<Material *> Model::getMaterialStock() const {
     return material_stock;
 }
 
 // Delete model
 Model::~Model() {
 	// Delete all materials
-	for (const Material *const material : material_stock)
+	for (const Material *const &material : material_stock)
 		delete material;
 
     // Delete buffers
