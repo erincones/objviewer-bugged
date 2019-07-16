@@ -28,6 +28,8 @@ class SceneModel : public Model {
 		// GUI flags
 		bool enabled;
         bool lock_scale;
+        bool textures_enabled;
+
 		bool show_normals;
 		bool show_boundingbox;
 
@@ -37,6 +39,7 @@ class SceneModel : public Model {
 		// Scene material stock
 		SceneMaterial *global_material;
 		std::list<SceneMaterial *> scenematerial_stock;
+        std::map<Model::model_data *, std::string> model_material;
 
 		// Disable copy and assignation
         SceneModel() = delete;
@@ -54,6 +57,8 @@ class SceneModel : public Model {
 
 		bool isEnabled() const;
         bool isScaleLocked() const;
+        bool isTexturesEnabled() const;
+
 		bool showingNormals() const;
 		bool showingBoundingBox() const;
 
@@ -67,6 +72,8 @@ class SceneModel : public Model {
 
 		void setEnabled(const bool &status);
         void setScaleLocked(const bool &status);
+        void setTexturesEnabled(const bool &status);
+
 		void showNormals(const bool &status);
 		void showBoundingBox(const bool &status);
 

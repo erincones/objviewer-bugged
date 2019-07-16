@@ -24,6 +24,8 @@ SceneModel::SceneModel(const std::string &file_path, SceneProgram *model_program
 	// GUI flags
 	enabled = Model::open;
     lock_scale = true;
+    textures_enabled = true;
+
 	show_normals = false;
 	show_boundingbox = false;
 
@@ -36,6 +38,10 @@ SceneModel::SceneModel(const std::string &file_path, SceneProgram *model_program
 	// Fill the scene material stock
     for (Material *const &material : Model::material_stock)
         scenematerial_stock.push_back(new SceneMaterial(material));
+
+    // Store the name of the associated material for each model
+    for (Model::model_data &model : Model::model_stock)
+        model_material[&model] = (model.material != nullptr ? model.material->getName() : "Default");
 }
 
 
@@ -106,13 +112,6 @@ void SceneModel::reload() {
 
 // Reload the materials
 void SceneModel::reloadMaterial() {
-    // Store material names and remove references
-    std::map<Model::model_data *, std::string> model_material;
-    for (Model::model_data &model : Model::model_stock) {
-        model_material[&model] = model.material->getName();
-        model.material = nullptr;
-    }
-
     // Clear material stocks
     std::list<Material *>::const_iterator material = Model::material_stock.begin();
     std::list<SceneMaterial *>::const_iterator scene_material = scenematerial_stock.begin();
@@ -166,6 +165,11 @@ bool SceneModel::isScaleLocked() const {
     return lock_scale;
 }
 
+// Get the textures enabled status
+bool SceneModel::isTexturesEnabled() const {
+    return textures_enabled;
+}
+
 // Get the show normals status
 bool SceneModel::showingNormals() const {
 	return show_normals;
@@ -217,6 +221,33 @@ void SceneModel::setEnabled(const bool &status) {
 // Set the scale locked status
 void SceneModel::setScaleLocked(const bool &status) {
     lock_scale = status;
+}
+
+// Set the textures enabled status
+void SceneModel::setTexturesEnabled(const bool &status) {
+    // Update status
+    textures_enabled = status;
+
+    // Enable textures
+    if (textures_enabled) {
+        for (std::pair<Model::model_data *const, std::string> &model : model_material)
+            for (Material *material : Model::material_stock) {
+                if (model.second == material->getName()) {
+                    model.first->material = material;
+                    break;
+                }
+            }
+    }
+
+    // Disable textures
+    else {
+        // Get the global material without textures
+        Material *global = global_material->getMaterial();
+
+        // Set the global material to every model
+        for (Model::model_data &model : Model::model_stock)
+            model.material = global;
+    }
 }
 
 // Set the enabled status

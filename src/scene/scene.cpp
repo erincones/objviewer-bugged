@@ -566,7 +566,7 @@ bool Scene::drawModelGUI(SceneModel *const model) {
 
         // Global material
         ImGui::Spacing();
-        ImGui::BulletText("Global"); Scene::HelpMarker("The chagues will be applied\nto all materials");
+        ImGui::BulletText("Global"); Scene::HelpMarker("Chages will be applied to all materials");
         ImGui::Indent();
 
         Material *global = model->getGlobalMaterial()->getMaterial();
@@ -626,6 +626,13 @@ bool Scene::drawModelGUI(SceneModel *const model) {
                 material->getMaterial()->setMetalness(value);
             global->setMetalness(value);
         }
+
+        // Textures status
+        bool textures_enabled = model->isTexturesEnabled();
+        if (ImGui::Checkbox("Textures", &textures_enabled))
+            model->setTexturesEnabled(textures_enabled);
+        Scene::HelpMarker("When textures are disabled, the global\nmaterial is applied to the entire model");
+
         ImGui::Unindent();
         ImGui::Separator();
 
