@@ -6,6 +6,24 @@
 #include <fstream>
 #include <iostream>
 
+
+// Empty GLSL program constructor
+GLSLProgram::GLSLProgram() {
+    // Initialize program ID
+    program = GL_FALSE;
+
+    // Empty shaders
+    vert = nullptr;
+    tesc = nullptr;
+    tese = nullptr;
+    geom = nullptr;
+    frag = nullptr;
+
+    // Number of shaders
+    shaders = 0;
+}
+
+
 // Create, compile, attach and delete shader
 void GLSLProgram::link() {
     // Create program and check it
@@ -238,4 +256,11 @@ GLSLProgram::~GLSLProgram() {
 	// Destroy program
 	glDeleteProgram(program);
 	program = GL_FALSE;
+
+    // Delete shaders
+    if (vert != nullptr) delete vert;
+    if (tesc != nullptr) delete tesc;
+    if (tese != nullptr) delete tese;
+    if (geom != nullptr) delete geom;
+    if (frag != nullptr) delete frag;
 }

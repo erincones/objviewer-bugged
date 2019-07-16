@@ -66,7 +66,8 @@ void Scene::drawSettingsWindow() {
         ImGui::BulletText("Double-click on title bar to collapse window.");
 
         // Windows manipulation
-        if (ImGui::TreeNode("Others than the settings window")) {
+        ImGui::Spacing();
+        if (ImGui::TreeNodeEx("Others than the settings window", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::BulletText("Click and drag on lower right corner to resize window\n(double-click to auto fit window to its contents).");
             ImGui::BulletText("Click and drag on any empty space to move window.");
             ImGui::BulletText("TAB/SHIFT+TAB to cycle through keyboard editable fields.");
@@ -75,7 +76,8 @@ void Scene::drawSettingsWindow() {
         }
 
         // Keyboard input
-        if (ImGui::TreeNode("While editing text")) {
+        ImGui::Spacing();
+        if (ImGui::TreeNodeEx("While editing text", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::BulletText("Hold SHIFT or use mouse to select text.");
             ImGui::BulletText("CTRL+Left/Right to word jump.");
             ImGui::BulletText("CTRL+A or double-click to select all.");
@@ -201,12 +203,10 @@ void Scene::drawSettingsWindow() {
             popCamera(remove);
 
         // Add button
-        ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.24F, 0.60F, 0.44F, 1.00F));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.16F, 0.80F, 0.52F, 1.00F));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.21F, 0.70F, 0.49F, 1.00F));
+        ImGui::Spacing();
         if (ImGui::Button("Add camera", ImVec2(454.0F, 19.0F)))
             pushCamera();
-        ImGui::PopStyleColor(3);
+        ImGui::Spacing();
     }
 
     // Models
@@ -232,12 +232,10 @@ void Scene::drawSettingsWindow() {
             popModel(remove);
 
         // Add button
-        ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.24F, 0.60F, 0.44F, 1.00F));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.16F, 0.80F, 0.52F, 1.00F));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.21F, 0.70F, 0.49F, 1.00F));
+        ImGui::Spacing();
         if (ImGui::Button("Add model", ImVec2(454.0F, 19.0F)))
             pushModel();
-        ImGui::PopStyleColor(3);
+        ImGui::Spacing();
     }
 
     // Lights
@@ -272,11 +270,11 @@ void Scene::drawSettingsWindow() {
         ImGui::Separator();
 
 
-        // Model indices
+        // Light indices
         std::size_t index = -1;
         std::size_t remove = -1;
 
-        // Draw model node
+        // Draw light node
         for (SceneLight *&light : light_stock) {
             const std::string title = light->getLabel() + Scene::LIGHT_ID_TAG + std::to_string(light->getGUIID());
             index++;
@@ -288,21 +286,62 @@ void Scene::drawSettingsWindow() {
             }
         }
 
-        // Remove camera
+        // Remove light
         if (remove != -1)
             popLight(remove);
 
-        // Add button if the stock is not full
+        // Show add button if the stock is not full
+        ImGui::Spacing();
         if (light_stock.size() < Scene::LIGHTS) {
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.24F, 0.60F, 0.44F, 1.00F));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.16F, 0.80F, 0.52F, 1.00F));
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.21F, 0.70F, 0.49F, 1.00F));
             if (ImGui::Button("Add Light", ImVec2(454.0F, 19.0F)))
                 pushLight();
-            ImGui::PopStyleColor(3);
         }
+        ImGui::Spacing();
     }
 
+    // GLSL programs
+    if (ImGui::CollapsingHeader("GLSL Programs")) {
+        // GLSL program indices
+        std::size_t index = -1;
+        std::size_t remove = -1;
+
+        // Default GLSL program
+        SceneProgram *default_program = SceneProgram::getDefault();
+        std::string title = default_program->getLabel() + Scene::PROGRAM_ID_TAG + std::to_string(default_program->getGUIID());
+        if (ImGui::TreeNode(title.c_str())) {
+            Scene::drawProgramGUI(default_program, false);
+            ImGui::TreePop();
+        }
+
+        // Default light GLSL program
+        default_program = SceneLight::getDefaultProgram();
+        title = default_program->getLabel() + Scene::PROGRAM_ID_TAG + std::to_string(default_program->getGUIID());
+        if (ImGui::TreeNode(title.c_str())) {
+            Scene::drawProgramGUI(default_program, false);
+            ImGui::TreePop();
+        }
+
+        // Draw GLSL program node
+        for (SceneProgram *&program : program_stock) {
+            title = program->getLabel() + Scene::PROGRAM_ID_TAG + std::to_string(program->getGUIID());
+            index++;
+
+            if (ImGui::TreeNode(title.c_str())) {
+                if (!Scene::drawProgramGUI(program))
+                    remove = index;
+                ImGui::TreePop();
+            }
+        }
+
+        // Remove program
+        if (remove != -1)
+            popProgram(remove);
+
+        // Add button
+        ImGui::Spacing();
+        if (ImGui::Button("Add GLSL program", ImVec2(454.0F, 19.0F)))
+            pushProgram();
+    }
 
     // End main window
     ImGui::End();
@@ -419,7 +458,7 @@ bool Scene::drawModelGUI(SceneModel *const model) {
     // Model name
     ImGui::InputText("Name", &model->getLabel());
 
-    // Reload buttons
+    // Reload button
     if (ImGui::Button("Reload model"))
         model->reload();
 
@@ -823,8 +862,48 @@ bool Scene::drawLightGUI(SceneLight *const light) {
 }
 
 // Draw program data and return false if have to remove
-bool Scene::drawProgramGUI(SceneProgram *const program) {
-    return false;
+bool Scene::drawProgramGUI(SceneProgram *const program, const bool &removable) {
+    // Keep flag
+    bool keep = true;
+
+    // Light name
+    ImGui::InputText("Name", &program->getLabel());
+
+    // Reload button
+    if (ImGui::Button("Reload GLSL program"))
+        program->reload();
+
+    // Remove program button
+    if (removable) {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.60F, 0.24F, 0.24F, 1.00F));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.80F, 0.16F, 0.16F, 1.00F));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.70F, 0.21F, 0.21F, 1.00F));
+        ImGui::SameLine();
+        if (ImGui::Button("Remove"))
+            keep = false;
+        ImGui::PopStyleColor(3);
+    }
+
+    // Shaders path
+    ImGui::Spacing();
+    ImGui::BulletText("Shaders");
+
+    bool reload = false;
+    reload |= ImGui::InputText("Vertex",           &program->getShaderPath(GL_VERTEX_SHADER),          ImGuiInputTextFlags_EnterReturnsTrue);
+    reload |= ImGui::InputText("Tess. Control",    &program->getShaderPath(GL_TESS_CONTROL_SHADER),    ImGuiInputTextFlags_EnterReturnsTrue);
+    reload |= ImGui::InputText("Tess. Evaluation", &program->getShaderPath(GL_TESS_EVALUATION_SHADER), ImGuiInputTextFlags_EnterReturnsTrue);
+    reload |= ImGui::InputText("Geometry",         &program->getShaderPath(GL_GEOMETRY_SHADER),        ImGuiInputTextFlags_EnterReturnsTrue);
+    reload |= ImGui::InputText("Fragment",         &program->getShaderPath(GL_FRAGMENT_SHADER),        ImGuiInputTextFlags_EnterReturnsTrue);
+
+    // Reload GLSL program
+    if (reload)
+        program->reload();
+
+    // Separator when the node is open
+    ImGui::Separator();
+
+    // Return keep status
+    return keep;
 }
 
 
@@ -836,12 +915,12 @@ void Scene::drawProgramComboGUI(SceneModel *const model, const bool &light) {
     
     // Show conbo
     if (ImGui::BeginCombo("GLSL program", program_title.c_str())) {
-        // Default light model shader
-        if (light)
-            Scene::drawProgramComboItemGUI(model, current, SceneLight::getDefaultProgram(), light);
-
         // Default program
         Scene::drawProgramComboItemGUI(model, current, SceneProgram::getDefault(), light);
+
+        // Default light model program
+        if (light)
+            Scene::drawProgramComboItemGUI(model, current, SceneLight::getDefaultProgram(), light);
 
         // The programs in stock
         for (SceneProgram *const &program : program_stock)
@@ -1074,6 +1153,12 @@ std::size_t Scene::pushLight(const Light::Type &type) {
 	return light_stock.size() - 1;
 }
 
+// Push an empty scene model
+std::size_t Scene::pushModel() {
+    model_stock.push_back(new SceneModel(""));
+    return model_stock.size() - 1;
+}
+
 // Push a new scene model and relate to a scene program
 std::size_t Scene::pushModel(const std::string &path, const std::size_t &program) {
 	// Store the new scene model
@@ -1085,6 +1170,12 @@ std::size_t Scene::pushModel(const std::string &path, const std::size_t &program
 		(*std::next(program_stock.begin(), program))->addRelated(model);
 
 	return model_stock.size() - 1;
+}
+
+// Push an empty scene program
+std::size_t Scene::pushProgram() {
+    program_stock.push_back(new SceneProgram());
+    return program_stock.size() - 1;
 }
 
 // Push a new scene program

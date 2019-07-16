@@ -325,9 +325,10 @@ void setup_scene(const std::string &bin_path) {
     second_cam->setPosition(glm::vec3(-1.170F, 0.975F, 1.700F));
     second_cam->setLookDirection(glm::vec3(0.4855F, -0.4140F, -0.7700F));
 
-	// Default program
+	// Default programs
 	const std::string vertex = shader_path + "common.vert.glsl";
 	SceneProgram::setDefault(new SceneProgram(vertex, shader_path + "normals.frag.glsl"));
+    SceneLight::setDefaultProgram(new SceneProgram(vertex, shader_path + "light.frag.glsl"));
 
     // Add programs
 	const std::size_t blinn_phong_id   = scene->pushProgram(vertex, shader_path + "blinn_phong.frag.glsl");
@@ -339,6 +340,8 @@ void setup_scene(const std::string &bin_path) {
 	const std::size_t suzanne_id = scene->pushModel(model_path + "suzanne"  + DIR_SEP + "suzanne.obj",      blinn_phong_id);
 	const std::size_t crash_id = scene->pushModel(model_path + "crash"    + DIR_SEP + "crashbandicoot.obj", oren_nayar_id);
 
+    // Add light model
+    SceneLight::setModel(new SceneModel(model_path + "arrow" + DIR_SEP + "light_arrow.obj"));
 
 	// Suzanne geometry
 	SceneModel *suzanne = scene->getModel(suzanne_id);
@@ -349,10 +352,6 @@ void setup_scene(const std::string &bin_path) {
 	SceneModel *crash = scene->getModel(crash_id);
     crash->setScale(glm::vec3(0.5F));
     crash->setPosition(glm::vec3(0.6F, -0.25F, 0.0F));
-
-	// Setup light model
-	SceneLight::setModel(new SceneModel(model_path + "arrow" + DIR_SEP + "light_arrow.obj"));
-	SceneLight::setDefaultProgram(new SceneProgram(vertex, shader_path + "light.frag.glsl"));
 
 
     // Lights default values

@@ -198,26 +198,30 @@ void SceneLight::setCamera(const SceneCamera *const *const camera) {
 
 // Set the default scene program
 void SceneLight::setDefaultProgram(SceneProgram *const program) {
-    // Set program if is null
-    if (SceneLight::program == nullptr)
-        SceneLight::setProgram(program);
-
     // Set default program
     SceneLight::default_program = program;
+
+    // Set default label
+    if (SceneLight::default_program != nullptr)
+        SceneLight::default_program->setLabel("Default light GLSL program");
+
+    // Set program if is null
+    if (SceneLight::program == nullptr)
+        SceneLight::setProgram(SceneLight::default_program);
 }
 
 // Set the new program
 void SceneLight::setProgram(SceneProgram *const program) {
-    // Relate program to model
+    // Remove related model to previous program
     if (SceneLight::program != nullptr)
         SceneLight::program->removeRelated(SceneLight::model);
 
-    // Relate model to program
-    if (program != nullptr)
-        program->addRelated(SceneLight::model);
-
     // Set program
     SceneLight::program = program;
+
+    // Relate model to program
+    if (SceneLight::program != nullptr)
+        SceneLight::program->addRelated(SceneLight::model);
 }
 
 // Set the new model

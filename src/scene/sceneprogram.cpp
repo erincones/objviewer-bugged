@@ -14,6 +14,15 @@ SceneProgram *SceneProgram::default_program;
 constexpr const char *const SceneProgram::ARROW;
 
 
+// Empty scene program constructor
+SceneProgram::SceneProgram() : GLSLProgram() {
+    // Set GUI ID
+    gui_id = SceneProgram::count++;
+
+    // Default label
+    label.append("[").append(std::to_string(gui_id)).append("] Empty GLSL Program");
+}
+
 // Scene program constructor
 SceneProgram::SceneProgram(const std::string &vert_path, const std::string &frag_path) : GLSLProgram(vert_path, frag_path) {
     // Set GUI ID
@@ -21,7 +30,7 @@ SceneProgram::SceneProgram(const std::string &vert_path, const std::string &frag
 
     // Default label
     label.append("[").append(std::to_string(gui_id)).append("] ")
-        .append(GLSLProgram::vert->getName()).append(ARROW)
+        .append(GLSLProgram::vert->getName()).append(SceneProgram::ARROW)
         .append(GLSLProgram::frag->getName());
 
 	// Get shaders path
@@ -35,9 +44,9 @@ SceneProgram::SceneProgram(const std::string &vert_path, const std::string &geom
     gui_id = SceneProgram::count++;
 
     // Label
-    label.append("[").append(std::to_string(GLSLProgram::getID())).append("] ")
-        .append(GLSLProgram::vert->getName()).append(ARROW)
-        .append(GLSLProgram::geom->getName()).append(ARROW)
+    label.append("[").append(std::to_string(gui_id)).append("] ")
+        .append(GLSLProgram::vert->getName()).append(SceneProgram::ARROW)
+        .append(GLSLProgram::geom->getName()).append(SceneProgram::ARROW)
         .append(GLSLProgram::frag->getName());
 
     // Get shaders path
@@ -52,11 +61,11 @@ SceneProgram::SceneProgram(const std::string &vert_path, const std::string &tesc
     gui_id = SceneProgram::count++;
 
     // Default label
-    label.append("[").append(std::to_string(GLSLProgram::getID())).append("] ")
-        .append(GLSLProgram::vert->getName()).append(ARROW)
-        .append(GLSLProgram::tesc->getName()).append(ARROW)
-        .append(GLSLProgram::tese->getName()).append(ARROW)
-        .append(GLSLProgram::geom->getName()).append(ARROW)
+    label.append("[").append(std::to_string(gui_id)).append("] ")
+        .append(GLSLProgram::vert->getName()).append(SceneProgram::ARROW)
+        .append(GLSLProgram::tesc->getName()).append(SceneProgram::ARROW)
+        .append(GLSLProgram::tese->getName()).append(SceneProgram::ARROW)
+        .append(GLSLProgram::geom->getName()).append(SceneProgram::ARROW)
         .append(GLSLProgram::frag->getName());
     
     // Get shaders path
@@ -76,6 +85,13 @@ void SceneProgram::reload() {
 	glDeleteProgram(program);
 	program = GL_FALSE;
 
+    // Delete shaders
+    if (GLSLProgram::vert != nullptr) delete GLSLProgram::vert;
+    if (GLSLProgram::tesc != nullptr) delete GLSLProgram::tesc;
+    if (GLSLProgram::tese != nullptr) delete GLSLProgram::tese;
+    if (GLSLProgram::geom != nullptr) delete GLSLProgram::geom;
+    if (GLSLProgram::frag != nullptr) delete GLSLProgram::frag;
+
 	// Load shaders
 	GLSLProgram::vert = (!vert.empty() ? new Shader(vert, GL_VERTEX_SHADER)          : nullptr);
 	GLSLProgram::tesc = (!tesc.empty() ? new Shader(tesc, GL_TESS_CONTROL_SHADER)    : nullptr);
@@ -83,13 +99,21 @@ void SceneProgram::reload() {
 	GLSLProgram::geom = (!geom.empty() ? new Shader(geom, GL_GEOMETRY_SHADER)        : nullptr);
 	GLSLProgram::frag = (!frag.empty() ? new Shader(frag, GL_FRAGMENT_SHADER)        : nullptr);
 
+
+    // Link program
+    try {
+        link();
+    } catch (GLSLException &exception) {
+        std::cerr << exception.what() << std::endl;
+    }
+
     // Reset label
     label.clear();
-    label.append("[").append(std::to_string(GLSLProgram::getID())).append("] ")
-        .append(GLSLProgram::vert != nullptr ? GLSLProgram::vert->getName() : "").append(ARROW)
-        .append(GLSLProgram::tesc != nullptr ? GLSLProgram::tesc->getName() : "").append(ARROW)
-        .append(GLSLProgram::tese != nullptr ? GLSLProgram::tese->getName() : "").append(ARROW)
-        .append(GLSLProgram::geom != nullptr ? GLSLProgram::geom->getName() : "").append(ARROW)
+    label.append("[").append(std::to_string(gui_id)).append("] ")
+        .append(GLSLProgram::vert != nullptr ? GLSLProgram::vert->getName() + SceneProgram::ARROW : "")
+        .append(GLSLProgram::tesc != nullptr ? GLSLProgram::tesc->getName() + SceneProgram::ARROW : "")
+        .append(GLSLProgram::tese != nullptr ? GLSLProgram::tese->getName() + SceneProgram::ARROW : "")
+        .append(GLSLProgram::geom != nullptr ? GLSLProgram::geom->getName() + SceneProgram::ARROW : "")
         .append(GLSLProgram::frag != nullptr ? GLSLProgram::frag->getName() : "");
 
     // Count the number of shaders
@@ -98,15 +122,6 @@ void SceneProgram::reload() {
             + (GLSLProgram::tese != nullptr)
             + (GLSLProgram::geom != nullptr)
             + (GLSLProgram::frag != nullptr);
-
-
-	// Link program
-	try {
-		link();
-	} catch (GLSLException &exception) {
-		std::cerr << exception.what() << std::endl;
-	}
-
 }
 
 
@@ -175,6 +190,10 @@ SceneProgram *const SceneProgram::getDefault() {
 // Set the new default program
 void SceneProgram::setDefault(SceneProgram *default_program) {
     SceneProgram::default_program = default_program;
+
+    // Set default label
+    if (SceneProgram::default_program != nullptr)
+        SceneProgram::default_program->setLabel("Default GLSL program");
 }
 
 

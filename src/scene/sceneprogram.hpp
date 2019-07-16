@@ -43,6 +43,7 @@ class SceneProgram : public GLSLProgram {
 		static constexpr const char *const ARROW = "->";
 
 	public:
+        SceneProgram();
 		SceneProgram(const std::string &vert_path, const std::string &frag_path);
 		SceneProgram(const std::string &vert_path, const std::string &geom_path, const std::string &frag_path);
 		SceneProgram(const std::string &vert_path, const std::string &tesc_path, const std::string &tese_path, const std::string &geom_path, const std::string &frag_path);
