@@ -112,14 +112,18 @@ void SceneProgram::reload() {
 
 // Add related model
 void SceneProgram::addRelated(SceneModel *const model) {
-	model->setProgram(this);
-	related_model.insert(model);
+    if (model != nullptr) {
+        model->setProgram(this);
+        related_model.insert(model);
+    }
 }
 
 // Remove related model
 void SceneProgram::removeRelated(SceneModel *const model) {
-	model->setProgram(nullptr);
-	related_model.erase(model);
+    if (model != nullptr) {
+        model->setProgram(nullptr);
+        related_model.erase(model);
+    }
 }
 
 // Remove all related models

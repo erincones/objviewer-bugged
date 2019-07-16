@@ -51,11 +51,15 @@ class Scene {
         void drawSettingsWindow();
         void drawAboutWindow();
 
-        // Draw camera widget
+        // Elements widgets
         bool drawCameraGUI(SceneCamera *const scene_cam, const bool select_button = true);
         bool drawModelGUI(SceneModel *const model);
         bool drawLightGUI(SceneLight *const light);
         bool drawProgramGUI(SceneProgram *const program);
+
+        // Program combo
+        void drawProgramComboGUI(SceneModel *const model, const bool &light = false);
+        void drawProgramComboItemGUI(SceneModel *const model, SceneProgram *const current, SceneProgram *const program, const bool &light);
 
 		// Static attributes
         static ImGuiIO *io;

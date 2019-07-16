@@ -102,6 +102,7 @@ void Scene::drawSettingsWindow() {
             ImGui::Text("Version: %s", glGetString(GL_VERSION));
             ImGui::Text("GLSL version: %s", glGetString(GL_SHADING_LANGUAGE_VERSION));
             ImGui::TreePop();
+            ImGui::Separator();
         }
 
         // Window info
@@ -112,6 +113,7 @@ void Scene::drawSettingsWindow() {
                 glClearColor(background.r, background.g, background.b, 1.0F);
 
             ImGui::TreePop();
+            ImGui::Separator();
         }
 
         // Scene statistics
@@ -246,11 +248,11 @@ void Scene::drawSettingsWindow() {
 
         // Model path
         SceneModel *model = SceneLight::getModel();
-        if (ImGui::InputText("Path", &model->getPath(), ImGuiInputTextFlags_EnterReturnsTrue))
+        if (ImGui::InputText("Model path", &model->getPath(), ImGuiInputTextFlags_EnterReturnsTrue))
             SceneLight::getModel()->reload();
 
         // Model name
-        ImGui::InputText("Name", &model->getLabel());
+        ImGui::InputText("Model name", &model->getLabel());
 
         // Reload buttons
         if (ImGui::Button("Reload model"))
@@ -264,20 +266,11 @@ void Scene::drawSettingsWindow() {
         ImGui::Spacing();
 
         // Light program
-        SceneProgram *program = SceneLight::getProgram();
-
-        // Program name
-        ImGui::InputText("Name", &program->getLabel());
-
-        // Shaders
-        if (ImGui::InputText("Vertex",           &program->getShaderPath(GL_VERTEX_SHADER),          ImGuiInputTextFlags_EnterReturnsTrue)) program->reload();
-        if (ImGui::InputText("Tess. Control",    &program->getShaderPath(GL_TESS_CONTROL_SHADER),    ImGuiInputTextFlags_EnterReturnsTrue)) program->reload();
-        if (ImGui::InputText("Tess. Evaluation", &program->getShaderPath(GL_TESS_EVALUATION_SHADER), ImGuiInputTextFlags_EnterReturnsTrue)) program->reload();
-        if (ImGui::InputText("Geometry",         &program->getShaderPath(GL_GEOMETRY_SHADER),        ImGuiInputTextFlags_EnterReturnsTrue)) program->reload();
-        if (ImGui::InputText("Fragment",         &program->getShaderPath(GL_FRAGMENT_SHADER),        ImGuiInputTextFlags_EnterReturnsTrue)) program->reload();
+        Scene::drawProgramComboGUI(SceneLight::getModel(), true);
         
         ImGui::Unindent();
         ImGui::Separator();
+
 
         // Model indices
         std::size_t index = -1;
@@ -304,8 +297,8 @@ void Scene::drawSettingsWindow() {
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.24F, 0.60F, 0.44F, 1.00F));
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.16F, 0.80F, 0.52F, 1.00F));
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.21F, 0.70F, 0.49F, 1.00F));
-            if (ImGui::Button("Add model", ImVec2(454.0F, 19.0F)))
-                pushModel();
+            if (ImGui::Button("Add Light", ImVec2(454.0F, 19.0F)))
+                pushLight();
             ImGui::PopStyleColor(3);
         }
     }
@@ -430,7 +423,7 @@ bool Scene::drawModelGUI(SceneModel *const model) {
     if (ImGui::Button("Reload model"))
         model->reload();
 
-    // Remove button if there are more than one camera
+    // Remove model button
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.60F, 0.24F, 0.24F, 1.00F));
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.80F, 0.16F, 0.16F, 1.00F));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.70F, 0.21F, 0.21F, 1.00F));
@@ -482,45 +475,7 @@ bool Scene::drawModelGUI(SceneModel *const model) {
 
     // Scene programs
     ImGui::Spacing();
-    const std::string program_title = (model->getProgram() != nullptr ? model->getProgram()->getLabel() : "null");
-    if (ImGui::BeginCombo("GLSL program", program_title.c_str())) {
-        // Get program
-        SceneProgram *current_program = model->getProgram();
-
-        // Default shader
-        bool selected = (current_program == SceneProgram::getDefault());
-
-        // Add item and mark the selected
-        if (ImGui::Selectable(SceneProgram::getDefault()->getLabel().c_str(), selected)) {
-            if (current_program != nullptr)
-                current_program->removeRelated(model);
-            SceneProgram::getDefault()->addRelated(model);
-        }
-
-        // Set default focus to selected
-        if (selected)
-            ImGui::SetItemDefaultFocus();
-
-        // The programs in stock
-        for (SceneProgram *const &program : program_stock) {
-            // Compare GLSL program with the current
-            selected = (current_program == program);
-
-            // Add items and mark the selected
-            if (ImGui::Selectable(program->getLabel().c_str(), selected)) {
-                if (current_program != nullptr)
-                    current_program->removeRelated(model);
-                program->addRelated(model);
-            }
-
-            // Set default focus to selected
-            if (selected)
-                ImGui::SetItemDefaultFocus();
-        }
-
-        // Finish GLSL program combo
-        ImGui::EndCombo();
-    }
+    Scene::drawProgramComboGUI(model);
 
     // Geometry
     if (ImGui::TreeNodeEx("Geometry", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -633,6 +588,7 @@ bool Scene::drawModelGUI(SceneModel *const model) {
             global->setMetalness(value);
         }
         ImGui::Unindent();
+        ImGui::Separator();
 
 
         // Material stock
@@ -723,12 +679,12 @@ bool Scene::drawModelGUI(SceneModel *const model) {
 
                 // Pop material node
                 ImGui::TreePop();
+                ImGui::Separator();
             }
         }
 
         // Pop materials node
         ImGui::TreePop();
-        ImGui::Separator();
     }
 
     // Separator when the node is open
@@ -776,13 +732,23 @@ bool Scene::drawLightGUI(SceneLight *const light) {
     if (ImGui::Checkbox("Draw arrow", &status))
         light->drawModel(status);
 
-
     // Grab for spotlights
     if (type == Light::SPOTLIGHT) {
         status = light->isGrabbed();
         ImGui::SameLine();
         if (ImGui::Checkbox("Grabbed", &status))
             light->setGrabbed(status);
+    }
+
+    // Remove button if there are more than one model
+    if (light_stock.size() > 1U) {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.60F, 0.24F, 0.24F, 1.00F));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.80F, 0.16F, 0.16F, 1.00F));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.70F, 0.21F, 0.21F, 1.00F));
+        ImGui::SameLine();
+        if (ImGui::Button("Remove"))
+            keep = false;
+        ImGui::PopStyleColor(3);
     }
     ImGui::Spacing();
 
@@ -822,39 +788,35 @@ bool Scene::drawLightGUI(SceneLight *const light) {
         light->setAmbientLevel(level);
 
     // Specular level
-    float level = light->getSpecularLevel();
+   level = light->getSpecularLevel();
     if (ImGui::DragFloat("Specular level", &level, 0.01F, 0.0F, 1.0F, "%.4F"))
         light->setSpecularLevel(level);
 
     // Shininess level
-    float level = light->getShininess();
+    level = light->getShininess();
     if (ImGui::DragFloat("Shininess level", &level, 0.01F, 0.0F, 1.0F, "%.4F"))
         light->setShininess(level);
 
 
     // Attenuation for other than directional light
-    bool spaced = false;
     if (type != Light::DIRECTIONAL) {
         ImGui::Spacing();
-        spaced = true;
 
         value = light->getAttenuation();
-        if (ImGui::DragFloat3("Attenuation", &value.x, 0.01F, 0.0F, FLT_MAX, "%.4F"))
+        if (ImGui::DragFloat3("Attenuation", &value.x, 0.001F, 0.0F, FLT_MAX, "%.4F"))
             light->setAttenuation(value);
     }
 
     // Cutoff for spotlight lights
     if (type == Light::SPOTLIGHT) {
-        if (!spaced)
-            ImGui::Spacing();
-
         glm::vec2 cutoff = light->getCutoff();
         if (ImGui::DragFloat2("Cutoff", &cutoff.x, 0.01F, 0.0F, FLT_MAX, "%.4F"))
             light->setCutoff(cutoff);
-
-        Scene::HelpMarker("X: Inner | Y: Outter");
+        Scene::HelpMarker("[Inner, Outter]");
     }
 
+    // Separator when the node is open
+    ImGui::Separator();
 
     // Return keep status
     return keep;
@@ -863,6 +825,55 @@ bool Scene::drawLightGUI(SceneLight *const light) {
 // Draw program data and return false if have to remove
 bool Scene::drawProgramGUI(SceneProgram *const program) {
     return false;
+}
+
+
+// Show combo with available programs
+void Scene::drawProgramComboGUI(SceneModel *const model, const bool &light) {
+    // Get title
+    SceneProgram *current = model->getProgram();
+    const std::string program_title = (current != nullptr ? current->getLabel() : "null");
+    
+    // Show conbo
+    if (ImGui::BeginCombo("GLSL program", program_title.c_str())) {
+        // Default light model shader
+        if (light)
+            Scene::drawProgramComboItemGUI(model, current, SceneLight::getDefaultProgram(), light);
+
+        // Default program
+        Scene::drawProgramComboItemGUI(model, current, SceneProgram::getDefault(), light);
+
+        // The programs in stock
+        for (SceneProgram *const &program : program_stock)
+            Scene::drawProgramComboItemGUI(model, current, program, light);
+
+        // Finish GLSL program combo
+        ImGui::EndCombo();
+    }
+}
+
+// Draw one item in the program combo
+void Scene::drawProgramComboItemGUI(SceneModel *const model, SceneProgram *const current, SceneProgram *const program, const bool &light) {
+    // Compare GLSL program with the current
+    bool selected = (current == program);
+
+    // Add items and mark the selected
+    if (ImGui::Selectable(program->getLabel().c_str(), selected)) {
+        // Assign program to scene lights model
+        if (light)
+            SceneLight::setProgram(program);
+
+        // Assign program to another model
+        else {
+            if (current != nullptr)
+                current->removeRelated(model);
+            program->addRelated(model);
+        }
+    }
+
+    // Set default focus to selected
+    if (selected)
+        ImGui::SetItemDefaultFocus();
 }
 
 

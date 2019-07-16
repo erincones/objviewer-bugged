@@ -36,6 +36,7 @@ class SceneLight : public Light {
         static std::unordered_set<std::uint32_t> stock;
 
 		static const SceneCamera *const *camera;
+        static SceneProgram *default_program;
 		static SceneProgram *program;
 		static SceneModel *model;
 
@@ -71,11 +72,13 @@ class SceneLight : public Light {
 
 
 		static void setCamera(const SceneCamera *const *const camera);
+        static void setDefaultProgram(SceneProgram *const program);
 		static void setProgram(SceneProgram *const program);
 		static void setModel(SceneModel *const model);
 
         static std::size_t getNumberOfLights();
 		static const SceneCamera *const getCamera();
+        static SceneProgram *const getDefaultProgram();
 		static SceneProgram *const getProgram();
 		static SceneModel *const getModel();
 

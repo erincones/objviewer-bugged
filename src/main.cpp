@@ -352,7 +352,7 @@ void setup_scene(const std::string &bin_path) {
 
 	// Setup light model
 	SceneLight::setModel(new SceneModel(model_path + "arrow" + DIR_SEP + "light_arrow.obj"));
-	SceneLight::setProgram(new SceneProgram(vertex, shader_path + "light.frag.glsl"));
+	SceneLight::setDefaultProgram(new SceneProgram(vertex, shader_path + "light.frag.glsl"));
 
 
     // Lights default values
@@ -431,7 +431,11 @@ void clean_up() {
 
 	// Delete scene light static attributes
 	delete SceneLight::getModel();
-	delete SceneLight::getProgram();
+	delete SceneLight::getDefaultProgram();
+
+    // Delete program if is different to the default
+    if (SceneLight::getProgram() != SceneLight::getDefaultProgram())
+        delete SceneLight::getProgram();
 
     // Terminate GUI
     ImGui_ImplOpenGL3_Shutdown();

@@ -12,6 +12,7 @@ std::uint32_t SceneLight::count = 0U;
 std::unordered_set<std::uint32_t> SceneLight::stock;
 
 const SceneCamera *const *SceneLight::camera = nullptr;
+SceneProgram *SceneLight::default_program = nullptr;
 SceneProgram *SceneLight::program = nullptr;
 SceneModel *SceneLight::model = nullptr;
 
@@ -104,7 +105,7 @@ void SceneLight::draw() const {
 
 	// Setup geometry
 	SceneLight::model->reset();
-	SceneLight::model->setPosition((grabbed ? (*SceneLight::camera)->getPosition() : Light::position) - scale * direction);
+	SceneLight::model->setPosition((grabbed ? (*SceneLight::camera)->getPosition() : Light::position) - (scale / 2.0F) * direction);
 	SceneLight::model->setRotation(glm::angleAxis(angle, axis));
 
 	// Front light
@@ -113,14 +114,14 @@ void SceneLight::draw() const {
 
 	// Back light
 	else {
-		SceneLight::model->rotate(glm::vec3(180.0F, 0.0F, 0.0F));
-		SceneLight::model->rotate(glm::vec3(0.0F, 180.0F, 0.0F));
+		SceneLight::model->rotate(glm::vec3(180.0F,   0.0F, 0.0F));
+		SceneLight::model->rotate(glm::vec3(  0.0F, 180.0F, 0.0F));
 		SceneLight::model->setScale(glm::vec3(scale, scale, -scale));
 	}
 
 
 	// Use camera
-	GLSLProgram *glslprogram = ((program != nullptr) && program->isValid() ? program : SceneProgram::getDefault());
+	GLSLProgram *glslprogram = ((SceneLight::program != nullptr) && SceneLight::program->isValid() ? SceneLight::program : SceneProgram::getDefault());
 	(*SceneLight::camera)->use(glslprogram);
 
 	// Use light
@@ -195,16 +196,40 @@ void SceneLight::setCamera(const SceneCamera *const *const camera) {
 	SceneLight::camera = camera;
 }
 
+// Set the default scene program
+void SceneLight::setDefaultProgram(SceneProgram *const program) {
+    // Set program if is null
+    if (SceneLight::program == nullptr)
+        SceneLight::setProgram(program);
+
+    // Set default program
+    SceneLight::default_program = program;
+}
+
 // Set the new program
 void SceneLight::setProgram(SceneProgram *const program) {
-	SceneLight::program = program;
-	SceneLight::model->setProgram(program);
+    // Relate program to model
+    if (SceneLight::program != nullptr)
+        SceneLight::program->removeRelated(SceneLight::model);
+
+    // Relate model to program
+    if (program != nullptr)
+        program->addRelated(SceneLight::model);
+
+    // Set program
+    SceneLight::program = program;
 }
 
 // Set the new model
 void SceneLight::setModel(SceneModel *const model) {
+    // Relate program to model
+    if (SceneLight::program != nullptr) {
+        SceneLight::program->removeRelated(SceneLight::model);
+        SceneLight::program->addRelated(model);
+    }
+
+    // Set model
 	SceneLight::model = model;
-	SceneLight::model->setProgram(program);
 }
 
 
@@ -216,6 +241,10 @@ std::size_t SceneLight::getNumberOfLights() {
 // Get the camera
 const SceneCamera *const SceneLight::getCamera() {
 	return *SceneLight::camera;
+}
+
+SceneProgram *const SceneLight::getDefaultProgram() {
+    return SceneLight::default_program;
 }
 
 // Get the program
