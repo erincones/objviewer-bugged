@@ -391,9 +391,9 @@ std::uint32_t Model::storeVertex(const std::string &vertex_str) {
 // Calculate the tangent vector of a triangle
 void Model::calcTangent(const std::uint32_t &ind_0, const std::uint32_t &ind_1, const std::uint32_t &ind_2) {
     // Get vertices
-    Model::vertex_data vertex_0 = vertex.at(ind_0);
-    Model::vertex_data vertex_1 = vertex.at(ind_1);
-    Model::vertex_data vertex_2 = vertex.at(ind_2);
+    Model::vertex_data &vertex_0 = vertex.at(ind_0);
+    Model::vertex_data &vertex_1 = vertex.at(ind_1);
+    Model::vertex_data &vertex_2 = vertex.at(ind_2);
 
     // Get position triangle edges
     const glm::vec3 l0(vertex_1.position - vertex_0.position);
@@ -404,17 +404,12 @@ void Model::calcTangent(const std::uint32_t &ind_0, const std::uint32_t &ind_1, 
     const glm::vec2 d1(vertex_2.uv_coord - vertex_0.uv_coord);
 
     // Calculate tangent vector
-    const float d = d0.s * d1.t - d1.s * d0.t;
-    glm::vec3 tangent(glm::normalize((l0 * d1.t - l1 * d0.t) / d));
-
-    // Fix mirrored
-    if (d < 0)
-        tangent = -tangent;
+    glm::vec3 tangent(glm::normalize((l0 * d1.t - l1 * d0.t) / glm::abs(d0.s * d1.t - d1.s * d0.t)));
 
     // Store tangent
-    vertex_0.tangent = tangent;
-    vertex_1.tangent = tangent;
-    vertex_2.tangent = tangent;
+    vertex_0.tangent = glm::normalize(vertex_0.tangent + tangent);
+    vertex_1.tangent = glm::normalize(vertex_1.tangent + tangent);
+    vertex_2.tangent = glm::normalize(vertex_2.tangent + tangent);
 }
 
 
@@ -446,7 +441,7 @@ void Model::loadData() {
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_data), (void *)offsetof(vertex_data, normal));
     glEnableVertexAttribArray(2);
 
-    // Rangent attribute
+    // Tangent attribute
     glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_data), (void *)offsetof(vertex_data, tangent));
     glEnableVertexAttribArray(3);
 

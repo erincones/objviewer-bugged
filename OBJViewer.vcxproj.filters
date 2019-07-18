@@ -37,6 +37,9 @@
     <Filter Include="Archivos de origen\scene">
       <UniqueIdentifier>{aa75e0ad-f23d-451d-9ecd-a3dc90a29ebf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Archivos de recursos\shader\normal_mapping">
+      <UniqueIdentifier>{08766534-9aeb-4775-afe8-a37618f60fbc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\imgui\imconfig.h">
@@ -122,6 +125,9 @@
     </ClInclude>
     <ClInclude Include="src\scene\scenecamera.hpp">
       <Filter>Archivos de encabezado\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -217,5 +223,22 @@
     <None Include="shader\oren_nayar.frag.glsl">
       <Filter>Archivos de recursos\shader</Filter>
     </None>
+    <None Include="shader\normal_mapping\common_nm.vert.glsl">
+      <Filter>Archivos de recursos\shader\normal_mapping</Filter>
+    </None>
+    <None Include="shader\normal_mapping\blinn_phong_nm.frag.glsl">
+      <Filter>Archivos de recursos\shader\normal_mapping</Filter>
+    </None>
+    <None Include="shader\normal_mapping\cook_torrance_nm.frag.glsl">
+      <Filter>Archivos de recursos\shader\normal_mapping</Filter>
+    </None>
+    <None Include="shader\normal_mapping\oren_nayar_nm.frag.glsl">
+      <Filter>Archivos de recursos\shader\normal_mapping</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="OBJViewer.rc">
+      <Filter>Archivos de recursos</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>
