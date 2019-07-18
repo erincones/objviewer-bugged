@@ -1,5 +1,10 @@
 #version 330 core
+
+// Light macros
 #define LIGHTS 5U
+#define DIRECTIONAL 0U
+#define POINT       1U
+#define SPOTLIGHT   2U
 
 // Light struct
 struct Light {
@@ -19,22 +24,6 @@ struct Light {
 	vec2 cutoff;
 };
 
-// Material struct
-struct Material {
-	vec3 ambient_color;
-	vec3 diffuse_color;
-	vec3 specular_color;
-
-	float shininess;
-	float roughness;
-	float metalness;
-
-	sampler2D ambient_map;
-	sampler2D diffuse_map;
-	sampler2D specular_map;
-	sampler2D shininess_map;
-};
-
 
 // In variables
 in Vertex {
@@ -48,8 +37,19 @@ in Vertex {
 uniform Light light[LIGHTS];
 uniform uint light_size;
 
-// Materials
-uniform Material material;
+// Material
+uniform vec3 material_ambient_color;
+uniform vec3 material_diffuse_color;
+uniform vec3 material_specular_color;
+
+uniform float material_shininess;
+uniform float material_roughness;
+uniform float material_metalness;
+
+uniform sampler2D material_ambient_map;
+uniform sampler2D material_diffuse_map;
+uniform sampler2D material_specular_map;
+uniform sampler2D material_shininess_map;
 
 // Camera position
 uniform vec3 view_pos;
@@ -62,9 +62,9 @@ out vec4 color;
 // Main function
 void main() {
 	// Texture mapping
-	vec3 ambient_tex    = material.ambient_color  * texture(material.ambient_map,   vertex.uv_coord).rgb;
-    vec3 diffuse_tex    = material.diffuse_color  * texture(material.diffuse_map,   vertex.uv_coord).rgb;
-	vec3 specular_tex   = material.specular_color * texture(material.specular_map,  vertex.uv_coord).rgb;
+	vec3 ambient_tex    = material_ambient_color  * texture(material_ambient_map,   vertex.uv_coord).rgb;
+    vec3 diffuse_tex    = material_diffuse_color  * texture(material_diffuse_map,   vertex.uv_coord).rgb;
+	vec3 specular_tex   = material_specular_color * texture(material_specular_map,  vertex.uv_coord).rgb;
 
 	// View direction and initial color
 	vec3 view_dir = normalize(view_pos - vertex.position);
@@ -78,13 +78,13 @@ void main() {
 		float intensity = 1.0F;
 
 		// Attenunation for non directional lights
-		if (light[i].type != 0U) {
+		if (light[i].type != DIRECTIONAL) {
 			vec3 light_dir = light[i].position - vertex.position;
 			float dist = length(light_dir);
 			attenuation = 1.0F / (light[i].attenuation[0] + light[i].attenuation[1] * dist + light[i].attenuation[2] * dist * dist);
 
 			// Spotlight intensity
-			if (light[i].type == 2U) {
+			if (light[i].type == SPOTLIGHT) {
 				float theta = dot(normalize(light_dir), light[i].direction);
 				float epsilon = light[i].cutoff[0] - light[i].cutoff[1];
 				intensity = clamp((theta - light[i].cutoff[1]) / epsilon, 0.0F, 1.0F);
@@ -100,12 +100,12 @@ void main() {
 
 		// Fresnel
 		float hv_comp = 1.0F - hv;
-		vec3 f0 = mix(material.ambient_color, specular_tex, material.metalness);
+		vec3 f0 = mix(material_ambient_color, specular_tex, material_metalness);
 		vec3 fresnel = f0 + (1.0F - f0) * pow(hv_comp, 5);
 
 		// Roughness
 		float nh_sqr = nh * nh;
-		float roughness = material.roughness * nh_sqr;
+		float roughness = material_roughness * nh_sqr;
 		roughness = (roughness != 0.0F ? exp((nh_sqr - 1.0F) / roughness) / (roughness * nh_sqr) : 0.0F);
 
 		// Geometry attenuation

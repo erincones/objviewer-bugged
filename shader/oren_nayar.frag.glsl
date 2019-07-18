@@ -1,5 +1,10 @@
 #version 330 core
+
+// Light macros
 #define LIGHTS 5U
+#define DIRECTIONAL 0U
+#define POINT       1U
+#define SPOTLIGHT   2U
 
 // Light struct
 struct Light {
@@ -16,18 +21,6 @@ struct Light {
 	vec2 cutoff;
 };
 
-// Material struct
-struct Material {
-	vec3 ambient_color;
-	vec3 diffuse_color;
-	vec3 specular_color;
-
-	float roughness;
-
-	sampler2D ambient_map;
-	sampler2D diffuse_map;
-};
-
 
 // In variables
 in Vertex {
@@ -41,8 +34,15 @@ in Vertex {
 uniform Light light[LIGHTS];
 uniform uint light_size;
 
-// Materials
-uniform Material material;
+// Material
+uniform vec3 material_ambient_color;
+uniform vec3 material_diffuse_color;
+uniform vec3 material_specular_color;
+
+uniform float material_roughness;
+
+uniform sampler2D material_ambient_map;
+uniform sampler2D material_diffuse_map;
 
 // Camera position
 uniform vec3 view_pos;
@@ -55,8 +55,8 @@ out vec4 color;
 // Main function
 void main() {
 	// Texture mapping
-	vec3 ambient_tex    = material.ambient_color  * texture(material.ambient_map,   vertex.uv_coord).rgb;
-    vec3 diffuse_tex    = material.diffuse_color  * texture(material.diffuse_map,   vertex.uv_coord).rgb;
+	vec3 ambient_tex    = material_ambient_color  * texture(material_ambient_map,   vertex.uv_coord).rgb;
+    vec3 diffuse_tex    = material_diffuse_color  * texture(material_diffuse_map,   vertex.uv_coord).rgb;
 
 	// View direction and initial color
 	vec3 view_dir = normalize(view_pos - vertex.position);
@@ -70,13 +70,13 @@ void main() {
 		float intensity = 1.0F;
 
 		// Attenunation for non directional lights
-		if (light[i].type != 0U) {
+		if (light[i].type != DIRECTIONAL) {
 			vec3 light_dir = light[i].position - vertex.position;
 			float dist = length(light_dir);
 			attenuation = 1.0F / (light[i].attenuation[0] + light[i].attenuation[1] * dist + light[i].attenuation[2] * dist * dist);
 
 			// Spotlight intensity
-			if (light[i].type == 2U) {
+			if (light[i].type == SPOTLIGHT) {
 				float theta = dot(normalize(light_dir), light[i].direction);
 				float epsilon = light[i].cutoff[0] - light[i].cutoff[1];
 				intensity = clamp((theta - light[i].cutoff[1]) / epsilon, 0.0F, 1.0F);
@@ -88,8 +88,8 @@ void main() {
 		float nv = dot(vertex.normal, view_dir);
 
 		// Oren-Nayar
-		float a = 1.0F - 0.50F * material.roughness / (material.roughness + 0.57F);
-		float b =        0.45F * material.roughness / (material.roughness + 0.09F);
+		float a = 1.0F - 0.50F * material_roughness / (material_roughness + 0.57F);
+		float b =        0.45F * material_roughness / (material_roughness + 0.09F);
 		float cos_phi = dot(normalize(view_dir - nv * vertex.normal), normalize(light[i].direction - nl * vertex.normal));
 		float phi_i   = acos(nl);
 		float phi_r   = acos(nv);

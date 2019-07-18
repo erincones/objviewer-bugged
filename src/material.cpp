@@ -40,26 +40,26 @@ void Material::use(GLSLProgram *const program) const {
     program->use();
 
     // Set uniforms
-    program->setUniform("material.ambient_color",      ambient_color);
-    program->setUniform("material.diffuse_color",      diffuse_color);
-    program->setUniform("material.specular_color",     specular_color);
-    program->setUniform("material.transmission_color", transmission_color);
-    program->setUniform("material.alpha",              alpha);
-    program->setUniform("material.sharpness",          sharpness);
-    program->setUniform("material.shininess",          shininess);
-    program->setUniform("material.roughness",          roughness * roughness);
-    program->setUniform("material.metalness",          metalness);
-    program->setUniform("material.refractive_index",   refractive_index);
+    program->setUniform("material_ambient_color",      ambient_color);
+    program->setUniform("material_diffuse_color",      diffuse_color);
+    program->setUniform("material_specular_color",     specular_color);
+    program->setUniform("material_transmission_color", transmission_color);
+    program->setUniform("material_alpha",              alpha);
+    program->setUniform("material_sharpness",          sharpness);
+    program->setUniform("material_shininess",          shininess);
+    program->setUniform("material_roughness",          roughness * roughness);
+    program->setUniform("material_metalness",          metalness);
+    program->setUniform("material_refractive_index",   refractive_index);
 
     // Set texture uniforms
-    program->setUniform("material.ambient_map",      0);
-    program->setUniform("material.diffuse_map",      1);
-    program->setUniform("material.specular_map",     2);
-    program->setUniform("material.shininess_map",    3);
-    program->setUniform("material.alpha_map",        4);
-    program->setUniform("material.bump_map",         5);
-    program->setUniform("material.displacement_map", 6);
-    program->setUniform("material.stencil_map",      7);
+    program->setUniform("material_ambient_map",      0);
+    program->setUniform("material_diffuse_map",      1);
+    program->setUniform("material_specular_map",     2);
+    program->setUniform("material_shininess_map",    3);
+    program->setUniform("material_alpha_map",        4);
+    program->setUniform("material_bump_map",         5);
+    program->setUniform("material_displacement_map", 6);
+    program->setUniform("material_stencil_map",      7);
 
     // Bind textures
     ambient_map     ->bind(0);
