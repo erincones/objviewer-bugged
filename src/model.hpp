@@ -21,6 +21,7 @@ class Model {
             glm::vec3 position;
             glm::vec2 uv_coord;
             glm::vec3 normal;
+            glm::vec3 tangent;
         };
 
         // Raw model data
@@ -45,7 +46,8 @@ class Model {
         Model &operator = (const Model &) = delete;
 
 		// Store vertex
-        void storeVertex(const std::string &vertex_data);
+        std::uint32_t storeVertex(const std::string &vertex_data);
+        void calcTangent(const std::uint32_t &ind_0, const std::uint32_t &ind_1, const std::uint32_t &ind_2);
 
         // Static methods
         static void rtrim(std::string &str);

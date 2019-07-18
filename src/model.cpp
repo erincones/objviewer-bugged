@@ -133,11 +133,14 @@ void Model::readOBJ() {
             // Triangulate polygon
             for (std::vector<std::string>::iterator it = face.begin() + 2; it != face.end(); it++) {
                 // Store the first and previous vertex
-                storeVertex((*face.begin()));
-                storeVertex((*(it - 1)));
+                const std::uint32_t ind_0 = storeVertex((*face.begin()));
+                const std::uint32_t ind_1 = storeVertex((*(it - 1)));
 
                 // Store the current vertex
-                storeVertex((*it));
+                const std::uint32_t ind_2 = storeVertex((*it));
+
+                // Calculate the tangent of the triangle
+                calcTangent(ind_0, ind_1, ind_2);
             }
 
             // Clear faces vector
@@ -344,13 +347,16 @@ void Model::readMTL() {
 
 
 // Store the vertex data indices
-void Model::storeVertex(const std::string &vertex_str) {
+std::uint32_t Model::storeVertex(const std::string &vertex_str) {
     // Search the vertex
     std::map<std::string, std::uint32_t>::iterator result = vertex_stock.find(vertex_str);
+    std::uint32_t ind;
 
     // Store the index of known vertex
-    if (result != vertex_stock.end())
+    if (result != vertex_stock.end()) {
         index.push_back(result->second);
+        ind = result->second;
+    }
     
     // Store new vertex
     else {
@@ -372,10 +378,43 @@ void Model::storeVertex(const std::string &vertex_str) {
         if (vertex_attrib[2] > 0) new_vertex.normal   = vertex_normal[vertex_attrib[2] - 1];
         
         // Add vertex
-        vertex_stock[vertex_str] = (std::uint32_t)vertex.size();
-        index.push_back((std::uint32_t)vertex.size());
+        ind = (std::uint32_t)vertex.size();
+        vertex_stock[vertex_str] = ind;
+        index.push_back(ind);
         vertex.push_back(new_vertex);
     }
+
+    // Return the index
+    return ind;
+}
+
+// Calculate the tangent vector of a triangle
+void Model::calcTangent(const std::uint32_t &ind_0, const std::uint32_t &ind_1, const std::uint32_t &ind_2) {
+    // Get vertices
+    Model::vertex_data vertex_0 = vertex.at(ind_0);
+    Model::vertex_data vertex_1 = vertex.at(ind_1);
+    Model::vertex_data vertex_2 = vertex.at(ind_2);
+
+    // Get position triangle edges
+    const glm::vec3 l0(vertex_1.position - vertex_0.position);
+    const glm::vec3 l1(vertex_2.position - vertex_0.position);
+
+    // Get texture triangle edges
+    const glm::vec2 d0(vertex_1.uv_coord - vertex_0.uv_coord);
+    const glm::vec2 d1(vertex_2.uv_coord - vertex_0.uv_coord);
+
+    // Calculate tangent vector
+    const float d = d0.s * d1.t - d1.s * d0.t;
+    glm::vec3 tangent(glm::normalize((l0 * d1.t - l1 * d0.t) / d));
+
+    // Fix mirrored
+    if (d < 0)
+        tangent = -tangent;
+
+    // Store tangent
+    vertex_0.tangent = tangent;
+    vertex_1.tangent = tangent;
+    vertex_2.tangent = tangent;
 }
 
 
@@ -406,6 +445,10 @@ void Model::loadData() {
     // Normal attribute
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_data), (void *)offsetof(vertex_data, normal));
     glEnableVertexAttribArray(2);
+
+    // Rangent attribute
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_data), (void *)offsetof(vertex_data, tangent));
+    glEnableVertexAttribArray(3);
 
     // Ubnind array object and buffers
     glBindVertexArray(0);
