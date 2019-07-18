@@ -840,7 +840,7 @@ bool Scene::drawLightGUI(SceneLight *const light) {
 
     // Shininess level
     level = light->getShininess();
-    if (ImGui::DragFloat("Shininess level", &level, 0.01F, 0.0F, 1.0F, "%.4F"))
+    if (ImGui::DragFloat("Shininess level", &level, 0.01F, 0.0F, FLT_MAX, "%.4F"))
         light->setShininess(level);
 
 

@@ -332,21 +332,22 @@ void setup_scene(const std::string &bin_path) {
     SceneLight::setDefaultProgram(new SceneProgram(vertex, shader_path + "light.frag.glsl"));
 
     // Add programs
-	const std::size_t blinn_phong_id     =   scene->pushProgram(vertex, shader_path + "blinn_phong.frag.glsl");
-	const std::size_t oren_nayar_id      =   scene->pushProgram(vertex, shader_path + "oren_nayar.frag.glsl");
-	/*const std::size_t cook_torrance_id = */scene->pushProgram(vertex, shader_path + "cook_torrance.frag.glsl");
+	const std::size_t blinn_phong_id   = scene->pushProgram(vertex, shader_path + "blinn_phong.frag.glsl");
+	const std::size_t oren_nayar_id    = scene->pushProgram(vertex, shader_path + "oren_nayar.frag.glsl");
+	const std::size_t cook_torrance_id = scene->pushProgram(vertex, shader_path + "cook_torrance.frag.glsl");
 
     // Add normal mapping programs
     const std::string vertex_nm = shader_path_nm + "common_nm.vert.glsl";
-    const std::size_t blinn_phong_nm_id     =   scene->pushProgram(vertex_nm, shader_path_nm + "blinn_phong_nm.frag.glsl");
-    /*const std::size_t oren_nayar_nm_id    = */scene->pushProgram(vertex_nm, shader_path_nm + "oren_nayar_nm.frag.glsl");
-    /*const std::size_t cook_torrance_nm_id = */scene->pushProgram(vertex_nm, shader_path_nm + "cook_torrance_nm.frag.glsl");
+    const std::size_t normals_nm_id       = scene->pushProgram(vertex_nm, shader_path_nm + "normals_nm.frag.glsl");
+    const std::size_t blinn_phong_nm_id   = scene->pushProgram(vertex_nm, shader_path_nm + "blinn_phong_nm.frag.glsl");
+    const std::size_t oren_nayar_nm_id    = scene->pushProgram(vertex_nm, shader_path_nm + "oren_nayar_nm.frag.glsl");
+    const std::size_t cook_torrance_nm_id = scene->pushProgram(vertex_nm, shader_path_nm + "cook_torrance_nm.frag.glsl");
 
 
     // Add models
-	/*const std::size_t nanosuit_id = */scene->pushModel(model_path + "nanosuit" + DIR_SEP + "nanosuit.obj",       blinn_phong_nm_id);
-	const std::size_t suzanne_id =      scene->pushModel(model_path + "suzanne"  + DIR_SEP + "suzanne.obj",        blinn_phong_id);
-	const std::size_t crash_id =        scene->pushModel(model_path + "crash"    + DIR_SEP + "crashbandicoot.obj", oren_nayar_id);
+	const std::size_t nanosuit_id = scene->pushModel(model_path + "nanosuit" + DIR_SEP + "nanosuit.obj",       cook_torrance_nm_id);
+	const std::size_t suzanne_id =  scene->pushModel(model_path + "suzanne"  + DIR_SEP + "suzanne.obj",        blinn_phong_id);
+	const std::size_t crash_id =    scene->pushModel(model_path + "crash"    + DIR_SEP + "crashbandicoot.obj", oren_nayar_id);
 
     // Add light model
     SceneLight::setModel(new SceneModel(model_path + "arrow" + DIR_SEP + "light_arrow.obj"));

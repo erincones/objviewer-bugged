@@ -8,7 +8,7 @@
 bool Camera::boost = false;
 
 float Camera::speed = 0.5F;
-float Camera::speed_boost = 0.25F;
+float Camera::speed_boost = 0.5F;
 float Camera::sensibility = 15.0F;
 float Camera::zoom_factor = 1.0625F;
 

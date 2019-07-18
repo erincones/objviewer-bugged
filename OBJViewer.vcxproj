@@ -221,6 +221,7 @@
     <None Include="shader\normal_mapping\blinn_phong_nm.frag.glsl" />
     <None Include="shader\normal_mapping\common_nm.vert.glsl" />
     <None Include="shader\normal_mapping\cook_torrance_nm.frag.glsl" />
+    <None Include="shader\normal_mapping\normals_nm.frag.glsl" />
     <None Include="shader\normal_mapping\oren_nayar_nm.frag.glsl" />
     <None Include="shader\oren_nayar.frag.glsl" />
   </ItemGroup>
