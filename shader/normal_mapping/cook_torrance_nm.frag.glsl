@@ -29,8 +29,9 @@ struct Light {
 in Vertex {
 	vec3 position;
 	vec2 uv_coord;
-	vec3 normal;
 } vertex;
+
+in vec3 view_dir;
 
 in mat3 tbn;
 
@@ -54,9 +55,6 @@ uniform sampler2D material_specular_map;
 uniform sampler2D material_shininess_map;
 uniform sampler2D material_bump_map;
 
-// Camera position
-uniform vec3 view_pos;
-
 
 // Out color
 out vec4 color;
@@ -75,7 +73,6 @@ void main() {
 
 
 	// View direction and initial color
-	vec3 view_dir = normalize(view_pos - vertex.position);
 	vec3 lighting = vec3(0.0F);
 
 
@@ -125,8 +122,8 @@ void main() {
 		vec3 cook_torrance = (nvnl != 0.0F ? (fresnel * roughness * geometry) / nvnl : vec3(0.0F));
 
 		// Calcule components colors
-		vec3 ambient  = light[i].ambient_level                  * light[i].ambient  * ambient_tex;
-		vec3 diffuse  =                                           light[i].diffuse  * diffuse_tex;
+		vec3 ambient  = light[i].ambient_level                  * light[i].ambient * ambient_tex;
+		vec3 diffuse  =                                           light[i].diffuse * diffuse_tex;
 		vec3 specular = light[i].specular_level * cook_torrance * light[i].specular;
 	
 		// Light contribution

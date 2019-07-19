@@ -126,9 +126,6 @@
     <ClInclude Include="src\scene\scenecamera.hpp">
       <Filter>Archivos de encabezado\scene</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>Archivos de encabezado</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\imgui\imgui.cpp">
@@ -238,10 +235,5 @@
     <None Include="shader\normal_mapping\normals_nm.frag.glsl">
       <Filter>Archivos de recursos\shader\normal_mapping</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="OBJViewer.rc">
-      <Filter>Archivos de recursos</Filter>
-    </ResourceCompile>
   </ItemGroup>
 </Project>

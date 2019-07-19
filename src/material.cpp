@@ -16,8 +16,8 @@ Material::Material(const std::string &material_name) {
 	alpha     =  1.00F;
 	sharpness = 60.00F;
 	shininess = 10.00F;
-	roughness =  0.20F;
-	metalness =  0.03F;
+	roughness =  0.30F;
+	metalness =  0.10F;
 	refractive_index = 1.00F;
 
 	// Texture maps

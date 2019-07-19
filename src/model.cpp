@@ -148,6 +148,11 @@ void Model::readOBJ() {
         }
     }
 
+    // Orthogonalize tangents
+    for (Model::vertex_data &vert : vertex)
+        vert.tangent = glm::normalize(vert.tangent - vert.normal * glm::dot(vert.normal, vert.tangent));
+
+
     // Set count to the last object
     if (!model_stock.empty())
         model_stock.back().count = (GLsizei)(index.size() - count);
@@ -158,6 +163,7 @@ void Model::readOBJ() {
         material_stock.push_back(material);
 		model_stock.push_back(Model::model_data{(GLsizei)index.size(), 0U, material});
     }
+
 
     // Close file
     file.close();
@@ -403,13 +409,13 @@ void Model::calcTangent(const std::uint32_t &ind_0, const std::uint32_t &ind_1, 
     const glm::vec2 d0(vertex_1.uv_coord - vertex_0.uv_coord);
     const glm::vec2 d1(vertex_2.uv_coord - vertex_0.uv_coord);
 
-    // Calculate tangent vector
-    glm::vec3 tangent(glm::normalize((l0 * d1.t - l1 * d0.t) / glm::abs(d0.s * d1.t - d1.s * d0.t)));
+    // Calculate tangents
+    const glm::vec3 tangent((l0 * d1.t - l1 * d0.t) / glm::abs(d0.s * d1.t - d1.s * d0.t));
 
     // Store tangent
-    vertex_0.tangent = glm::normalize(vertex_0.tangent + tangent);
-    vertex_1.tangent = glm::normalize(vertex_1.tangent + tangent);
-    vertex_2.tangent = glm::normalize(vertex_2.tangent + tangent);
+    vertex_0.tangent += tangent;
+    vertex_1.tangent += tangent;
+    vertex_2.tangent += tangent;
 }
 
 
