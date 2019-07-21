@@ -382,6 +382,10 @@ std::uint32_t Model::storeVertex(const std::string &vertex_str) {
                                   new_vertex.position = vertex_position[vertex_attrib[0] - 1];
         if (vertex_attrib[1] > 0) new_vertex.uv_coord = vertex_uv_coord[vertex_attrib[1] - 1];
         if (vertex_attrib[2] > 0) new_vertex.normal   = vertex_normal[vertex_attrib[2] - 1];
+
+        // Initialize tangent
+        new_vertex.tangent = glm::vec3(0.0F);
+        
         
         // Add vertex
         ind = (std::uint32_t)vertex.size();
