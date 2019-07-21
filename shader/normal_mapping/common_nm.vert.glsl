@@ -69,20 +69,19 @@ void main() {
 	vec3 b = normalize(cross(n, t));
 
 	tbn = mat3(t, b, n);
-	mat3 ttbn = transpose(tbn);
 
 	// Vertex
 	vertex.position = pos.xyz;
-	vertex.tangent_position = ttbn * pos.xyz;
+	vertex.tangent_position = pos.xyz * tbn;
 	vertex.uv_coord = uv_coord;
 
 	// Tangent lights directions
 	for (uint i = 0U; i < light_size; i++) {
-		tangent_light_direction[i] = ttbn * light[i].direction;
+		tangent_light_direction[i] = light[i].direction * tbn;
 	}
 
 	// Tangent view direction
-	tangent_view_pos = ttbn * view_pos;
+	tangent_view_pos = view_pos * tbn;
 
 
 	// Set vertex position

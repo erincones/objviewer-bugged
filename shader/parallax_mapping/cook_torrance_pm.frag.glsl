@@ -68,10 +68,33 @@ void main() {
 	// View direction
 	vec3 view_dir = normalize(tangent_view_pos - vertex.tangent_position);
 
-	// Parallax mapping
-	float height = texture(material_displacement_map, vertex.uv_coord).r;
-	vec2 disp = view_dir.xy / view_dir.z * (height * material_displacement);
-	vec2 uv_coord = vertex.uv_coord - disp;
+	// Number of layers for parallax mapping
+	float layers = mix(32.0F, 8.0F, abs(dot(vec3(0.0F, 0.0F, 1.0F), view_dir)));
+	float layer_depth = 1.0F / layers;
+
+	// Initialize variables for parallax mapping
+	vec2 disp = (view_dir.xy / view_dir.z) * material_displacement;
+	vec2 delta_depth = disp / layers;
+	vec2 uv_coord = vertex.uv_coord;
+	float mapped_depth = texture(material_displacement_map, uv_coord).r;
+	float depth = 0.0F;
+
+	// Steep parallax mapping
+	while (depth < mapped_depth) {
+		depth += layer_depth;
+		uv_coord -= delta_depth;
+		mapped_depth = texture(material_displacement_map, uv_coord).r;
+	}
+
+	// Before and after depth 
+	vec2 prev_steep = uv_coord + delta_depth;
+	float before_depth = texture(material_displacement_map, prev_steep).r - depth + layer_depth;
+	float after_depth = mapped_depth - depth;
+
+	// Interpolate texture coordinates
+	float weight = after_depth / (after_depth - before_depth);
+	uv_coord = prev_steep * weight + uv_coord * (1.0F - weight);
+
 
 	// Discard overflowed uv coordinates
 	if ((uv_coord.s > 1.0F) || (uv_coord.s < 0.0F) || (uv_coord.t > 1.0F) || (uv_coord.t < 0.0F))
