@@ -627,6 +627,14 @@ bool Scene::drawModelGUI(SceneModel *const model) {
             global->setMetalness(value);
         }
 
+        // Displacement
+        value = global->getDisplacement();
+        if (ImGui::DragFloat("Displacement", &value, 0.001F, 0.0F, 1.0F, "%.4F")) {
+            for (SceneMaterial *&material : model->getMaterialStock())
+                material->getMaterial()->setDisplacement(value);
+            global->setDisplacement(value);
+        }
+
         // Textures status
         bool textures_enabled = model->isTexturesEnabled();
         if (ImGui::Checkbox("Textures", &textures_enabled))

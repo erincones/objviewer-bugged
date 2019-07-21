@@ -18,6 +18,7 @@ Material::Material(const std::string &material_name) {
 	shininess = 10.00F;
 	roughness =  0.30F;
 	metalness =  0.10F;
+    displacement = 0.05F;
 	refractive_index = 1.00F;
 
 	// Texture maps
@@ -49,6 +50,7 @@ void Material::use(GLSLProgram *const program) const {
     program->setUniform("material_shininess",          shininess);
     program->setUniform("material_roughness",          roughness * roughness);
     program->setUniform("material_metalness",          metalness);
+    program->setUniform("material_displacement",       displacement);
     program->setUniform("material_refractive_index",   refractive_index);
 
     // Set texture uniforms
@@ -126,6 +128,11 @@ float Material::getMetalness() const {
 	return metalness;
 }
 
+// Get the metalness
+float Material::getDisplacement() const {
+    return displacement;
+}
+
 // Get the refractive index
 float Material::getRefractiveIndex() const {
 	return refractive_index;
@@ -195,6 +202,11 @@ void Material::setMetalness(const float &value) {
 	metalness = value;
 }
 
+// Set the displacement
+void Material::setDisplacement(const float &value) {
+    displacement = value;
+}
+
 // Set the refractive index
 void Material::setRefractiveIndex(const float &value) {
 	refractive_index = value;
@@ -215,8 +227,6 @@ void Material::setTexture(const std::string &path, const Texture::Type &texture)
         default: throw std::runtime_error("error: unknown texture map `" + std::to_string(texture) + "'");
     }
 }
-
-
 
 
 

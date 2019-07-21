@@ -82,7 +82,7 @@ void main() {
 	}
 
 	// Tangent view direction
-	tangent_view_pos = ttbn * view_pos - vertex.position;
+	tangent_view_pos = ttbn * view_pos;
 
 
 	// Set vertex position

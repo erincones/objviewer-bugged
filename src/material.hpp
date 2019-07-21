@@ -27,6 +27,7 @@ class Material {
 		float shininess;
 		float roughness;
 		float metalness;
+        float displacement;
 		float refractive_index;
 
 		// Textures
@@ -57,6 +58,7 @@ class Material {
 		float getShininess() const;
 		float getRoughness() const;
 		float getMetalness() const;
+        float getDisplacement() const;
 		float getRefractiveIndex() const;
 
         Texture *getTexture(const Texture::Type &texture) const;
@@ -72,6 +74,7 @@ class Material {
 		void setShininess(const float &value);
 		void setRoughness(const float &value);
 		void setMetalness(const float &value);
+        void setDisplacement(const float &value);
 		void setRefractiveIndex(const float &value);
 
         void setTexture(const std::string &path, const Texture::Type &texture);

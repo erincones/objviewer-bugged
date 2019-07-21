@@ -313,6 +313,7 @@ void setup_scene(const std::string &bin_path) {
     const std::string model_path = root_path + ".." + DIR_SEP + "model" + DIR_SEP;
     const std::string shader_path = root_path + ".." + DIR_SEP + "shader" + DIR_SEP;
     const std::string shader_path_nm = shader_path + "normal_mapping" + DIR_SEP;
+    const std::string shader_path_pm = shader_path + "parallax_mapping" + DIR_SEP;
 
 
 	// Create scene, background color and setup camera
@@ -343,11 +344,15 @@ void setup_scene(const std::string &bin_path) {
     const std::size_t blinn_phong_nm_id   = scene->pushProgram(vertex_nm, shader_path_nm + "blinn_phong_nm.frag.glsl");
     const std::size_t cook_torrance_nm_id = scene->pushProgram(vertex_nm, shader_path_nm + "cook_torrance_nm.frag.glsl");
 
+    // Add parallax mapping programs
+    const std::size_t blinn_phong_pm_id =   scene->pushProgram(vertex_nm, shader_path_pm + "blinn_phong_pm.frag.glsl");
+    const std::size_t cook_torrance_pm_id = scene->pushProgram(vertex_nm, shader_path_pm + "cook_torrance_pm.frag.glsl");
+
 
     // Add models
-	const std::size_t nanosuit_id = scene->pushModel(model_path + "nanosuit" + DIR_SEP + "nanosuit.obj",       cook_torrance_nm_id);
-	const std::size_t suzanne_id =  scene->pushModel(model_path + "suzanne"  + DIR_SEP + "suzanne.obj",        blinn_phong_id);
-	const std::size_t crash_id =    scene->pushModel(model_path + "crash"    + DIR_SEP + "crashbandicoot.obj", oren_nayar_id);
+	const std::size_t nanosuit_id = scene->pushModel(model_path + "nanosuit" + DIR_SEP + "nanosuit.obj", cook_torrance_nm_id);
+	const std::size_t suzanne_id =  scene->pushModel(model_path + "suzanne"  + DIR_SEP + "suzanne.obj",  cook_torrance_id);
+	const std::size_t box_id =      scene->pushModel(model_path + "box"      + DIR_SEP + "box.obj",      cook_torrance_pm_id);
 
     // Add light model
     SceneLight::setModel(new SceneModel(model_path + "arrow" + DIR_SEP + "light_arrow.obj"));
@@ -359,9 +364,9 @@ void setup_scene(const std::string &bin_path) {
     suzanne->setPosition(glm::vec3(0.6F, 0.25F, 0.0F));
 
 	// Crashbandicoot geometry
-	SceneModel *crash = scene->getModel(crash_id);
-    crash->setScale(glm::vec3(0.5F));
-    crash->setPosition(glm::vec3(0.6F, -0.25F, 0.0F));
+	SceneModel *box = scene->getModel(box_id);
+    box->setScale(glm::vec3(0.5F));
+    box->setPosition(glm::vec3(0.6F, -0.25F, 0.0F));
 
 
     // Lights default values

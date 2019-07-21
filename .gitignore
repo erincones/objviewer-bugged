@@ -13,6 +13,7 @@ model/*
 
 # Keep required models
 !model/arrow/
+!model/box/
 !model/crash/
 !model/suzanne/
 !model/nanosuit/
