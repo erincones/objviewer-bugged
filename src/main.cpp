@@ -331,6 +331,7 @@ void setup_scene(const std::string &bin_path) {
 	SceneProgram::setDefault(new SceneProgram(vertex, shader_path + "normals.frag.glsl"));
     SceneLight::setDefaultProgram(new SceneProgram(vertex, shader_path + "light.frag.glsl"));
 
+
     // Add programs
 	const std::size_t blinn_phong_id   = scene->pushProgram(vertex, shader_path + "blinn_phong.frag.glsl");
 	const std::size_t oren_nayar_id    = scene->pushProgram(vertex, shader_path + "oren_nayar.frag.glsl");
@@ -340,7 +341,6 @@ void setup_scene(const std::string &bin_path) {
     const std::string vertex_nm = shader_path_nm + "common_nm.vert.glsl";
     const std::size_t normals_nm_id       = scene->pushProgram(vertex_nm, shader_path_nm + "normals_nm.frag.glsl");
     const std::size_t blinn_phong_nm_id   = scene->pushProgram(vertex_nm, shader_path_nm + "blinn_phong_nm.frag.glsl");
-    const std::size_t oren_nayar_nm_id    = scene->pushProgram(vertex_nm, shader_path_nm + "oren_nayar_nm.frag.glsl");
     const std::size_t cook_torrance_nm_id = scene->pushProgram(vertex_nm, shader_path_nm + "cook_torrance_nm.frag.glsl");
 
 
@@ -351,6 +351,7 @@ void setup_scene(const std::string &bin_path) {
 
     // Add light model
     SceneLight::setModel(new SceneModel(model_path + "arrow" + DIR_SEP + "light_arrow.obj"));
+
 
 	// Suzanne geometry
 	SceneModel *suzanne = scene->getModel(suzanne_id);

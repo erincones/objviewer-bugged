@@ -28,12 +28,13 @@ struct Light {
 // In variables
 in Vertex {
 	vec3 position;
+	vec3 tangent_position;
 	vec2 uv_coord;
 } vertex;
 
-in vec3 view_dir;
+in vec3 tangent_light_direction[LIGHTS];
 
-in mat3 tbn;
+in vec3 tangent_view_pos;
 
 
 // Lights data
@@ -69,10 +70,11 @@ void main() {
 
 	// Normal mapping
 	vec3 normal = normalize(texture(material_bump_map, vertex.uv_coord).rgb);
-	normal = tbn * normalize(normal * 2.0F - 1.0F);
+	normal = normalize(normal * 2.0F - 1.0F);
 
 
 	// View direction and initial color
+	vec3 view_dir = normalize(tangent_view_pos - vertex.tangent_position);
 	vec3 lighting = vec3(0.0F);
 
 
@@ -97,8 +99,8 @@ void main() {
 		}
 
 		// Halfway vector and dot products
-		vec3 halfway = normalize(light[i].direction + view_dir);
-		float nl = dot(normal, light[i].direction);
+		vec3 halfway = normalize(tangent_light_direction[i] + view_dir);
+		float nl = dot(normal, tangent_light_direction[i]);
 		float nv = dot(normal, view_dir);
 		float nh = dot(normal, halfway);
 		float hv = dot(halfway, view_dir);

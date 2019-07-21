@@ -221,8 +221,11 @@
     <None Include="shader\normal_mapping\common_nm.vert.glsl" />
     <None Include="shader\normal_mapping\cook_torrance_nm.frag.glsl" />
     <None Include="shader\normal_mapping\normals_nm.frag.glsl" />
-    <None Include="shader\normal_mapping\oren_nayar_nm.frag.glsl" />
     <None Include="shader\oren_nayar.frag.glsl" />
+    <None Include="shader\parallax_mapping\blinn_phong_pm.frag.glsl" />
+    <None Include="shader\parallax_mapping\common_pm.vert.glsl" />
+    <None Include="shader\parallax_mapping\cook_torrance_pm.frag.glsl" />
+    <None Include="shader\parallax_mapping\oren_nayar_pm.frag.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

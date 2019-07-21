@@ -28,11 +28,13 @@ struct Light {
 // In variables
 in Vertex {
 	vec3 position;
+	vec3 tangent_position;
 	vec2 uv_coord;
-	vec3 normal;
 } vertex;
 
-in mat3 tbn;
+in vec3 tangent_light_direction[LIGHTS];
+
+in vec3 tangent_view_pos;
 
 
 // Lights data
@@ -52,9 +54,6 @@ uniform sampler2D material_specular_map;
 uniform sampler2D material_shininess_map;
 uniform sampler2D material_bump_map;
 
-// Camera position
-uniform vec3 view_pos;
-
 
 // Out color
 out vec4 color;
@@ -70,11 +69,11 @@ void main() {
 
 	// Normal mapping
 	vec3 normal = normalize(texture(material_bump_map, vertex.uv_coord).rgb);
-	normal = tbn * normalize(normal * 2.0F - 1.0F);
+	normal = normalize(normal * 2.0F - 1.0F);
 
 
 	// View direction and initial color
-	vec3 view_dir = normalize(view_pos - vertex.position);
+	vec3 view_dir = normalize(tangent_view_pos - vertex.tangent_position);
 	vec3 lighting = vec3(0.0F);
 
 
@@ -99,8 +98,8 @@ void main() {
 		}
 
 		// Halfway vector and dot products
-		vec3 halfway = normalize(light[i].direction + view_dir);
-		float nl = dot(light[i].direction, normal);
+		vec3 halfway = normalize(tangent_light_direction[i] + view_dir);
+		float nl = dot(tangent_light_direction[i], normal);
 		float nh = dot(normal, halfway);
 
 		// Specular Blinn-Phong

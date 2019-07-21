@@ -4,6 +4,7 @@
 // In variables
 in Vertex {
 	vec3 position;
+	vec3 tangent_position;
 	vec2 uv_coord;
 } vertex;
 

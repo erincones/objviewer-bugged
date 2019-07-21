@@ -1,10 +1,31 @@
 #version 330 core
 
+// Light macros
+#define LIGHTS 5U
+
 // Location variables
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec2 uv_coord;
 layout (location = 2) in vec3 normal;
 layout (location = 3) in vec3 tangent;
+
+// Light struct
+struct Light {
+	uint type;
+	vec3 direction;
+
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
+
+	float ambient_level;
+	float specular_level;
+	float shininess;
+
+	vec3 position;
+	vec3 attenuation;
+	vec2 cutoff;
+};
 
 
 // Camera
@@ -15,6 +36,10 @@ uniform mat4 projection_mat;
 uniform mat4 model_mat;
 uniform mat3 normal_mat;
 
+// Lights data
+uniform Light light[LIGHTS];
+uniform uint light_size;
+
 // Camera position
 uniform vec3 view_pos;
 
@@ -22,10 +47,13 @@ uniform vec3 view_pos;
 // Out variables
 out Vertex {
 	vec3 position;
+	vec3 tangent_position;
 	vec2 uv_coord;
 } vertex;
 
-out vec3 view_dir;
+out vec3 tangent_light_direction[LIGHTS];
+
+out vec3 tangent_view_pos;
 
 out mat3 tbn;
 
@@ -41,12 +69,20 @@ void main() {
 	vec3 b = normalize(cross(n, t));
 
 	tbn = mat3(t, b, n);
+	mat3 ttbn = transpose(tbn);
 
-	// vertex
+	// Vertex
 	vertex.position = pos.xyz;
+	vertex.tangent_position = ttbn * pos.xyz;
 	vertex.uv_coord = uv_coord;
 
-	view_dir = normalize(view_pos - vertex.position);
+	// Tangent lights directions
+	for (uint i = 0U; i < light_size; i++) {
+		tangent_light_direction[i] = ttbn * light[i].direction;
+	}
+
+	// Tangent view direction
+	tangent_view_pos = ttbn * view_pos - vertex.position;
 
 
 	// Set vertex position

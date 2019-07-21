@@ -40,6 +40,9 @@
     <Filter Include="Archivos de recursos\shader\normal_mapping">
       <UniqueIdentifier>{08766534-9aeb-4775-afe8-a37618f60fbc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Archivos de recursos\shader\parallax_mapping">
+      <UniqueIdentifier>{74a239cc-72b0-4bf5-9e70-36d9ae28954c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\imgui\imconfig.h">
@@ -229,11 +232,20 @@
     <None Include="shader\normal_mapping\cook_torrance_nm.frag.glsl">
       <Filter>Archivos de recursos\shader\normal_mapping</Filter>
     </None>
-    <None Include="shader\normal_mapping\oren_nayar_nm.frag.glsl">
-      <Filter>Archivos de recursos\shader\normal_mapping</Filter>
-    </None>
     <None Include="shader\normal_mapping\normals_nm.frag.glsl">
       <Filter>Archivos de recursos\shader\normal_mapping</Filter>
+    </None>
+    <None Include="shader\parallax_mapping\blinn_phong_pm.frag.glsl">
+      <Filter>Archivos de recursos\shader\parallax_mapping</Filter>
+    </None>
+    <None Include="shader\parallax_mapping\common_pm.vert.glsl">
+      <Filter>Archivos de recursos\shader\parallax_mapping</Filter>
+    </None>
+    <None Include="shader\parallax_mapping\cook_torrance_pm.frag.glsl">
+      <Filter>Archivos de recursos\shader\parallax_mapping</Filter>
+    </None>
+    <None Include="shader\parallax_mapping\oren_nayar_pm.frag.glsl">
+      <Filter>Archivos de recursos\shader\parallax_mapping</Filter>
     </None>
   </ItemGroup>
 </Project>
