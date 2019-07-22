@@ -38,6 +38,17 @@ void Scene::HelpMarker(const char *const text) {
     }
 }
 
+
+// Model sorter by camera distance
+void Scene::sortModels() {
+    sorted_model_stock.sort([this](const SceneModel *first, const SceneModel *second) {
+        float distance_first = glm::length(camera->getPosition() - first->getPosition());
+        float distance_second = glm::length(camera->getPosition() - second->getPosition());
+        return distance_first > distance_second;
+    });
+}
+
+
 // Draw the settings window
 void Scene::drawSettingsWindow() {
     // Setup style
@@ -421,8 +432,10 @@ bool Scene::drawCameraGUI(SceneCamera *const scene_cam, const bool select_button
 
     // Position
     glm::vec3 value = scene_cam->getPosition();
-    if (ImGui::DragFloat3("Position", &value.x, 0.01F, 0.0F, 0.0F, "%.4F"))
+    if (ImGui::DragFloat3("Position", &value.x, 0.01F, 0.0F, 0.0F, "%.4F")) {
         scene_cam->setPosition(value);
+        sortModels();
+    }
 
     // Direction
     value = scene_cam->getLookDirection();
@@ -520,8 +533,10 @@ bool Scene::drawModelGUI(SceneModel *const model) {
     if (ImGui::TreeNodeEx("Geometry", ImGuiTreeNodeFlags_DefaultOpen)) {
         // Position
         glm::vec3 value = model->Model::getPosition();
-        if (ImGui::DragFloat3("Position", &value.x, 0.01F, 0.0F, 0.0F, "%.4F"))
+        if (ImGui::DragFloat3("Position", &value.x, 0.01F, 0.0F, 0.0F, "%.4F")) {
             model->Model::setPosition(value);
+            sortModels();
+        }
 
         // Rotation
         value = model->Model::getRotationAngles();
@@ -694,6 +709,11 @@ bool Scene::drawModelGUI(SceneModel *const model) {
                 value = material->getMetalness();
                 if (ImGui::DragFloat("Metalness", &value, 0.001F, 0.0F, 1.0F, "%.4F"))
                     material->setMetalness(value);
+
+                // Displacement
+                value = material->getDisplacement();
+                if (ImGui::DragFloat("Displacement", &value, 0.001F, 0.0F, 1.0F, "%.4F"))
+                    material->setDisplacement(value);
 
 
                 // Textures node
@@ -1009,7 +1029,7 @@ void Scene::draw() const {
 	if (camera == nullptr) return;
 
 	// Draw models
-	for (const SceneModel *const &model : model_stock) {
+	for (const SceneModel *const &model : sorted_model_stock) {
 		// Check program and enabled status
 		if (model->isEnabled()) {
 			// Get the correct program
@@ -1124,6 +1144,9 @@ void Scene::reloadPrograms() {
 // Select camera by index
 void Scene::selectCamera(const std::size_t &index) {
 	camera = *std::next(camera_stock.begin(), index);
+
+    // Sort models
+    sortModels();
 }
 
 // Apply zoom
@@ -1134,6 +1157,9 @@ void Scene::zoom(const double &level) {
 // Travell trhough scene
 void Scene::travell(const Camera::Movement &direction) {
 	camera->move(direction, Scene::io->DeltaTime);
+
+    // Sort models
+    sortModels();
 }
 
 // Look around
@@ -1176,7 +1202,14 @@ std::size_t Scene::pushLight(const Light::Type &type) {
 
 // Push an empty scene model
 std::size_t Scene::pushModel() {
-    model_stock.push_back(new SceneModel(""));
+    // Store the new scene model
+    SceneModel *const model = new SceneModel("");
+    model_stock.push_back(model);
+
+    // Sort model
+    sorted_model_stock.push_front(model);
+    sortModels();
+
     return model_stock.size() - 1;
 }
 
@@ -1189,6 +1222,10 @@ std::size_t Scene::pushModel(const std::string &path, const std::size_t &program
 	// Relate to the scene program
 	if (program != -1)
 		(*std::next(program_stock.begin(), program))->addRelated(model);
+
+    // Sort model
+    sorted_model_stock.push_front(model);
+    sortModels();
 
 	return model_stock.size() - 1;
 }
@@ -1228,8 +1265,12 @@ void Scene::popCamera(const std::size_t &index) {
 	std::list<SceneCamera *>::const_iterator old_camera = std::next(camera_stock.begin(), index);
 
 	// Update the selected camera if it is to be deleted
-	if (camera == *old_camera)
-		camera = *std::next(old_camera, (*old_camera != *camera_stock.rbegin() ? 1 : -1));
+    if (camera == *old_camera) {
+        camera = *std::next(old_camera, (*old_camera != *camera_stock.rbegin() ? 1 : -1));
+
+        // Sort models
+        sortModels();
+    }
 
 	// Delete camera and remove from list
 	delete *old_camera;
@@ -1258,6 +1299,7 @@ void Scene::popModel(const std::size_t &index) {
 	// Delete model and remove from list
 	delete *model;
 	model_stock.erase(model);
+    sortModels();
 }
 
 // Pop scene program by index

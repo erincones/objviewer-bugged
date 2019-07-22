@@ -320,16 +320,20 @@ void setup_scene(const std::string &bin_path) {
     const std::string shader_path_pm = shader_path + "parallax_mapping" + DIR_SEP;
 
 
-	// Create scene, background color and setup camera
+	// Create scene and set background color
 	scene = new Scene(width, height);
 	scene->setBackground(glm::vec3(0.45F, 0.55F, 0.60F));
 
+    // Setup camera
+    SceneCamera *camera = scene->getSelectedCamera();
+    camera->setPosition(glm::vec3(-0.1F, 0.1F, 2.6F));
+
     // Add a second camera
     const std::size_t cam_id = scene->pushCamera(true);
-    SceneCamera *second_cam = scene->getCamera(cam_id);
-    second_cam->setOrthogonal(true);
-    second_cam->setPosition(glm::vec3(-1.170F, 0.975F, 1.700F));
-    second_cam->setLookDirection(glm::vec3(0.4855F, -0.4140F, -0.7700F));
+    camera = scene->getCamera(cam_id);
+    camera->setOrthogonal(true);
+    camera->setPosition(glm::vec3(-1.170F, 0.975F, 1.700F));
+    camera->setLookDirection(glm::vec3(0.4855F, -0.4140F, -0.7700F));
 
 	// Default programs
 	const std::string vertex = shader_path + "common.vert.glsl";
@@ -356,21 +360,45 @@ void setup_scene(const std::string &bin_path) {
     // Add models
 	const std::size_t nanosuit_id = scene->pushModel(model_path + "nanosuit" + DIR_SEP + "nanosuit.obj", cook_torrance_nm_id);
 	const std::size_t suzanne_id =  scene->pushModel(model_path + "suzanne"  + DIR_SEP + "suzanne.obj",  cook_torrance_id);
-	const std::size_t box_id =      scene->pushModel(model_path + "box"      + DIR_SEP + "box.obj",      cook_torrance_pm_id);
+	const std::size_t box_id =      scene->pushModel(model_path + "box"      + DIR_SEP + "box.obj",      blinn_phong_pm_id);
+    const std::size_t window_0_id = scene->pushModel(model_path + "window"   + DIR_SEP + "window.obj",   blinn_phong_id);
+    const std::size_t window_1_id = scene->pushModel(model_path + "window"   + DIR_SEP + "window.obj",   blinn_phong_id);
+    const std::size_t window_2_id = scene->pushModel(model_path + "window"   + DIR_SEP + "window.obj",   blinn_phong_id);
+    const std::size_t window_3_id = scene->pushModel(model_path + "window"   + DIR_SEP + "window.obj",   blinn_phong_id);
 
     // Add light model
     SceneLight::setModel(new SceneModel(model_path + "arrow" + DIR_SEP + "light_arrow.obj"));
 
 
 	// Suzanne geometry
-	SceneModel *suzanne = scene->getModel(suzanne_id);
-    suzanne->setScale(glm::vec3(0.5F));
-    suzanne->setPosition(glm::vec3(0.6F, 0.25F, 0.0F));
+	SceneModel *model = scene->getModel(suzanne_id);
+    model->setScale(glm::vec3(0.5F));
+    model->setPosition(glm::vec3(0.6F, 0.25F, 0.0F));
 
-	// Crashbandicoot geometry
-	SceneModel *box = scene->getModel(box_id);
-    box->setScale(glm::vec3(0.5F));
-    box->setPosition(glm::vec3(0.6F, -0.25F, 0.0F));
+	// Box geometry
+    model = scene->getModel(box_id);
+    model->setScale(glm::vec3(0.5F));
+    model->setPosition(glm::vec3(0.6F, -0.25F, 0.0F));
+
+    // Windows models geometry
+    model = scene->getModel(window_0_id);
+    model->setScale(glm::vec3(0.5F));
+    model->setPosition(glm::vec3(-0.25F, 0.5F, -0.65F));
+
+    model = scene->getModel(window_1_id);
+    model->setScale(glm::vec3(0.5F));
+    model->setPosition(glm::vec3(0.0F, 0.6F, -0.25F));
+
+    model = scene->getModel(window_2_id);
+    model->setScale(glm::vec3(0.5F));
+    model->setPosition(glm::vec3(0.1F, 0.3F, -0.4F));
+
+    model = scene->getModel(window_3_id);
+    model->setScale(glm::vec3(0.5F));
+    model->setPosition(glm::vec3(-0.15F, -0.2F, 0.25F));
+
+    // Sort models
+    scene->sortModels();
 
 
     // Lights default values

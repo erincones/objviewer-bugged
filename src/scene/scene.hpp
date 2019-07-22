@@ -43,6 +43,9 @@ class Scene {
 		std::list<SceneModel *> model_stock;
 		std::list<SceneProgram *> program_stock;
 
+        // Sorted models
+        std::list<SceneModel *> sorted_model_stock;
+
 		// Disable copy and assignation
 		Scene(const Scene &) = delete;
 		Scene &operator = (const Scene &) = delete;
@@ -86,6 +89,8 @@ class Scene {
 
 		void draw() const;
 		void drawGUI();
+
+        void sortModels();
 
 		void showGUI(const bool &status);
         void showAbout(const bool &status);
