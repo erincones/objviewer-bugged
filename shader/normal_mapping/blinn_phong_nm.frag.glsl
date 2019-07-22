@@ -46,6 +46,7 @@ uniform vec3 material_ambient_color;
 uniform vec3 material_diffuse_color;
 uniform vec3 material_specular_color;
 
+uniform float material_alpha;
 uniform float material_shininess;
 
 uniform sampler2D material_ambient_map;
@@ -122,5 +123,5 @@ void main() {
 	}
 
 	// Set color
-	color = vec4(lighting, 1.0F);
+	color = vec4(lighting, material_alpha * diffuse.a);
 }
