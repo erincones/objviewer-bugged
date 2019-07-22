@@ -161,6 +161,10 @@ void setup_opengl() {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
+    // Enable blending
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     // Register the callbacks
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);

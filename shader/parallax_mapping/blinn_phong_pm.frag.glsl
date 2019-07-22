@@ -63,6 +63,14 @@ out vec4 color;
 
 // Main function
 void main() {
+	// Diffuse texture mapping
+    vec4 diffuse = texture(material_diffuse_map,   vertex.uv_coord);
+
+	// Discard transparent pixels
+	if (diffuse.a == 0.0F)
+		discard;
+
+	
 	// View direction
 	vec3 view_dir = normalize(tangent_view_pos - vertex.tangent_position);
 
@@ -99,9 +107,9 @@ void main() {
 		discard;
 	
 	
-	// Texture mapping
+	// Rest of texture mapping
+	vec3 diffuse_tex    = material_diffuse_color  * diffuse.rgb;
 	vec3 ambient_tex    = material_ambient_color  * texture(material_ambient_map,  uv_coord).rgb;
-    vec3 diffuse_tex    = material_diffuse_color  * texture(material_diffuse_map,  uv_coord).rgb;
 	vec3 specular_tex   = material_specular_color * texture(material_specular_map, uv_coord).rgb;
 	float shininess_tex = material_shininess      * texture(material_shininess_map, vertex.uv_coord).r;
 

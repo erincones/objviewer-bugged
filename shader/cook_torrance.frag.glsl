@@ -49,7 +49,6 @@ uniform float material_metalness;
 uniform sampler2D material_ambient_map;
 uniform sampler2D material_diffuse_map;
 uniform sampler2D material_specular_map;
-uniform sampler2D material_shininess_map;
 
 // Camera position
 uniform vec3 view_pos;
@@ -61,9 +60,16 @@ out vec4 color;
 
 // Main function
 void main() {
-	// Texture mapping
+	// Diffuse texture mapping
+    vec4 diffuse = texture(material_diffuse_map,   vertex.uv_coord);
+
+	// Discard transparent pixels
+	if (diffuse.a == 0.0F)
+		discard;
+	
+	// Rest of texture mapping
+	vec3 diffuse_tex    = material_diffuse_color  * diffuse.rgb;
 	vec3 ambient_tex    = material_ambient_color  * texture(material_ambient_map,   vertex.uv_coord).rgb;
-    vec3 diffuse_tex    = material_diffuse_color  * texture(material_diffuse_map,   vertex.uv_coord).rgb;
 	vec3 specular_tex   = material_specular_color * texture(material_specular_map,  vertex.uv_coord).rgb;
 
 	// View direction and initial color
