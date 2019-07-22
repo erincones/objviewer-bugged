@@ -4,11 +4,13 @@
 #include "glad/glad.h"
 
 #include <string>
+#include <array>
 #include <map>
 
 class Texture {
     public:
         enum Type : std::uint8_t {
+            CUBE         = 0x00,
             AMBIENT      = 0x01,
             DIFFUSE      = 0x02,
             SPECULAR     = 0x04,
@@ -18,6 +20,15 @@ class Texture {
             DISPLACEMENT = 0x40,
             STENCIL      = 0x80,
             ANY          = 0xFF
+        };
+
+        enum CubeFace : std::uint8_t {
+            RIGHT,
+            LEFT,
+            TOP,
+            DOWN,
+            FRONT,
+            BACK
         };
 
     private:
@@ -34,11 +45,27 @@ class Texture {
         std::string path;
         std::string name;
 
+        // Cube path and name
+        std::string path_r;
+        std::string path_l;
+        std::string path_t;
+        std::string path_d;
+        std::string path_f;
+        std::string path_b;
+        std::string name_r;
+        std::string name_l;
+        std::string name_t;
+        std::string name_d;
+        std::string name_f;
+        std::string name_b;
+
+
         // Empty texture creator
         Texture(const bool &load_default);
 
         // Read and load texture
-        void load();
+        void loadImage();
+        void loadCube();
         void loadDefault();
 
         // Destroy texture
@@ -46,7 +73,12 @@ class Texture {
 
 		// Static variables
 		static GLuint default_id;
+        static GLuint default_normal_id;
+        static GLuint default_displacement_id;
+
 		static unsigned int default_count;
+        static unsigned int default_normal_count;
+        static unsigned int default_displacement_count;
 
         // Static const variables
         static const std::string AMBIENT_STR;
@@ -61,6 +93,7 @@ class Texture {
 
     public:
         Texture(const std::string &file_path, const Texture::Type &value = Texture::ANY);
+        Texture(const std::string &right, const std::string &left, const std::string &top, const std::string &down, const std::string &front, const std::string &back);
 
         void bind(const GLenum &unit) const;
 
@@ -69,6 +102,8 @@ class Texture {
         Texture::Type getType() const;
         std::string getPath() const;
         std::string getName() const;
+        std::string getCubePath(const Texture::CubeFace &face) const;
+        std::string getCubeName(const Texture::CubeFace &face) const;
 
 
 		static Texture *white();

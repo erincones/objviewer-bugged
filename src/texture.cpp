@@ -10,7 +10,12 @@
 
 // Static definition
 GLuint Texture::default_id = GL_FALSE;
+GLuint Texture::default_normal_id = GL_FALSE;
+GLuint Texture::default_displacement_id = GL_FALSE;
+
 unsigned int Texture::default_count = 0;
+unsigned int Texture::default_normal_count = 0;
+unsigned int Texture::default_displacement_count = 0;
 
 // Static constants
 const std::string Texture::AMBIENT_STR      = "Ambient";
@@ -35,7 +40,7 @@ Texture::Texture(const bool &load_default) {
 }
 
 // Read and load texture
-void Texture::load() {
+void Texture::loadImage() {
     // Image properties
     int width;
     int height;
@@ -67,45 +72,135 @@ void Texture::load() {
     stbi_image_free(data);
 }
 
+
+// Read and load cube map
+void Texture::loadCube() {
+    // Image properties
+    int width[6];
+    int height[6];
+    int channels;
+
+    // Pointers to paths and data
+    std::string *face_path[6] = {&path_r, &path_l, &path_t, &path_d, &path_f, &path_b};
+    stbi_uc *data[6];
+
+    // Open images as RGB
+    for (std::uint8_t i = 0U; i < 6U; i++) {
+        data[i] = stbi_load(face_path[i]->c_str(), &width[i], &height[i], &channels, STBI_rgb);
+
+        // Check data
+        if (data[i] == NULL) {
+            // Free loaded data
+            for (std::uint8_t j = 0U; j < i; j++)
+                stbi_image_free(data[j]);
+
+            // Throw exception
+            throw std::runtime_error("error: could not open the texture `" + *face_path[i] + "'");
+        }
+    }
+
+    // Generate new texture
+    glGenTextures(1, &id);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, id);
+
+    // Texture parameters
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Load textures
+    for (GLint i = 0U; i < 6U; i++)
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width[i], height[i], 0, GL_RGB, GL_UNSIGNED_BYTE, data[i]);
+
+    // Generate mipmaps
+    glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+
+    // Free data
+    for (std::uint8_t i = 0U; i < 6U; i++)
+        stbi_image_free(data[i]);
+}
+
 // Create default texture;
 void Texture::loadDefault() {
-	if (Texture::default_id == GL_FALSE) {
-		// White color
-		float white_float[] = {1.0F, 1.0F, 1.0F, 1.0F};
-		unsigned char white_char[] = {0xFF, 0xFF, 0xFF, 0xFF};
+	if ((Texture::default_id == GL_FALSE) || (Texture::default_normal_id == GL_FALSE) || (Texture::default_displacement_id == GL_FALSE)) {
+		// color
+		float border[] = {0.0F, 0.0F, 0.0F, 1.0F};
+		unsigned char color[] = {0x00, 0x00, 0x00};
+
+        // Default for normal mapping
+        if (type == Texture::BUMP) {
+            border[1] = 1.0F;
+            color[1] = 0xFF;
+        }
+
+        // Default for non parallax mapping
+        else if (type != Texture::DISPLACEMENT) {
+            border[0] = 1.0F;
+            border[1] = 1.0F;
+            border[2] = 1.0F;
+            color[0] = 0xFF;
+            color[1] = 0xFF;
+            color[2] = 0xFF;
+        }
 
 		// Generate new texture
 		glGenTextures(1, &Texture::default_id);
 		glBindTexture(GL_TEXTURE_2D, Texture::default_id);
 
 		// Texture parameters
-		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &white_float[0]);
+		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &border[0]);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 		// Load texture and generate mipmap
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, &white_char[0]);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, &color[0]);
 	}
 
 	// Assign the ID of the default texture and count
-	id = Texture::default_id;
-	Texture::default_count++;
+    if (type == Texture::BUMP) {
+        id = Texture::default_normal_id;
+        Texture::default_normal_count++;
+    }
+
+    else if (type == Texture::DISPLACEMENT) {
+        id = Texture::default_displacement_id;
+        Texture::default_displacement_count++;
+    }
+
+    else {
+        id = Texture::default_id;
+        Texture::default_count++;
+    }
 }
 
 
 // Destroy texture
 void Texture::destroy() {
-    // Non default texture
-    if (id != Texture::default_id)
-        glDeleteTextures(1, &id);
-
     // Default texture
-    else if (--Texture::default_count == 0U) {
+    if ((id == Texture::default_id) && (--Texture::default_count == 0U)) {
         glDeleteTextures(1, &id);
         Texture::default_id = GL_FALSE;
     }
+
+    // Normal mapping default texture
+    else if ((id == Texture::default_normal_id) && (--Texture::default_normal_count == 0U)) {
+        glDeleteTextures(1, &id);
+        Texture::default_normal_id = GL_FALSE;
+    }
+    
+    // Parallax mapping default texture
+    else if ((id == Texture::default_displacement_id) && (--Texture::default_displacement_count == 0U)) {
+        glDeleteTextures(1, &id);
+        Texture::default_displacement_id = GL_FALSE;
+    }
+
+    // Non default texture
+    else
+        glDeleteTextures(1, &id);
 }
 
 
@@ -121,10 +216,38 @@ Texture::Texture(const std::string &file_path, const Texture::Type &value) {
 
     // Load texture
     try {
-        load();
+        loadImage();
     } catch (std::exception &exception) {
         std::cerr << exception.what() << std::endl;
         loadDefault();
+    }
+}
+
+// Cube map constructor
+Texture::Texture(const std::string &right, const std::string &left, const std::string &top, const std::string &down, const std::string &front, const std::string &back) {
+    // Initialize texture and type
+    id = GL_FALSE;
+    type = Texture::CUBE;
+
+    // Set paths and names
+    path_r = right;
+    path_l = left;
+    path_t = top;
+    path_d = down;
+    path_f = front;
+    path_b = back;
+    name_r = path_r.substr(path_r.find_last_of(DIR_SEP) + 1);
+    name_l = path_l.substr(path_l.find_last_of(DIR_SEP) + 1);
+    name_t = path_t.substr(path_t.find_last_of(DIR_SEP) + 1);
+    name_d = path_d.substr(path_d.find_last_of(DIR_SEP) + 1);
+    name_f = path_f.substr(path_f.find_last_of(DIR_SEP) + 1);
+    name_b = path_b.substr(path_b.find_last_of(DIR_SEP) + 1);
+
+    // Load cube
+    try {
+        loadCube();
+    } catch (std::exception &exception) {
+        std::cerr << exception.what() << std::endl;
     }
 }
 
@@ -157,6 +280,32 @@ std::string Texture::getPath() const {
 // Get name
 std::string Texture::getName() const {
     return name;
+}
+
+// Get cube map path
+std::string Texture::getCubePath(const Texture::CubeFace &face) const {
+    switch (face) {
+        case Texture::RIGHT: return path_r;
+        case Texture::LEFT:  return path_l;
+        case Texture::TOP:   return path_t;
+        case Texture::DOWN:  return path_d;
+        case Texture::FRONT: return path_f;
+        case Texture::BACK:  return path_b;
+        default: throw std::runtime_error("error: invalid cube face `" + std::to_string(face) + "'");
+    }
+}
+
+// Get cube map name
+std::string Texture::getCubeName(const Texture::CubeFace &face) const {
+    switch (face) {
+        case Texture::RIGHT: return name_r;
+        case Texture::LEFT:  return name_l;
+        case Texture::TOP:   return name_t;
+        case Texture::DOWN:  return name_d;
+        case Texture::FRONT: return name_f;
+        case Texture::BACK:  return name_b;
+        default: throw std::runtime_error("error: invalid cube face `" + std::to_string(face) + "'");
+    }
 }
 
 
