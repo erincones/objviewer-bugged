@@ -73,12 +73,7 @@ class Texture {
 
 		// Static variables
 		static GLuint default_id;
-        static GLuint default_normal_id;
-        static GLuint default_displacement_id;
-
 		static unsigned int default_count;
-        static unsigned int default_normal_count;
-        static unsigned int default_displacement_count;
 
         // Static const variables
         static const std::string AMBIENT_STR;

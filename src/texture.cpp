@@ -10,12 +10,7 @@
 
 // Static definition
 GLuint Texture::default_id = GL_FALSE;
-GLuint Texture::default_normal_id = GL_FALSE;
-GLuint Texture::default_displacement_id = GL_FALSE;
-
 unsigned int Texture::default_count = 0;
-unsigned int Texture::default_normal_count = 0;
-unsigned int Texture::default_displacement_count = 0;
 
 // Static constants
 const std::string Texture::AMBIENT_STR      = "Ambient";
@@ -124,83 +119,43 @@ void Texture::loadCube() {
 
 // Create default texture;
 void Texture::loadDefault() {
-	if ((Texture::default_id == GL_FALSE) || (Texture::default_normal_id == GL_FALSE) || (Texture::default_displacement_id == GL_FALSE)) {
-		// color
-		float border[] = {0.0F, 0.0F, 0.0F, 1.0F};
-		unsigned char color[] = {0x00, 0x00, 0x00};
+    if (Texture::default_id == GL_FALSE) {
+        // White color
+        float white_float[] = {1.0F, 1.0F, 1.0F, 1.0F};
+        unsigned char white_char[] = {0xFF, 0xFF, 0xFF, 0xFF};
 
-        // Default for normal mapping
-        if (type == Texture::BUMP) {
-            border[1] = 1.0F;
-            color[1] = 0xFF;
-        }
+        // Generate new texture
+        glGenTextures(1, &Texture::default_id);
+        glBindTexture(GL_TEXTURE_2D, Texture::default_id);
 
-        // Default for non parallax mapping
-        else if (type != Texture::DISPLACEMENT) {
-            border[0] = 1.0F;
-            border[1] = 1.0F;
-            border[2] = 1.0F;
-            color[0] = 0xFF;
-            color[1] = 0xFF;
-            color[2] = 0xFF;
-        }
+        // Texture parameters
+        glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &white_float[0]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-		// Generate new texture
-		glGenTextures(1, &Texture::default_id);
-		glBindTexture(GL_TEXTURE_2D, Texture::default_id);
-
-		// Texture parameters
-		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &border[0]);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-		// Load texture and generate mipmap
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, &color[0]);
-	}
-
-	// Assign the ID of the default texture and count
-    if (type == Texture::BUMP) {
-        id = Texture::default_normal_id;
-        Texture::default_normal_count++;
+        // Load texture and generate mipmap
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, &white_char[0]);
     }
 
-    else if (type == Texture::DISPLACEMENT) {
-        id = Texture::default_displacement_id;
-        Texture::default_displacement_count++;
-    }
-
-    else {
-        id = Texture::default_id;
-        Texture::default_count++;
-    }
+    // Assign the ID of the default texture and count
+    id = Texture::default_id;
+    Texture::default_count++;
 }
 
 
 // Destroy texture
 void Texture::destroy() {
+    // Non default texture
+    if (id != Texture::default_id)
+        glDeleteTextures(1, &id);
+
     // Default texture
-    if ((id == Texture::default_id) && (--Texture::default_count == 0U)) {
+    else if (--Texture::default_count == 0U) {
         glDeleteTextures(1, &id);
         Texture::default_id = GL_FALSE;
     }
-
-    // Normal mapping default texture
-    else if ((id == Texture::default_normal_id) && (--Texture::default_normal_count == 0U)) {
-        glDeleteTextures(1, &id);
-        Texture::default_normal_id = GL_FALSE;
-    }
-    
-    // Parallax mapping default texture
-    else if ((id == Texture::default_displacement_id) && (--Texture::default_displacement_count == 0U)) {
-        glDeleteTextures(1, &id);
-        Texture::default_displacement_id = GL_FALSE;
-    }
-
-    // Non default texture
-    else
-        glDeleteTextures(1, &id);
 }
 
 
